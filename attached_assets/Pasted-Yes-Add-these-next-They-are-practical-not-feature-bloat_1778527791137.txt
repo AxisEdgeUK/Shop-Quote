@@ -1,0 +1,115 @@
+Yes. Add these next. They are practical, not feature bloat.
+
+```text
+Improve SHOP Quote with these practical machine-shop requirements.
+
+1. Add multi-line quote capability
+A quote must allow more than one part/line item.
+Example:
+- Part A x 50
+- Part B x 25
+- Setup charge
+- Tooling charge
+- Delivery
+
+2. Add separate one-off charges
+Allow charges that are not multiplied by quantity:
+- programming
+- fixture
+- tooling
+- delivery
+- inspection report
+- material certification
+
+3. Add quantity price breaks
+Allow one quote to show:
+- 10 off price
+- 25 off price
+- 50 off price
+- 100 off price
+
+This is very important for machining quotes.
+
+4. Add “exclude from customer PDF” toggle
+Some internal lines should not appear on customer quote.
+
+5. Add quote terms templates
+Create editable default terms:
+- Prices exclude VAT unless stated
+- Quote valid for X days
+- Delivery subject to material availability
+- Lead time starts from receipt of order and approved drawings
+- Material prices subject to change
+- Tolerances as per supplied drawing
+- Any changes to drawing or revision may require requote
+
+6. Add drawing/revision control
+Each part should include:
+- drawing number
+- revision
+- drawing date optional
+- customer part number optional
+
+7. Add file upload placeholders
+Allow uploading:
+- customer drawing PDF
+- STEP file
+- DXF file
+- image
+For now store them against the quote only. Do not analyse them yet.
+
+8. Add quote email template
+Create a copyable email message:
+Subject: Quote [quote number] - [customer name]
+Body:
+Please find attached our quotation for [part name].
+This quotation is valid for [X] days.
+Lead time is estimated at [lead time].
+Please let us know if you would like to proceed.
+
+9. Add quote status notes
+When marking Lost, ask for reason:
+- price too high
+- lead time too long
+- no response
+- customer changed design
+- competitor won
+- other
+
+10. Add basic reporting
+Show:
+- most quoted customers
+- won/lost reason summary
+- average margin
+- average quote value
+- quote win rate
+- monthly quoted value
+
+11. Add customer-specific default settings
+Per customer allow:
+- default payment terms
+- default margin adjustment
+- default delivery terms
+- default contact person
+
+12. Add machine hourly rate protection
+Only show hourly rates and margins internally.
+Never show hourly rates, margin, or cost breakdown on customer PDF unless user manually chooses to include them.
+
+13. Add quote lock
+Once a quote is sent, allow user to lock it.
+If edited after sending, create a new revision automatically.
+
+14. Add print/download options
+Allow:
+- download PDF
+- print quote
+- save as draft
+- mark as sent
+
+15. Add mobile/tablet usability
+Make sure New Quote workflow works properly on iPad and large phones.
+Many shop owners will use this on the move.
+```
+
+Most important out of that list: **quantity price breaks**. Machine shops constantly quote 10 off, 25 off, 50 off, 100 off. That will make the product feel much more real.

@@ -215,6 +215,7 @@ export const ListQuotesResponse = zod.array(ListQuotesResponseItem);
 export const CreateQuoteBody = zod.object({
   customerId: zod.number(),
   status: zod.string().optional(),
+  lostReason: zod.string().optional(),
   quoteDate: zod.string().optional(),
   validUntil: zod.string().optional(),
   quoteRevision: zod.string().optional(),
@@ -229,6 +230,7 @@ export const CreateQuoteBody = zod.object({
   inspectionReportIncluded: zod.boolean().optional(),
   fairIncluded: zod.boolean().optional(),
   cmmReportIncluded: zod.boolean().optional(),
+  priceBreakQtys: zod.string().optional(),
   lineItems: zod.array(
     zod.object({
       partName: zod.string(),
@@ -241,6 +243,8 @@ export const CreateQuoteBody = zod.object({
       toleranceClass: zod.string().optional(),
       surfaceFinish: zod.string().optional(),
       complexity: zod.string().optional(),
+      lineItemType: zod.string().optional(),
+      hiddenFromPdf: zod.boolean().optional(),
       setupHours: zod.number(),
       programmingHours: zod.number(),
       machiningMinutesPerPart: zod.number(),
@@ -276,6 +280,7 @@ export const GetQuoteResponse = zod.object({
   quoteNumber: zod.string(),
   customerId: zod.number(),
   status: zod.string(),
+  lostReason: zod.string(),
   quoteDate: zod.string(),
   validUntil: zod.string(),
   quoteRevision: zod.string(),
@@ -290,6 +295,7 @@ export const GetQuoteResponse = zod.object({
   inspectionReportIncluded: zod.boolean(),
   fairIncluded: zod.boolean(),
   cmmReportIncluded: zod.boolean(),
+  priceBreakQtys: zod.string(),
   lineItems: zod.array(
     zod.object({
       id: zod.number(),
@@ -303,6 +309,8 @@ export const GetQuoteResponse = zod.object({
       machineId: zod.number().nullable(),
       toleranceClass: zod.string(),
       surfaceFinish: zod.string(),
+      lineItemType: zod.string(),
+      hiddenFromPdf: zod.boolean(),
       complexity: zod.string(),
       setupHours: zod.number(),
       programmingHours: zod.number(),
@@ -352,6 +360,7 @@ export const UpdateQuoteParams = zod.object({
 export const UpdateQuoteBody = zod.object({
   customerId: zod.number().optional(),
   status: zod.string().optional(),
+  lostReason: zod.string().optional(),
   quoteDate: zod.string().optional(),
   validUntil: zod.string().optional(),
   quoteRevision: zod.string().optional(),
@@ -366,6 +375,7 @@ export const UpdateQuoteBody = zod.object({
   inspectionReportIncluded: zod.boolean().optional(),
   fairIncluded: zod.boolean().optional(),
   cmmReportIncluded: zod.boolean().optional(),
+  priceBreakQtys: zod.string().optional(),
   lineItems: zod
     .array(
       zod.object({
@@ -379,6 +389,8 @@ export const UpdateQuoteBody = zod.object({
         toleranceClass: zod.string().optional(),
         surfaceFinish: zod.string().optional(),
         complexity: zod.string().optional(),
+        lineItemType: zod.string().optional(),
+        hiddenFromPdf: zod.boolean().optional(),
         setupHours: zod.number(),
         programmingHours: zod.number(),
         machiningMinutesPerPart: zod.number(),
@@ -408,6 +420,7 @@ export const UpdateQuoteResponse = zod.object({
   quoteNumber: zod.string(),
   customerId: zod.number(),
   status: zod.string(),
+  lostReason: zod.string(),
   quoteDate: zod.string(),
   validUntil: zod.string(),
   quoteRevision: zod.string(),
@@ -422,6 +435,7 @@ export const UpdateQuoteResponse = zod.object({
   inspectionReportIncluded: zod.boolean(),
   fairIncluded: zod.boolean(),
   cmmReportIncluded: zod.boolean(),
+  priceBreakQtys: zod.string(),
   lineItems: zod.array(
     zod.object({
       id: zod.number(),
@@ -435,6 +449,8 @@ export const UpdateQuoteResponse = zod.object({
       machineId: zod.number().nullable(),
       toleranceClass: zod.string(),
       surfaceFinish: zod.string(),
+      lineItemType: zod.string(),
+      hiddenFromPdf: zod.boolean(),
       complexity: zod.string(),
       setupHours: zod.number(),
       programmingHours: zod.number(),

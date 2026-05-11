@@ -22,12 +22,14 @@ const lineItemSchema = z.object({
   drawingNumber: z.string().optional(),
   revision: z.string().optional(),
   quantity: z.coerce.number().min(1),
-  material: z.string().min(1, "Material is required"),
-  processType: z.string().min(1, "Process type is required"),
+  material: z.string().optional(),
+  processType: z.string().optional(),
   machineId: z.coerce.number().optional().nullable(),
   toleranceClass: z.string().optional(),
   surfaceFinish: z.string().optional(),
   complexity: z.string().optional(),
+  lineItemType: z.string().default("standard"),
+  hiddenFromPdf: z.boolean().default(false),
   setupHours: z.coerce.number().min(0),
   programmingHours: z.coerce.number().min(0),
   machiningMinutesPerPart: z.coerce.number().min(0),
@@ -66,6 +68,7 @@ const quoteSchema = z.object({
   inspectionReportIncluded: z.boolean().default(false),
   fairIncluded: z.boolean().default(false),
   cmmReportIncluded: z.boolean().default(false),
+  priceBreakQtys: z.string().default(""),
   lineItems: z.array(lineItemSchema).min(1, "At least one part is required"),
 });
 
@@ -236,6 +239,7 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
       inspectionReportIncluded: initialValues?.inspectionReportIncluded || false,
       fairIncluded: initialValues?.fairIncluded || false,
       cmmReportIncluded: initialValues?.cmmReportIncluded || false,
+      priceBreakQtys: initialValues?.priceBreakQtys || "",
       lineItems: initialValues?.lineItems?.length
         ? (initialValues.lineItems as any)
         : [{
@@ -541,6 +545,45 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Price break quantity selector */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quantity Price Breaks</CardTitle>
+                  <CardDescription>Show alternative pricing for different order quantities on the PDF. Select the quantities to include.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {[5, 10, 25, 50, 100, 250, 500].map(qty => {
+                      const current: number[] = (() => {
+                        try { return JSON.parse(form.watch("priceBreakQtys") || "[]"); } catch { return []; }
+                      })();
+                      const active = current.includes(qty);
+                      return (
+                        <button key={qty} type="button"
+                          className={`px-3 py-1.5 rounded border text-sm font-mono transition-colors ${active ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
+                          onClick={() => {
+                            const next = active ? current.filter(q => q !== qty) : [...current, qty].sort((a, b) => a - b);
+                            form.setValue("priceBreakQtys", JSON.stringify(next));
+                          }}
+                        >
+                          {qty} off
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {(() => {
+                    const qtys: number[] = (() => { try { return JSON.parse(form.watch("priceBreakQtys") || "[]"); } catch { return []; } })();
+                    return qtys.length > 0 ? (
+                      <p className="text-xs text-muted-foreground">
+                        Price break columns will appear on the PDF for: <strong>{qtys.map(q => `${q} off`).join(", ")}</strong>
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">No price breaks selected — quote will show a single price per line item.</p>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
             </div>
           )}
 
@@ -616,13 +659,45 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
                     </FormItem>
                   )} />
                 </div>
+                {/* Line item type and visibility */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t">
+                  <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.lineItemType`} render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Line Item Type</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || "standard"}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="standard">Standard Part (qty × price)</SelectItem>
+                          <SelectItem value="oneoff">One-off Charge (flat, no qty)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">Use "One-off" for programming, fixtures, tooling, delivery charges.</p>
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.hiddenFromPdf`} render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>PDF Visibility</FormLabel>
+                      <div className="flex items-center gap-3 mt-2 p-3 rounded-md border bg-muted/30">
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        <div>
+                          <div className="text-sm font-medium">{field.value ? "Hidden from customer PDF" : "Visible on customer PDF"}</div>
+                          <div className="text-xs text-muted-foreground">{field.value ? "Internal use only — not printed" : "Customer will see this line"}</div>
+                        </div>
+                      </div>
+                    </FormItem>
+                  )} />
+                </div>
+
                 <div className="flex gap-2">
                   <Button type="button" variant="outline" size="sm" onClick={() => { append(newItemDefaults() as any); setActiveLineItemIndex(fields.length); }}>
                     <Plus className="w-4 h-4 mr-1" /> Add Part
                   </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => { append({ ...newItemDefaults(), lineItemType: "oneoff", partName: "", material: "N/A", processType: "Other" } as any); setActiveLineItemIndex(fields.length); }}>
+                    <Plus className="w-4 h-4 mr-1" /> Add One-off Charge
+                  </Button>
                   {fields.length > 1 && (
                     <Button type="button" variant="outline" size="sm" onClick={() => { remove(activeLineItemIndex); setActiveLineItemIndex(Math.max(0, activeLineItemIndex - 1)); }}>
-                      <Trash2 className="w-4 h-4 mr-1" /> Remove Part
+                      <Trash2 className="w-4 h-4 mr-1" /> Remove
                     </Button>
                   )}
                 </div>

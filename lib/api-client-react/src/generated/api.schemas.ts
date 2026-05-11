@@ -96,6 +96,8 @@ export interface QuoteLineItem {
   machineId: number | null;
   toleranceClass: string;
   surfaceFinish: string;
+  lineItemType: string;
+  hiddenFromPdf: boolean;
   complexity: string;
   setupHours: number;
   programmingHours: number;
@@ -143,6 +145,8 @@ export interface QuoteLineItemInput {
   toleranceClass?: string;
   surfaceFinish?: string;
   complexity?: string;
+  lineItemType?: string;
+  hiddenFromPdf?: boolean;
   setupHours: number;
   programmingHours: number;
   machiningMinutesPerPart: number;
@@ -181,6 +185,7 @@ export interface Quote {
   quoteNumber: string;
   customerId: number;
   status: string;
+  lostReason: string;
   quoteDate: string;
   validUntil: string;
   quoteRevision: string;
@@ -195,6 +200,7 @@ export interface Quote {
   inspectionReportIncluded: boolean;
   fairIncluded: boolean;
   cmmReportIncluded: boolean;
+  priceBreakQtys: string;
   lineItems: QuoteLineItem[];
   createdAt: string;
   updatedAt: string;
@@ -203,6 +209,7 @@ export interface Quote {
 export interface QuoteInput {
   customerId: number;
   status?: string;
+  lostReason?: string;
   quoteDate?: string;
   validUntil?: string;
   quoteRevision?: string;
@@ -217,12 +224,14 @@ export interface QuoteInput {
   inspectionReportIncluded?: boolean;
   fairIncluded?: boolean;
   cmmReportIncluded?: boolean;
+  priceBreakQtys?: string;
   lineItems: QuoteLineItemInput[];
 }
 
 export interface QuoteUpdate {
   customerId?: number;
   status?: string;
+  lostReason?: string;
   quoteDate?: string;
   validUntil?: string;
   quoteRevision?: string;
@@ -237,6 +246,7 @@ export interface QuoteUpdate {
   inspectionReportIncluded?: boolean;
   fairIncluded?: boolean;
   cmmReportIncluded?: boolean;
+  priceBreakQtys?: string;
   lineItems?: QuoteLineItemInput[];
 }
 

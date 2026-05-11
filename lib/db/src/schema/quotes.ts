@@ -9,6 +9,7 @@ export const quotesTable = pgTable("quotes", {
   quoteNumber: text("quote_number").notNull(),
   customerId: integer("customer_id").notNull().references(() => customersTable.id),
   status: text("status").notNull().default("Draft"),
+  lostReason: text("lost_reason").notNull().default(""),
   quoteDate: text("quote_date").notNull(),
   validUntil: text("valid_until").notNull(),
   quoteRevision: text("quote_revision").notNull().default("A"),
@@ -23,6 +24,7 @@ export const quotesTable = pgTable("quotes", {
   inspectionReportIncluded: boolean("inspection_report_included").notNull().default(false),
   fairIncluded: boolean("fair_included").notNull().default(false),
   cmmReportIncluded: boolean("cmm_report_included").notNull().default(false),
+  priceBreakQtys: text("price_break_qtys").notNull().default(""),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
@@ -75,6 +77,9 @@ export const quoteLineItemsTable = pgTable("quote_line_items", {
   toolingRecommendation: text("tooling_recommendation").notNull().default(""),
   materialRecommendation: text("material_recommendation").notNull().default(""),
   coolantRecommendation: text("coolant_recommendation").notNull().default(""),
+  // Workflow flags
+  lineItemType: text("line_item_type").notNull().default("standard"),
+  hiddenFromPdf: boolean("hidden_from_pdf").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

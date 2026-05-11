@@ -106,8 +106,7 @@ function parseQuote(quote: typeof quotesTable.$inferSelect, lineItems: (typeof q
 
 async function generateQuoteNumber(): Promise<string> {
   const year = new Date().getFullYear();
-  const quotes = await db.select({ quoteNumber: quotesTable.quoteNumber })
-    .from(quotesTable);
+  const quotes = await db.select({ quoteNumber: quotesTable.quoteNumber }).from(quotesTable);
   const prefix = `QT-${year}-`;
   const existingNumbers = quotes
     .map(q => q.quoteNumber)
@@ -181,6 +180,8 @@ async function insertLineItems(quoteId: number, lineItemsData: NonNullable<typeo
       toleranceClass: item.toleranceClass ?? "Standard",
       surfaceFinish: item.surfaceFinish ?? "Standard",
       complexity: item.complexity ?? "Medium",
+      lineItemType: item.lineItemType ?? "standard",
+      hiddenFromPdf: item.hiddenFromPdf ?? false,
       setupHours: String(item.setupHours),
       programmingHours: String(item.programmingHours),
       machiningMinutesPerPart: String(item.machiningMinutesPerPart),
@@ -278,6 +279,7 @@ router.post("/quotes", async (req, res): Promise<void> => {
     quoteNumber,
     customerId: parsed.data.customerId,
     status: parsed.data.status ?? "Draft",
+    lostReason: parsed.data.lostReason ?? "",
     quoteDate: parsed.data.quoteDate ?? today,
     validUntil: parsed.data.validUntil ?? validUntil,
     quoteRevision: parsed.data.quoteRevision ?? "A",
@@ -292,6 +294,7 @@ router.post("/quotes", async (req, res): Promise<void> => {
     inspectionReportIncluded: parsed.data.inspectionReportIncluded ?? false,
     fairIncluded: parsed.data.fairIncluded ?? false,
     cmmReportIncluded: parsed.data.cmmReportIncluded ?? false,
+    priceBreakQtys: parsed.data.priceBreakQtys ?? "",
   }).returning();
 
   if (parsed.data.lineItems && parsed.data.lineItems.length > 0) {
@@ -335,6 +338,7 @@ router.patch("/quotes/:id", async (req, res): Promise<void> => {
   const updateData: Record<string, unknown> = {};
   if (d.customerId !== undefined) updateData.customerId = d.customerId;
   if (d.status !== undefined) updateData.status = d.status;
+  if (d.lostReason !== undefined) updateData.lostReason = d.lostReason;
   if (d.quoteDate !== undefined) updateData.quoteDate = d.quoteDate;
   if (d.validUntil !== undefined) updateData.validUntil = d.validUntil;
   if (d.quoteRevision !== undefined) updateData.quoteRevision = d.quoteRevision;
@@ -349,6 +353,7 @@ router.patch("/quotes/:id", async (req, res): Promise<void> => {
   if (d.inspectionReportIncluded !== undefined) updateData.inspectionReportIncluded = d.inspectionReportIncluded;
   if (d.fairIncluded !== undefined) updateData.fairIncluded = d.fairIncluded;
   if (d.cmmReportIncluded !== undefined) updateData.cmmReportIncluded = d.cmmReportIncluded;
+  if (d.priceBreakQtys !== undefined) updateData.priceBreakQtys = d.priceBreakQtys;
 
   const [quote] = await db.update(quotesTable).set(updateData).where(eq(quotesTable.id, params.data.id)).returning();
   if (!quote) {
@@ -402,6 +407,7 @@ router.post("/quotes/:id/duplicate", async (req, res): Promise<void> => {
     quoteNumber,
     customerId: original.customerId,
     status: "Draft",
+    lostReason: "",
     quoteDate: today,
     validUntil: original.validUntil,
     quoteRevision: "A",
@@ -416,6 +422,7 @@ router.post("/quotes/:id/duplicate", async (req, res): Promise<void> => {
     inspectionReportIncluded: original.inspectionReportIncluded,
     fairIncluded: original.fairIncluded,
     cmmReportIncluded: original.cmmReportIncluded,
+    priceBreakQtys: original.priceBreakQtys,
   }).returning();
 
   for (const item of originalItems) {
