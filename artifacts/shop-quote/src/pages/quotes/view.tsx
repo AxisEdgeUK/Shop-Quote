@@ -136,9 +136,18 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
               Mark Lost
             </Button>
           )}
-          {/* Email template */}
+          {/* Email */}
+          {customer.email && (
+            <a
+              href={`mailto:${customer.email}?subject=${encodeURIComponent(`Quotation ${quote.quoteNumber} – ${customer.companyName}`)}&body=${encodeURIComponent(buildEmailTemplate().replace(/^Subject:.*\n\n/, ""))}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border text-sm font-medium transition-colors hover:bg-muted"
+              style={{ borderColor: "hsl(var(--border))", color: "hsl(var(--foreground))" }}
+            >
+              <Mail className="w-3.5 h-3.5" /> Send Email
+            </a>
+          )}
           <Button variant="outline" size="sm" onClick={handleCopyEmail}>
-            {emailCopied ? <><Check className="w-3.5 h-3.5 mr-1.5 text-green-600" />Copied!</> : <><Mail className="w-3.5 h-3.5 mr-1.5" />Copy Email</>}
+            {emailCopied ? <><Check className="w-3.5 h-3.5 mr-1.5 text-green-600" />Copied!</> : <><Copy className="w-3.5 h-3.5 mr-1.5" />Copy Email</>}
           </Button>
           <Link href={`/quotes/${quote.id}/edit`}>
             <Button variant="outline" size="sm"><Edit className="w-4 h-4 mr-1.5" />Edit</Button>

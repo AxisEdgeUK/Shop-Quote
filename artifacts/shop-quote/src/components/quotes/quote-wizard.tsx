@@ -914,21 +914,112 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
           )}
 
           {/* ── STEP 5: COMPLETE ────────────────────────────────────── */}
-          {currentStep === 4 && (
-            <Card>
-              <CardContent className="py-12 text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
-                  <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
-                </div>
-                <h2 className="text-2xl font-bold">Quote Saved!</h2>
-                <p className="text-muted-foreground">Your quote has been saved successfully.</p>
-                <div className="flex gap-3 justify-center pt-2">
-                  {savedQuoteId && <Button asChild><Link href={`/quotes/${savedQuoteId}`}>View Quote</Link></Button>}
-                  <Button variant="outline" asChild><Link href="/quotes">Back to Quotes</Link></Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {currentStep === 4 && (() => {
+            const customerId = form.getValues("customerId");
+            const completedCustomer = customers?.find(c => c.id === customerId);
+            const partNames = form.getValues("lineItems")
+              .filter((l: any) => !l.hiddenFromPdf)
+              .map((l: any) => l.partName)
+              .filter(Boolean)
+              .join(", ");
+            const validUntilRaw = form.getValues("validUntil");
+            const validity = validUntilRaw
+              ? new Date(validUntilRaw).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+              : "";
+            const leadTime = form.getValues("leadTime");
+            const delivery = form.getValues("deliveryTerms");
+            const payment = form.getValues("paymentTerms");
+
+            const emailSubject = completedCustomer
+              ? `Quotation – ${completedCustomer.companyName}`
+              : "Quotation";
+
+            const emailBody = [
+              `Dear ${completedCustomer?.contactName || completedCustomer?.companyName || "Sir/Madam"},`,
+              "",
+              `Please find attached our quotation${partNames ? ` for: ${partNames}` : ""}.`,
+              "",
+              ...(validity ? [`This quotation is valid until ${validity}.`] : []),
+              ...(leadTime ? [`Lead time is estimated at ${leadTime}.`] : []),
+              ...(delivery ? [`Delivery: ${delivery}.`] : []),
+              ...(payment ? [`Payment terms: ${payment}.`] : []),
+              "",
+              "Please do not hesitate to contact us if you have any questions or would like to proceed.",
+              "",
+              "Kind regards,",
+              settings?.companyName || "",
+              ...(settings?.phone ? [settings.phone] : []),
+              ...(settings?.email ? [settings.email] : []),
+            ].join("\n");
+
+            const mailtoHref = completedCustomer?.email
+              ? `mailto:${completedCustomer.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+              : `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+
+            return (
+              <Card>
+                <CardContent className="py-10 space-y-8">
+                  {/* Success */}
+                  <div className="text-center space-y-3">
+                    <div className="w-16 h-16 rounded-full bg-green-500/15 flex items-center justify-center mx-auto border-2 border-green-500/30">
+                      <Check className="w-8 h-8 text-green-500" />
+                    </div>
+                    <h2 className="text-2xl font-bold">Quote Saved!</h2>
+                    <p className="text-muted-foreground">Your quote has been saved and is ready to send.</p>
+                  </div>
+
+                  {/* Email CTA */}
+                  {completedCustomer && (
+                    <div className="rounded border p-5 space-y-4" style={{ background: "hsl(var(--muted))", borderColor: "hsl(var(--border))" }}>
+                      <div className="text-sm font-semibold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>
+                        Send to Customer
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm">{completedCustomer.companyName}</div>
+                          {completedCustomer.contactName && (
+                            <div className="text-xs text-muted-foreground">Attn: {completedCustomer.contactName}</div>
+                          )}
+                          {completedCustomer.email && (
+                            <div className="text-xs font-mono text-muted-foreground">{completedCustomer.email}</div>
+                          )}
+                        </div>
+                        <a
+                          href={mailtoHref}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                          style={{ background: "hsl(25 100% 50%)" }}
+                        >
+                          <ArrowRight className="w-4 h-4" />
+                          Open in Email Client
+                        </a>
+                      </div>
+                      {!completedCustomer.email && (
+                        <p className="text-xs text-amber-500">No email address on file for this customer — add one in Customers to auto-fill To: field.</p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Clicking "Open in Email Client" will launch your default email app with the quote email pre-filled. Attach the PDF before sending.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex gap-3 justify-center flex-wrap">
+                    {savedQuoteId && (
+                      <Button asChild>
+                        <Link href={`/quotes/${savedQuoteId}`}>View &amp; Download PDF</Link>
+                      </Button>
+                    )}
+                    <Button variant="outline" asChild>
+                      <Link href="/quotes/new">New Quote</Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                      <Link href="/quotes">Back to Quotes</Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
 
           {/* Navigation */}
           {currentStep < 4 && (

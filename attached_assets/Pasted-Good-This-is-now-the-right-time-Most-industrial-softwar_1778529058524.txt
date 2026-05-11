@@ -1,0 +1,616 @@
+Good. This is now the right time.
+
+Most industrial software fails because:
+
+* developers build admin dashboards,
+* not operational workflows.
+
+Your UX should feel:
+
+* fast,
+* engineered,
+* uncluttered,
+* trustworthy,
+* workshop practical.
+
+NOT:
+
+* startup SaaS,
+* Silicon Valley,
+* “AI assistant.”
+
+The ideal feeling is:
+
+> “premium machine tool control panel mixed with modern estimating software.”
+
+---
+
+# SHOP Quote UX Direction
+
+## Core UX Philosophy
+
+The software should feel like:
+
+* a machine tool interface,
+* not accounting software.
+
+Meaning:
+
+* large readable inputs,
+* minimal clutter,
+* obvious workflow,
+* strong hierarchy,
+* confidence-building layouts.
+
+The owner should feel:
+
+> “I can quote quickly without getting lost.”
+
+---
+
+# 1. Overall Visual Style
+
+## Colours
+
+### Primary Background
+
+Deep charcoal:
+
+* #1E1F23
+* or similar anthracite.
+
+### Secondary Panels
+
+Steel grey:
+
+* #2B2D31
+
+### Working Cards
+
+Off-white/light grey:
+
+* #F5F6F7
+
+### Accent Colour
+
+Industrial orange OR electric blue.
+
+Recommendation:
+
+### Burnt industrial orange
+
+because:
+
+* machining,
+* tooling,
+* inserts,
+* machine warning colours.
+
+Example:
+
+* #FF6B00
+
+Use sparingly:
+
+* buttons,
+* highlights,
+* active steps,
+* quote totals.
+
+---
+
+# 2. Typography
+
+Avoid:
+
+* trendy startup fonts,
+* rounded playful fonts.
+
+Use:
+
+* Inter,
+* IBM Plex Sans,
+* Manrope,
+* or DIN-style industrial font.
+
+Large readable sizes:
+
+* machinists are often on workshop PCs,
+* dusty environments,
+* quick-glance workflows.
+
+---
+
+# 3. Dashboard UX
+
+## Important:
+
+Do NOT overload dashboard.
+
+Most ERP dashboards are terrible.
+
+Keep:
+
+* simple KPI strip,
+* recent quotes,
+* quick actions.
+
+---
+
+## Top KPI Bar
+
+Large industrial cards:
+
+| Metric                    | Purpose               |
+| ------------------------- | --------------------- |
+| Open Quotes               | Immediate workload    |
+| Won This Month            | Revenue               |
+| Quote Conversion          | Health                |
+| Quotes Awaiting Follow-up | Action                |
+| Average Margin            | Commercial visibility |
+
+Large numbers.
+Minimal fluff.
+
+---
+
+## Main Dashboard Area
+
+### LEFT
+
+Recent Quotes Table
+
+### RIGHT
+
+Quick Actions Panel
+
+Buttons:
+
+* New Milling Quote
+* New Turning Quote
+* Duplicate Quote
+* Create Customer
+
+This massively improves speed.
+
+---
+
+# 4. New Quote UX — Most Important Screen
+
+This is your product.
+
+Everything revolves around this workflow.
+
+---
+
+# Recommended Layout
+
+## Top Horizontal Step Bar
+
+Large steps:
+
+1. Customer
+2. Part
+3. Machining
+4. Costing
+5. Review
+6. PDF
+
+The user must always know:
+
+* where they are,
+* what comes next.
+
+---
+
+# 5. Part Details UX
+
+Very important:
+group by engineering logic.
+
+NOT random forms.
+
+---
+
+## Section A — Drawing Info
+
+* Part Name
+* Drawing Number
+* Revision
+* Quantity
+* Customer Part Number
+
+---
+
+## Section B — Manufacturing
+
+* Material
+* Process
+* Machine
+* Tolerance
+* Surface Finish
+* Complexity
+
+---
+
+## Section C — Attachments
+
+Large drag-and-drop zone:
+
+* PDF
+* STEP
+* DXF
+
+Even if inactive initially.
+
+Makes app feel more serious.
+
+---
+
+# 6. Machining Inputs UX
+
+This must feel like:
+
+> “setup sheet meets costing.”
+
+---
+
+## Use grouped cards:
+
+### Setup
+
+* setup hours
+* fixture/setup notes
+
+### Programming
+
+* programming hours
+
+### Runtime
+
+* machining mins/part
+* quantity multiplier
+
+### Inspection
+
+* inspection hours
+
+### Finishing
+
+* deburring
+* cleaning
+* packaging
+
+---
+
+# 7. Cost Breakdown UX
+
+This is where trust is built.
+
+Do NOT hide calculations.
+
+Small shops hate black boxes.
+
+---
+
+## Layout
+
+LEFT:
+Editable costs
+
+RIGHT:
+Live summary card
+
+---
+
+## Summary Card
+
+Large:
+
+* Direct Cost
+* Risk
+* Sell Price
+* Price Per Part
+* Margin %
+
+Very visual.
+
+---
+
+# 8. Internal Quote Health Indicator
+
+Strong UX feature.
+
+Example:
+
+🟢 Healthy Margin
+🟠 Tight Margin
+🔴 Risk of Underquoting
+
+This helps:
+
+* junior estimators,
+* admin staff,
+* consistency.
+
+---
+
+# 9. Customer PDF UX
+
+The PDF must look:
+
+* engineering professional,
+* not startup generated.
+
+Think:
+
+* precision engineering company,
+* aerospace subcontractor,
+* machine tool supplier.
+
+---
+
+## PDF Layout
+
+### Top:
+
+Logo + company details
+
+### Middle:
+
+Customer details + quote metadata
+
+### Main:
+
+Line items table
+
+### Bottom:
+
+* lead time,
+* payment terms,
+* notes,
+* bank details,
+* terms.
+
+Clean spacing.
+No clutter.
+
+---
+
+# 10. Quote Duplication UX
+
+Very important.
+
+On every quote:
+
+### “Duplicate Quote”
+
+Then:
+
+* edit quantity,
+* edit material,
+* edit revision,
+* save new revision.
+
+This should be one click.
+
+---
+
+# 11. Mobile / Tablet UX
+
+Huge opportunity.
+
+Most SMEs:
+
+* walk around workshop,
+* quote on iPads,
+* use office PC + mobile.
+
+The app should work beautifully on:
+
+* iPad landscape,
+* Surface tablets,
+* large phones.
+
+---
+
+# 12. Hidden Cost Prompt UX
+
+This becomes a signature feature.
+
+Before final quote:
+
+### Checklist:
+
+☐ Deburring included
+☐ Inspection included
+☐ Tool wear included
+☐ Packaging included
+☐ Delivery included
+☐ Material wastage included
+
+This is commercially powerful.
+
+---
+
+# 13. Supplier Integration UX
+
+Do NOT make ads.
+
+Instead:
+
+### “Suggested Technical Resources”
+
+Examples:
+
+* recommended tooling,
+* stock size guidance,
+* coolant guidance.
+
+Subtle.
+Professional.
+
+---
+
+# 14. Empty State UX
+
+Critical for onboarding.
+
+Do NOT leave blank pages.
+
+Example:
+“No quotes yet.
+Create your first milling or turning quote.”
+
+Buttons:
+
+* Create Milling Quote
+* Create Turning Quote
+
+---
+
+# 15. Most Important UX Rule
+
+Speed > Features.
+
+A machine shop owner should:
+
+* open app,
+* create quote,
+* generate PDF,
+  within minutes.
+
+No bloated menus.
+No hidden workflows.
+No enterprise complexity.
+
+---
+
+# Paste This Into Replit
+
+```text
+Improve the UX and visual design of SHOP Quote.
+
+The software must feel like a premium industrial engineering tool for small CNC machine shops.
+
+DO NOT make it feel like generic SaaS software.
+
+UX goals:
+- fast
+- practical
+- engineered
+- uncluttered
+- trustworthy
+- workshop-friendly
+
+COLOURS:
+- charcoal background
+- steel grey panels
+- white working cards
+- industrial orange accent colour
+
+TYPOGRAPHY:
+Use:
+- Inter
+- IBM Plex Sans
+- DIN-style industrial font feel
+
+Avoid:
+- playful rounded fonts
+- startup design language
+
+DASHBOARD:
+Keep dashboard simple and operational.
+
+Top KPI cards:
+- Open Quotes
+- Won This Month
+- Quote Conversion
+- Awaiting Follow-up
+- Average Margin
+
+Main area:
+LEFT:
+Recent Quotes
+
+RIGHT:
+Quick Actions
+- New Milling Quote
+- New Turning Quote
+- Duplicate Quote
+- Add Customer
+
+NEW QUOTE PAGE:
+Create large horizontal workflow steps:
+1. Customer
+2. Part
+3. Machining
+4. Costing
+5. Review
+6. PDF
+
+PART DETAILS:
+Group logically:
+- drawing info
+- manufacturing info
+- attachments
+
+Add drag/drop attachment area for:
+- PDF
+- STEP
+- DXF
+
+MACHINING INPUTS:
+Group into cards:
+- Setup
+- Programming
+- Runtime
+- Inspection
+- Finishing
+
+COST BREAKDOWN:
+Show live editable costs on left.
+Show live quote summary on right.
+
+Summary card should prominently show:
+- Direct Cost
+- Risk
+- Sell Price
+- Price Per Part
+- Margin %
+
+Add internal quote health indicator:
+- Green healthy
+- Amber low margin
+- Red underquoting risk
+
+CUSTOMER PDF:
+Must look like a professional engineering quote document.
+Clean spacing.
+Strong typography.
+No clutter.
+
+QUOTE DUPLICATION:
+Add visible one-click Duplicate Quote button.
+
+MOBILE/TABLET:
+Optimise workflow for iPad and large tablets.
+
+HIDDEN COST CHECKLIST:
+Before final quote show:
+- Deburring included?
+- Inspection included?
+- Tool wear included?
+- Packaging included?
+- Delivery included?
+- Material wastage included?
+
+EMPTY STATES:
+Add onboarding empty states with buttons:
+- Create Milling Quote
+- Create Turning Quote
+
+FINAL UX RULE:
+Prioritise speed and clarity over excessive features.
+The app should feel like precision engineering workflow software.
+```
