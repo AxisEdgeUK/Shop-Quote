@@ -19,6 +19,8 @@ tags:
     description: Company settings
   - name: dashboard
     description: Dashboard stats
+  - name: storage
+    description: Object storage
 paths:
   /healthz:
     get:
@@ -361,6 +363,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Settings"
+
+  /storage/uploads/request-url:
+    post:
+      operationId: requestUploadUrl
+      tags: [storage]
+      summary: Request a presigned upload URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestUploadUrlBody"
+      responses:
+        "200":
+          description: Presigned upload URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestUploadUrlResponse"
 
 components:
   schemas:
@@ -803,9 +824,18 @@ components:
         - status
         - quoteDate
         - validUntil
+        - quoteRevision
+        - revisionNotes
+        - leadTime
+        - deliveryTerms
         - notes
+        - internalNotes
         - paymentTerms
         - termsAndConditions
+        - materialCertIncluded
+        - inspectionReportIncluded
+        - fairIncluded
+        - cmmReportIncluded
         - lineItems
         - createdAt
         - updatedAt
@@ -822,12 +852,30 @@ components:
           type: string
         validUntil:
           type: string
+        quoteRevision:
+          type: string
+        revisionNotes:
+          type: string
+        leadTime:
+          type: string
+        deliveryTerms:
+          type: string
         notes:
+          type: string
+        internalNotes:
           type: string
         paymentTerms:
           type: string
         termsAndConditions:
           type: string
+        materialCertIncluded:
+          type: boolean
+        inspectionReportIncluded:
+          type: boolean
+        fairIncluded:
+          type: boolean
+        cmmReportIncluded:
+          type: boolean
         lineItems:
           type: array
           items:
@@ -851,12 +899,30 @@ components:
           type: string
         validUntil:
           type: string
+        quoteRevision:
+          type: string
+        revisionNotes:
+          type: string
+        leadTime:
+          type: string
+        deliveryTerms:
+          type: string
         notes:
+          type: string
+        internalNotes:
           type: string
         paymentTerms:
           type: string
         termsAndConditions:
           type: string
+        materialCertIncluded:
+          type: boolean
+        inspectionReportIncluded:
+          type: boolean
+        fairIncluded:
+          type: boolean
+        cmmReportIncluded:
+          type: boolean
         lineItems:
           type: array
           items:
@@ -873,12 +939,30 @@ components:
           type: string
         validUntil:
           type: string
+        quoteRevision:
+          type: string
+        revisionNotes:
+          type: string
+        leadTime:
+          type: string
+        deliveryTerms:
+          type: string
         notes:
+          type: string
+        internalNotes:
           type: string
         paymentTerms:
           type: string
         termsAndConditions:
           type: string
+        materialCertIncluded:
+          type: boolean
+        inspectionReportIncluded:
+          type: boolean
+        fairIncluded:
+          type: boolean
+        cmmReportIncluded:
+          type: boolean
         lineItems:
           type: array
           items:
@@ -895,12 +979,22 @@ components:
         - website
         - vatNumber
         - currency
+        - logoUrl
+        - bankName
+        - accountName
+        - accountNumber
+        - sortCode
+        - iban
+        - swiftBic
+        - showBankDetails
         - defaultHourlyRate
         - defaultSetupRate
         - defaultMarginPercentage
         - vatEnabled
         - vatRate
         - quoteValidityDays
+        - defaultLeadTime
+        - defaultDeliveryTerms
         - paymentTerms
         - termsAndConditions
       properties:
@@ -920,6 +1014,22 @@ components:
           type: string
         currency:
           type: string
+        logoUrl:
+          type: string
+        bankName:
+          type: string
+        accountName:
+          type: string
+        accountNumber:
+          type: string
+        sortCode:
+          type: string
+        iban:
+          type: string
+        swiftBic:
+          type: string
+        showBankDetails:
+          type: boolean
         defaultHourlyRate:
           type: number
         defaultSetupRate:
@@ -932,6 +1042,10 @@ components:
           type: number
         quoteValidityDays:
           type: integer
+        defaultLeadTime:
+          type: string
+        defaultDeliveryTerms:
+          type: string
         paymentTerms:
           type: string
         termsAndConditions:
@@ -954,6 +1068,22 @@ components:
           type: string
         currency:
           type: string
+        logoUrl:
+          type: string
+        bankName:
+          type: string
+        accountName:
+          type: string
+        accountNumber:
+          type: string
+        sortCode:
+          type: string
+        iban:
+          type: string
+        swiftBic:
+          type: string
+        showBankDetails:
+          type: boolean
         defaultHourlyRate:
           type: number
         defaultSetupRate:
@@ -966,7 +1096,45 @@ components:
           type: number
         quoteValidityDays:
           type: integer
+        defaultLeadTime:
+          type: string
+        defaultDeliveryTerms:
+          type: string
         paymentTerms:
           type: string
         termsAndConditions:
           type: string
+
+    RequestUploadUrlBody:
+      type: object
+      required:
+        - name
+        - size
+        - contentType
+      properties:
+        name:
+          type: string
+        size:
+          type: integer
+        contentType:
+          type: string
+
+    RequestUploadUrlResponse:
+      type: object
+      required:
+        - uploadURL
+        - objectPath
+      properties:
+        uploadURL:
+          type: string
+        objectPath:
+          type: string
+        metadata:
+          type: object
+          properties:
+            name:
+              type: string
+            size:
+              type: integer
+            contentType:
+              type: string

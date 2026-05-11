@@ -39,22 +39,39 @@ router.patch("/settings", async (req, res): Promise<void> => {
     return;
   }
   const existing = await ensureSettings();
+  const d = parsed.data;
   const updateData: Record<string, unknown> = {};
-  if (parsed.data.companyName !== undefined) updateData.companyName = parsed.data.companyName;
-  if (parsed.data.address !== undefined) updateData.address = parsed.data.address;
-  if (parsed.data.email !== undefined) updateData.email = parsed.data.email;
-  if (parsed.data.phone !== undefined) updateData.phone = parsed.data.phone;
-  if (parsed.data.website !== undefined) updateData.website = parsed.data.website;
-  if (parsed.data.vatNumber !== undefined) updateData.vatNumber = parsed.data.vatNumber;
-  if (parsed.data.currency !== undefined) updateData.currency = parsed.data.currency;
-  if (parsed.data.defaultHourlyRate !== undefined) updateData.defaultHourlyRate = String(parsed.data.defaultHourlyRate);
-  if (parsed.data.defaultSetupRate !== undefined) updateData.defaultSetupRate = String(parsed.data.defaultSetupRate);
-  if (parsed.data.defaultMarginPercentage !== undefined) updateData.defaultMarginPercentage = String(parsed.data.defaultMarginPercentage);
-  if (parsed.data.vatEnabled !== undefined) updateData.vatEnabled = parsed.data.vatEnabled;
-  if (parsed.data.vatRate !== undefined) updateData.vatRate = String(parsed.data.vatRate);
-  if (parsed.data.quoteValidityDays !== undefined) updateData.quoteValidityDays = parsed.data.quoteValidityDays;
-  if (parsed.data.paymentTerms !== undefined) updateData.paymentTerms = parsed.data.paymentTerms;
-  if (parsed.data.termsAndConditions !== undefined) updateData.termsAndConditions = parsed.data.termsAndConditions;
+
+  // Company details
+  if (d.companyName !== undefined) updateData.companyName = d.companyName;
+  if (d.address !== undefined) updateData.address = d.address;
+  if (d.email !== undefined) updateData.email = d.email;
+  if (d.phone !== undefined) updateData.phone = d.phone;
+  if (d.website !== undefined) updateData.website = d.website;
+  if (d.vatNumber !== undefined) updateData.vatNumber = d.vatNumber;
+  if (d.currency !== undefined) updateData.currency = d.currency;
+  if (d.logoUrl !== undefined) updateData.logoUrl = d.logoUrl;
+
+  // Bank details
+  if (d.bankName !== undefined) updateData.bankName = d.bankName;
+  if (d.accountName !== undefined) updateData.accountName = d.accountName;
+  if (d.accountNumber !== undefined) updateData.accountNumber = d.accountNumber;
+  if (d.sortCode !== undefined) updateData.sortCode = d.sortCode;
+  if (d.iban !== undefined) updateData.iban = d.iban;
+  if (d.swiftBic !== undefined) updateData.swiftBic = d.swiftBic;
+  if (d.showBankDetails !== undefined) updateData.showBankDetails = d.showBankDetails;
+
+  // Quoting defaults
+  if (d.defaultHourlyRate !== undefined) updateData.defaultHourlyRate = String(d.defaultHourlyRate);
+  if (d.defaultSetupRate !== undefined) updateData.defaultSetupRate = String(d.defaultSetupRate);
+  if (d.defaultMarginPercentage !== undefined) updateData.defaultMarginPercentage = String(d.defaultMarginPercentage);
+  if (d.vatEnabled !== undefined) updateData.vatEnabled = d.vatEnabled;
+  if (d.vatRate !== undefined) updateData.vatRate = String(d.vatRate);
+  if (d.quoteValidityDays !== undefined) updateData.quoteValidityDays = d.quoteValidityDays;
+  if (d.defaultLeadTime !== undefined) updateData.defaultLeadTime = d.defaultLeadTime;
+  if (d.defaultDeliveryTerms !== undefined) updateData.defaultDeliveryTerms = d.defaultDeliveryTerms;
+  if (d.paymentTerms !== undefined) updateData.paymentTerms = d.paymentTerms;
+  if (d.termsAndConditions !== undefined) updateData.termsAndConditions = d.termsAndConditions;
 
   const { eq } = await import("drizzle-orm");
   const [settings] = await db.update(settingsTable).set(updateData).where(eq(settingsTable.id, existing.id)).returning();

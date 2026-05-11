@@ -266,13 +266,12 @@ router.post("/quotes", async (req, res): Promise<void> => {
   }
 
   const today = new Date().toISOString().split("T")[0];
-  const settings = await db.select().from(settingsTable).limit(1);
-  const validDays = settings.length > 0 ? settings[0].quoteValidityDays : 30;
+  const settingsRows = await db.select().from(settingsTable).limit(1);
+  const s = settingsRows[0];
+  const validDays = s ? s.quoteValidityDays : 30;
   const validUntilDate = new Date();
   validUntilDate.setDate(validUntilDate.getDate() + validDays);
   const validUntil = validUntilDate.toISOString().split("T")[0];
-  const terms = settings.length > 0 ? settings[0].termsAndConditions : "";
-  const payment = settings.length > 0 ? settings[0].paymentTerms : "30 days from invoice date";
 
   const quoteNumber = await generateQuoteNumber();
   const [quote] = await db.insert(quotesTable).values({
@@ -281,9 +280,18 @@ router.post("/quotes", async (req, res): Promise<void> => {
     status: parsed.data.status ?? "Draft",
     quoteDate: parsed.data.quoteDate ?? today,
     validUntil: parsed.data.validUntil ?? validUntil,
+    quoteRevision: parsed.data.quoteRevision ?? "A",
+    revisionNotes: parsed.data.revisionNotes ?? "",
+    leadTime: parsed.data.leadTime ?? (s?.defaultLeadTime ?? ""),
+    deliveryTerms: parsed.data.deliveryTerms ?? (s?.defaultDeliveryTerms ?? ""),
     notes: parsed.data.notes ?? "",
-    paymentTerms: parsed.data.paymentTerms ?? payment,
-    termsAndConditions: parsed.data.termsAndConditions ?? terms,
+    internalNotes: parsed.data.internalNotes ?? "",
+    paymentTerms: parsed.data.paymentTerms ?? (s?.paymentTerms ?? "30 days from invoice date"),
+    termsAndConditions: parsed.data.termsAndConditions ?? (s?.termsAndConditions ?? ""),
+    materialCertIncluded: parsed.data.materialCertIncluded ?? false,
+    inspectionReportIncluded: parsed.data.inspectionReportIncluded ?? false,
+    fairIncluded: parsed.data.fairIncluded ?? false,
+    cmmReportIncluded: parsed.data.cmmReportIncluded ?? false,
   }).returning();
 
   if (parsed.data.lineItems && parsed.data.lineItems.length > 0) {
@@ -323,14 +331,24 @@ router.patch("/quotes/:id", async (req, res): Promise<void> => {
     return;
   }
 
+  const d = parsed.data;
   const updateData: Record<string, unknown> = {};
-  if (parsed.data.customerId !== undefined) updateData.customerId = parsed.data.customerId;
-  if (parsed.data.status !== undefined) updateData.status = parsed.data.status;
-  if (parsed.data.quoteDate !== undefined) updateData.quoteDate = parsed.data.quoteDate;
-  if (parsed.data.validUntil !== undefined) updateData.validUntil = parsed.data.validUntil;
-  if (parsed.data.notes !== undefined) updateData.notes = parsed.data.notes;
-  if (parsed.data.paymentTerms !== undefined) updateData.paymentTerms = parsed.data.paymentTerms;
-  if (parsed.data.termsAndConditions !== undefined) updateData.termsAndConditions = parsed.data.termsAndConditions;
+  if (d.customerId !== undefined) updateData.customerId = d.customerId;
+  if (d.status !== undefined) updateData.status = d.status;
+  if (d.quoteDate !== undefined) updateData.quoteDate = d.quoteDate;
+  if (d.validUntil !== undefined) updateData.validUntil = d.validUntil;
+  if (d.quoteRevision !== undefined) updateData.quoteRevision = d.quoteRevision;
+  if (d.revisionNotes !== undefined) updateData.revisionNotes = d.revisionNotes;
+  if (d.leadTime !== undefined) updateData.leadTime = d.leadTime;
+  if (d.deliveryTerms !== undefined) updateData.deliveryTerms = d.deliveryTerms;
+  if (d.notes !== undefined) updateData.notes = d.notes;
+  if (d.internalNotes !== undefined) updateData.internalNotes = d.internalNotes;
+  if (d.paymentTerms !== undefined) updateData.paymentTerms = d.paymentTerms;
+  if (d.termsAndConditions !== undefined) updateData.termsAndConditions = d.termsAndConditions;
+  if (d.materialCertIncluded !== undefined) updateData.materialCertIncluded = d.materialCertIncluded;
+  if (d.inspectionReportIncluded !== undefined) updateData.inspectionReportIncluded = d.inspectionReportIncluded;
+  if (d.fairIncluded !== undefined) updateData.fairIncluded = d.fairIncluded;
+  if (d.cmmReportIncluded !== undefined) updateData.cmmReportIncluded = d.cmmReportIncluded;
 
   const [quote] = await db.update(quotesTable).set(updateData).where(eq(quotesTable.id, params.data.id)).returning();
   if (!quote) {
@@ -338,10 +356,10 @@ router.patch("/quotes/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  if (parsed.data.lineItems !== undefined) {
+  if (d.lineItems !== undefined) {
     await db.delete(quoteLineItemsTable).where(eq(quoteLineItemsTable.quoteId, quote.id));
-    if (parsed.data.lineItems.length > 0) {
-      await insertLineItems(quote.id, parsed.data.lineItems);
+    if (d.lineItems.length > 0) {
+      await insertLineItems(quote.id, d.lineItems);
     }
   }
 
@@ -386,9 +404,18 @@ router.post("/quotes/:id/duplicate", async (req, res): Promise<void> => {
     status: "Draft",
     quoteDate: today,
     validUntil: original.validUntil,
+    quoteRevision: "A",
+    revisionNotes: "",
+    leadTime: original.leadTime,
+    deliveryTerms: original.deliveryTerms,
     notes: original.notes,
+    internalNotes: original.internalNotes,
     paymentTerms: original.paymentTerms,
     termsAndConditions: original.termsAndConditions,
+    materialCertIncluded: original.materialCertIncluded,
+    inspectionReportIncluded: original.inspectionReportIncluded,
+    fairIncluded: original.fairIncluded,
+    cmmReportIncluded: original.cmmReportIncluded,
   }).returning();
 
   for (const item of originalItems) {

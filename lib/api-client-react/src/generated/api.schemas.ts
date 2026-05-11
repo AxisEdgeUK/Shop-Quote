@@ -183,9 +183,18 @@ export interface Quote {
   status: string;
   quoteDate: string;
   validUntil: string;
+  quoteRevision: string;
+  revisionNotes: string;
+  leadTime: string;
+  deliveryTerms: string;
   notes: string;
+  internalNotes: string;
   paymentTerms: string;
   termsAndConditions: string;
+  materialCertIncluded: boolean;
+  inspectionReportIncluded: boolean;
+  fairIncluded: boolean;
+  cmmReportIncluded: boolean;
   lineItems: QuoteLineItem[];
   createdAt: string;
   updatedAt: string;
@@ -196,9 +205,18 @@ export interface QuoteInput {
   status?: string;
   quoteDate?: string;
   validUntil?: string;
+  quoteRevision?: string;
+  revisionNotes?: string;
+  leadTime?: string;
+  deliveryTerms?: string;
   notes?: string;
+  internalNotes?: string;
   paymentTerms?: string;
   termsAndConditions?: string;
+  materialCertIncluded?: boolean;
+  inspectionReportIncluded?: boolean;
+  fairIncluded?: boolean;
+  cmmReportIncluded?: boolean;
   lineItems: QuoteLineItemInput[];
 }
 
@@ -207,9 +225,18 @@ export interface QuoteUpdate {
   status?: string;
   quoteDate?: string;
   validUntil?: string;
+  quoteRevision?: string;
+  revisionNotes?: string;
+  leadTime?: string;
+  deliveryTerms?: string;
   notes?: string;
+  internalNotes?: string;
   paymentTerms?: string;
   termsAndConditions?: string;
+  materialCertIncluded?: boolean;
+  inspectionReportIncluded?: boolean;
+  fairIncluded?: boolean;
+  cmmReportIncluded?: boolean;
   lineItems?: QuoteLineItemInput[];
 }
 
@@ -222,12 +249,22 @@ export interface Settings {
   website: string;
   vatNumber: string;
   currency: string;
+  logoUrl: string;
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  sortCode: string;
+  iban: string;
+  swiftBic: string;
+  showBankDetails: boolean;
   defaultHourlyRate: number;
   defaultSetupRate: number;
   defaultMarginPercentage: number;
   vatEnabled: boolean;
   vatRate: number;
   quoteValidityDays: number;
+  defaultLeadTime: string;
+  defaultDeliveryTerms: string;
   paymentTerms: string;
   termsAndConditions: string;
 }
@@ -240,12 +277,40 @@ export interface SettingsUpdate {
   website?: string;
   vatNumber?: string;
   currency?: string;
+  logoUrl?: string;
+  bankName?: string;
+  accountName?: string;
+  accountNumber?: string;
+  sortCode?: string;
+  iban?: string;
+  swiftBic?: string;
+  showBankDetails?: boolean;
   defaultHourlyRate?: number;
   defaultSetupRate?: number;
   defaultMarginPercentage?: number;
   vatEnabled?: boolean;
   vatRate?: number;
   quoteValidityDays?: number;
+  defaultLeadTime?: string;
+  defaultDeliveryTerms?: string;
   paymentTerms?: string;
   termsAndConditions?: string;
+}
+
+export interface RequestUploadUrlBody {
+  name: string;
+  size: number;
+  contentType: string;
+}
+
+export type RequestUploadUrlResponseMetadata = {
+  name?: string;
+  size?: number;
+  contentType?: string;
+};
+
+export interface RequestUploadUrlResponse {
+  uploadURL: string;
+  objectPath: string;
+  metadata?: RequestUploadUrlResponseMetadata;
 }

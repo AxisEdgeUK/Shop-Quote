@@ -9,11 +9,27 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Trash2, ArrowRight, ArrowLeft, Check, Save } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
 import { Link } from "wouter";
+
+const PAYMENT_TERM_PRESETS = [
+  "Pro forma",
+  "Cash on delivery (COD)",
+  "7 days from invoice date",
+  "14 days from invoice date",
+  "30 days from invoice date",
+  "30 days end of month",
+];
+
+const LEAD_TIME_PRESETS = [
+  "2 weeks", "3 weeks", "4 weeks", "6 weeks",
+  "10 working days", "15 working days", "Ex-stock", "To be confirmed",
+];
+
+const DELIVERY_TERM_PRESETS = ["Ex Works", "Delivered", "Collection"];
 
 const lineItemSchema = z.object({
   partName: z.string().min(1, "Part name is required"),
@@ -26,26 +42,22 @@ const lineItemSchema = z.object({
   toleranceClass: z.string().optional(),
   surfaceFinish: z.string().optional(),
   complexity: z.string().optional(),
-  
   setupHours: z.coerce.number().min(0),
   programmingHours: z.coerce.number().min(0),
   machiningMinutesPerPart: z.coerce.number().min(0),
   inspectionHours: z.coerce.number().min(0),
   deburringMinutesPerPart: z.coerce.number().min(0),
-  
   materialCostPerUnit: z.coerce.number().min(0),
   materialWastagePercentage: z.coerce.number().min(0),
   toolingAllowance: z.coerce.number().min(0),
   outsideProcessing: z.coerce.number().min(0),
   packaging: z.coerce.number().min(0),
   delivery: z.coerce.number().min(0),
-  
   riskPercentage: z.coerce.number().min(0),
   profitMarginPercentage: z.coerce.number().min(0),
   discountPercentage: z.coerce.number().min(0).optional(),
   vatEnabled: z.boolean().optional(),
   vatRate: z.coerce.number().min(0).optional(),
-  
   toolingRecommendation: z.string().optional(),
   materialRecommendation: z.string().optional(),
   coolantRecommendation: z.string().optional(),
@@ -56,9 +68,18 @@ const quoteSchema = z.object({
   status: z.string().default("Draft"),
   quoteDate: z.string().optional(),
   validUntil: z.string().optional(),
+  quoteRevision: z.string().default("A"),
+  revisionNotes: z.string().optional(),
+  leadTime: z.string().optional(),
+  deliveryTerms: z.string().optional(),
   notes: z.string().optional(),
+  internalNotes: z.string().optional(),
   paymentTerms: z.string().optional(),
   termsAndConditions: z.string().optional(),
+  materialCertIncluded: z.boolean().default(false),
+  inspectionReportIncluded: z.boolean().default(false),
+  fairIncluded: z.boolean().default(false),
+  cmmReportIncluded: z.boolean().default(false),
   lineItems: z.array(lineItemSchema).min(1, "At least one part is required"),
 });
 
@@ -71,7 +92,7 @@ interface QuoteWizardProps {
   savedQuoteId?: number;
 }
 
-const STEPS = ["Customer", "Part Details", "Assumptions", "Review", "Complete"];
+const STEPS = ["Quote Info", "Part Details", "Assumptions", "Review", "Complete"];
 
 export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteId }: QuoteWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
@@ -85,10 +106,19 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
       customerId: initialValues?.customerId || 0,
       status: initialValues?.status || "Draft",
       quoteDate: initialValues?.quoteDate || new Date().toISOString().split('T')[0],
-      validUntil: initialValues?.validUntil || "", // Set dynamically from settings if empty
+      validUntil: initialValues?.validUntil || "",
+      quoteRevision: initialValues?.quoteRevision || "A",
+      revisionNotes: initialValues?.revisionNotes || "",
+      leadTime: initialValues?.leadTime || "",
+      deliveryTerms: initialValues?.deliveryTerms || "",
       notes: initialValues?.notes || "",
+      internalNotes: initialValues?.internalNotes || "",
       paymentTerms: initialValues?.paymentTerms || "",
       termsAndConditions: initialValues?.termsAndConditions || "",
+      materialCertIncluded: initialValues?.materialCertIncluded || false,
+      inspectionReportIncluded: initialValues?.inspectionReportIncluded || false,
+      fairIncluded: initialValues?.fairIncluded || false,
+      cmmReportIncluded: initialValues?.cmmReportIncluded || false,
       lineItems: initialValues?.lineItems?.length ? initialValues.lineItems as any : [{
         partName: "",
         quantity: 1,
@@ -108,20 +138,15 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
         riskPercentage: 10,
         profitMarginPercentage: 30,
         discountPercentage: 0,
-        vatEnabled: true,
+        vatEnabled: false,
         vatRate: 20,
       }],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "lineItems",
-  });
-
+  const { fields, append, remove } = useFieldArray({ control: form.control, name: "lineItems" });
   const [activeLineItemIndex, setActiveLineItemIndex] = useState(0);
 
-  // Set defaults from settings once loaded
   useEffect(() => {
     if (settings && !initialValues?.quoteDate) {
       if (!form.getValues("validUntil")) {
@@ -129,18 +154,14 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
         d.setDate(d.getDate() + (settings.quoteValidityDays || 30));
         form.setValue("validUntil", d.toISOString().split('T')[0]);
       }
-      if (!form.getValues("paymentTerms")) {
-        form.setValue("paymentTerms", settings.paymentTerms || "");
-      }
-      if (!form.getValues("termsAndConditions")) {
-        form.setValue("termsAndConditions", settings.termsAndConditions || "");
-      }
-
-      // Pre-fill line item defaults if it's a new quote
+      if (!form.getValues("paymentTerms")) form.setValue("paymentTerms", settings.paymentTerms || "");
+      if (!form.getValues("termsAndConditions")) form.setValue("termsAndConditions", settings.termsAndConditions || "");
+      if (!form.getValues("leadTime")) form.setValue("leadTime", settings.defaultLeadTime || "");
+      if (!form.getValues("deliveryTerms")) form.setValue("deliveryTerms", settings.defaultDeliveryTerms || "");
       const currentItems = form.getValues("lineItems");
       if (currentItems.length === 1 && !currentItems[0].partName) {
         form.setValue(`lineItems.0.profitMarginPercentage`, settings.defaultMarginPercentage || 30);
-        form.setValue(`lineItems.0.vatEnabled`, settings.vatEnabled ?? true);
+        form.setValue(`lineItems.0.vatEnabled`, settings.vatEnabled ?? false);
         form.setValue(`lineItems.0.vatRate`, settings.vatRate || 20);
       }
     }
@@ -155,122 +176,93 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
         `lineItems.${activeLineItemIndex}.partName`,
         `lineItems.${activeLineItemIndex}.quantity`,
         `lineItems.${activeLineItemIndex}.material`,
-        `lineItems.${activeLineItemIndex}.processType`
+        `lineItems.${activeLineItemIndex}.processType`,
       ]);
     } else if (currentStep === 2) {
-      isValid = await form.trigger(); // Trigger all for line item
+      isValid = await form.trigger();
     }
-
     if (isValid || currentStep > 2) {
       setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
     }
   };
 
-  const handlePrev = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 0));
-  };
+  const handlePrev = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
 
   const handleFinalSubmit = (data: QuoteFormValues) => {
     onSubmit(data);
-    setCurrentStep(4); // Success step
+    setCurrentStep(4);
   };
 
   if (isLoadingCustomers || isLoadingMachines || isLoadingSettings) {
     return <Skeleton className="w-full h-[600px]" />;
   }
 
-  // Cost calculation function for step 4
   const calculateCosts = (item: any) => {
     const qty = Number(item.quantity) || 1;
     const selectedMachine = machines?.find(m => m.id === Number(item.machineId));
-    
     const machineHourlyRate = selectedMachine ? selectedMachine.hourlyRate : (settings?.defaultHourlyRate || 0);
     const machineSetupRate = selectedMachine ? selectedMachine.setupRate : (settings?.defaultSetupRate || 0);
-    
     const setupCost = (Number(item.setupHours) || 0) * machineSetupRate;
     const programmingCost = (Number(item.programmingHours) || 0) * machineHourlyRate;
     const machiningCost = ((Number(item.machiningMinutesPerPart) || 0) / 60) * qty * machineHourlyRate;
     const inspectionCost = (Number(item.inspectionHours) || 0) * machineHourlyRate;
     const deburringCost = ((Number(item.deburringMinutesPerPart) || 0) / 60) * qty * machineHourlyRate;
-    
     const materialCostTotal = (Number(item.materialCostPerUnit) || 0) * qty * (1 + (Number(item.materialWastagePercentage) || 0) / 100);
-    
-    const directCost = setupCost + programmingCost + machiningCost + inspectionCost + deburringCost + materialCostTotal + 
-      (Number(item.toolingAllowance) || 0) + (Number(item.outsideProcessing) || 0) + 
-      (Number(item.packaging) || 0) + (Number(item.delivery) || 0);
-      
+    const directCost = setupCost + programmingCost + machiningCost + inspectionCost + deburringCost + materialCostTotal
+      + (Number(item.toolingAllowance) || 0) + (Number(item.outsideProcessing) || 0)
+      + (Number(item.packaging) || 0) + (Number(item.delivery) || 0);
     const riskValue = directCost * ((Number(item.riskPercentage) || 0) / 100);
     const costBeforeMargin = directCost + riskValue;
-    
     const profitMarginPercentage = Number(item.profitMarginPercentage) || 0;
-    // sell_price = cost_before_margin / (1 - profit_margin_percentage / 100)
-    const sellPrice = profitMarginPercentage >= 100 ? costBeforeMargin : costBeforeMargin / (1 - profitMarginPercentage / 100);
-    
-    let finalSellPrice = sellPrice;
-    if (Number(item.discountPercentage) > 0) {
-      finalSellPrice = sellPrice * (1 - (Number(item.discountPercentage) || 0) / 100);
-    }
-    
-    const pricePerPart = finalSellPrice / qty;
-    
-    const vatEnabled = item.vatEnabled ?? settings?.vatEnabled ?? true;
+    const sellPriceBeforeDiscount = profitMarginPercentage >= 100 ? costBeforeMargin : costBeforeMargin / (1 - profitMarginPercentage / 100);
+    const sellPrice = Number(item.discountPercentage) > 0
+      ? sellPriceBeforeDiscount * (1 - (Number(item.discountPercentage) || 0) / 100)
+      : sellPriceBeforeDiscount;
+    const pricePerPart = sellPrice / qty;
+    const vatEnabled = item.vatEnabled ?? settings?.vatEnabled ?? false;
     const vatRate = item.vatRate ?? settings?.vatRate ?? 20;
-    
-    const vatAmount = vatEnabled ? finalSellPrice * (vatRate / 100) : 0;
-    const totalIncVat = vatEnabled ? finalSellPrice + vatAmount : finalSellPrice;
-
-    return {
-      setupCost, programmingCost, machiningCost, inspectionCost, deburringCost, materialCostTotal,
-      directCost, riskValue, costBeforeMargin, sellPrice: finalSellPrice, pricePerPart,
-      vatEnabled, vatRate, vatAmount, totalIncVat
-    };
+    const vatAmount = vatEnabled ? sellPrice * (vatRate / 100) : 0;
+    const totalIncVat = vatEnabled ? sellPrice + vatAmount : sellPrice;
+    return { setupCost, programmingCost, machiningCost, inspectionCost, deburringCost, materialCostTotal, directCost, riskValue, costBeforeMargin, sellPrice, pricePerPart, vatEnabled, vatRate, vatAmount, totalIncVat };
   };
+
+  const currencySymbol = settings?.currency === "GBP" ? "£" : settings?.currency === "EUR" ? "€" : "$";
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          {STEPS.map((step, index) => (
-            <div key={step} className="flex items-center gap-2">
-              <div className={`flex items-center justify-center w-6 h-6 rounded-full border ${
-                currentStep === index ? 'bg-primary text-primary-foreground border-primary' : 
-                currentStep > index ? 'bg-primary/20 text-primary border-primary/20' : 'border-muted-foreground'
-              }`}>
-                {currentStep > index ? <Check className="w-3 h-3" /> : index + 1}
-              </div>
-              <span className={currentStep === index ? 'font-medium text-foreground' : ''}>{step}</span>
-              {index < STEPS.length - 1 && <div className="w-8 h-px bg-border mx-2" />}
+      {/* Step indicator */}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        {STEPS.map((step, index) => (
+          <div key={step} className="flex items-center gap-2">
+            <div className={`flex items-center justify-center w-6 h-6 rounded-full border text-xs font-medium ${
+              currentStep === index ? 'bg-primary text-primary-foreground border-primary' :
+              currentStep > index ? 'bg-primary/20 text-primary border-primary/20' : 'border-muted-foreground'
+            }`}>
+              {currentStep > index ? <Check className="w-3 h-3" /> : index + 1}
             </div>
-          ))}
-        </div>
+            <span className={currentStep === index ? 'font-medium text-foreground' : ''}>{step}</span>
+            {index < STEPS.length - 1 && <div className="w-8 h-px bg-border mx-2" />}
+          </div>
+        ))}
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleFinalSubmit)} className="space-y-8">
-          
-          {/* STEP 1: CUSTOMER */}
+        <form onSubmit={form.handleSubmit(handleFinalSubmit)} className="space-y-6">
+
+          {/* STEP 1: QUOTE INFO */}
           {currentStep === 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Select Customer</CardTitle>
-                <CardDescription>Choose who this quote is for</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="customerId"
-                  render={({ field }) => (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Customer & Quote Details</CardTitle>
+                  <CardDescription>Who is this quote for and what are the key dates?</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField control={form.control} name="customerId" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Customer</FormLabel>
-                      <Select 
-                        onValueChange={(v) => field.onChange(Number(v))} 
-                        value={field.value ? field.value.toString() : ""}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a customer" />
-                          </SelectTrigger>
-                        </FormControl>
+                      <FormLabel>Customer *</FormLabel>
+                      <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? field.value.toString() : ""}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select a customer" /></SelectTrigger></FormControl>
                         <SelectContent>
                           {customers?.map(c => (
                             <SelectItem key={c.id} value={c.id.toString()}>{c.companyName}</SelectItem>
@@ -279,37 +271,159 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
                       </Select>
                       <FormMessage />
                     </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormField control={form.control} name="status" render={({ field }) => (
+                  )} />
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField control={form.control} name="status" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                          <SelectContent>
+                            <SelectItem value="Draft">Draft</SelectItem>
+                            <SelectItem value="Sent">Sent</SelectItem>
+                            <SelectItem value="Won">Won</SelectItem>
+                            <SelectItem value="Lost">Lost</SelectItem>
+                            <SelectItem value="Expired">Expired</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="quoteDate" render={({ field }) => (
+                      <FormItem><FormLabel>Quote Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl></FormItem>
+                    )} />
+                    <FormField control={form.control} name="validUntil" render={({ field }) => (
+                      <FormItem><FormLabel>Valid Until</FormLabel><FormControl><Input type="date" {...field} /></FormControl></FormItem>
+                    )} />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="quoteRevision" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Quote Revision</FormLabel>
+                        <FormControl><Input placeholder="A" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="revisionNotes" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Revision Notes</FormLabel>
+                        <FormControl><Input placeholder="What changed in this revision?" {...field} /></FormControl>
+                      </FormItem>
+                    )} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Commercial Terms</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Lead Time */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Lead Time</label>
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {LEAD_TIME_PRESETS.map(p => (
+                          <button key={p} type="button"
+                            onClick={() => form.setValue("leadTime", p)}
+                            className={`px-2 py-1 text-xs rounded border transition-colors ${
+                              form.watch("leadTime") === p ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"
+                            }`}
+                          >{p}</button>
+                        ))}
+                      </div>
+                      <FormField control={form.control} name="leadTime" render={({ field }) => (
+                        <FormItem><FormControl><Input placeholder="e.g. 4 weeks" {...field} /></FormControl></FormItem>
+                      )} />
+                    </div>
+
+                    {/* Delivery Terms */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Delivery Terms</label>
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {DELIVERY_TERM_PRESETS.map(p => (
+                          <button key={p} type="button"
+                            onClick={() => form.setValue("deliveryTerms", p)}
+                            className={`px-2 py-1 text-xs rounded border transition-colors ${
+                              form.watch("deliveryTerms") === p ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"
+                            }`}
+                          >{p}</button>
+                        ))}
+                      </div>
+                      <FormField control={form.control} name="deliveryTerms" render={({ field }) => (
+                        <FormItem><FormControl><Input placeholder="e.g. Ex Works" {...field} /></FormControl></FormItem>
+                      )} />
+                    </div>
+                  </div>
+
+                  {/* Payment Terms */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Payment Terms</label>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {PAYMENT_TERM_PRESETS.map(p => (
+                        <button key={p} type="button"
+                          onClick={() => form.setValue("paymentTerms", p)}
+                          className={`px-2 py-1 text-xs rounded border transition-colors ${
+                            form.watch("paymentTerms") === p ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"
+                          }`}
+                        >{p}</button>
+                      ))}
+                    </div>
+                    <FormField control={form.control} name="paymentTerms" render={({ field }) => (
+                      <FormItem><FormControl><Input placeholder="e.g. 30 days from invoice date" {...field} /></FormControl></FormItem>
+                    )} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notes</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField control={form.control} name="notes" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Quote Status</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          <SelectItem value="Draft">Draft</SelectItem>
-                          <SelectItem value="Sent">Sent</SelectItem>
-                          <SelectItem value="Won">Won</SelectItem>
-                          <SelectItem value="Lost">Lost</SelectItem>
-                          <SelectItem value="Expired">Expired</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
+                      <FormLabel>Customer Notes</FormLabel>
+                      <FormControl><Textarea rows={3} placeholder="Notes visible to the customer on the PDF quote…" {...field} /></FormControl>
                     </FormItem>
                   )} />
-                  <FormField control={form.control} name="quoteDate" render={({ field }) => (
-                    <FormItem><FormLabel>Quote Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormField control={form.control} name="internalNotes" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Internal Notes <span className="text-muted-foreground text-xs font-normal">(not shown on PDF)</span></FormLabel>
+                      <FormControl><Textarea rows={3} placeholder="Internal notes for your team only…" {...field} /></FormControl>
+                    </FormItem>
                   )} />
-                  <FormField control={form.control} name="validUntil" render={({ field }) => (
-                    <FormItem><FormLabel>Valid Until</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                </div>
-                <FormField control={form.control} name="notes" render={({ field }) => (
-                  <FormItem><FormLabel>Quote Notes (Optional)</FormLabel><FormControl><Textarea className="h-20" {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Certification Requirements</CardTitle>
+                  <CardDescription>Check which certificates are included with this quote</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {([
+                      { name: "materialCertIncluded" as const, label: "Material Certificate" },
+                      { name: "inspectionReportIncluded" as const, label: "Inspection Report" },
+                      { name: "fairIncluded" as const, label: "FAIR" },
+                      { name: "cmmReportIncluded" as const, label: "CMM Report" },
+                    ]).map(({ name, label }) => (
+                      <FormField key={name} control={form.control} name={name} render={({ field }) => (
+                        <FormItem className="flex items-center gap-2 space-y-0 rounded-md border p-3">
+                          <FormControl>
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                          <FormLabel className="font-normal cursor-pointer text-sm">{label}</FormLabel>
+                        </FormItem>
+                      )} />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* STEP 2: PART DETAILS */}
@@ -317,27 +431,41 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
             <Card>
               <CardHeader>
                 <CardTitle>Part Details</CardTitle>
-                <CardDescription>Define the core geometry and requirements</CardDescription>
+                <CardDescription>Define the core geometry and requirements for each part</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Part tabs */}
+                {fields.length > 1 && (
+                  <div className="flex gap-2 flex-wrap">
+                    {fields.map((_, idx) => (
+                      <button key={idx} type="button"
+                        onClick={() => setActiveLineItemIndex(idx)}
+                        className={`px-3 py-1.5 text-sm rounded border ${activeLineItemIndex === idx ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
+                      >
+                        Part {idx + 1}: {form.watch(`lineItems.${idx}.partName`) || "Unnamed"}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.partName`} render={({ field }) => (
-                    <FormItem><FormLabel>Part Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Part Name *</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.drawingNumber`} render={({ field }) => (
-                    <FormItem><FormLabel>Drawing Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Drawing Number</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
                   )} />
                   <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.revision`} render={({ field }) => (
-                    <FormItem><FormLabel>Revision</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Part Revision</FormLabel><FormControl><Input placeholder="e.g. A, B, 01" {...field} /></FormControl></FormItem>
                   )} />
                   <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.quantity`} render={({ field }) => (
-                    <FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" min="1" {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Quantity *</FormLabel><FormControl><Input type="number" min="1" {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.material`} render={({ field }) => (
-                    <FormItem><FormLabel>Material</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Material *</FormLabel><FormControl><Input placeholder="e.g. EN8, 316 SS, 6082 T6" {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.processType`} render={({ field }) => (
-                    <FormItem><FormLabel>Process Type</FormLabel>
+                    <FormItem><FormLabel>Process Type *</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                         <SelectContent>
@@ -354,7 +482,7 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
                   <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.machineId`} render={({ field }) => (
                     <FormItem><FormLabel>Target Machine</FormLabel>
                       <Select onValueChange={(v) => field.onChange(v === "none" ? null : Number(v))} value={field.value ? field.value.toString() : "none"}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Default/Any" /></SelectTrigger></FormControl>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Default / Any" /></SelectTrigger></FormControl>
                         <SelectContent>
                           <SelectItem value="none">Default / Any</SelectItem>
                           {machines?.filter(m => m.active).map(m => (
@@ -362,7 +490,6 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
                           ))}
                         </SelectContent>
                       </Select>
-                      <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.toleranceClass`} render={({ field }) => (
@@ -376,7 +503,6 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
                           <SelectItem value="Critical">Critical</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.surfaceFinish`} render={({ field }) => (
@@ -389,7 +515,6 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
                           <SelectItem value="Critical">Critical</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.complexity`} render={({ field }) => (
@@ -403,9 +528,32 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
                           <SelectItem value="Very Complex">Very Complex</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage />
                     </FormItem>
                   )} />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => {
+                    append({
+                      partName: "", quantity: 1, material: "", processType: "Milling",
+                      setupHours: 0, programmingHours: 0, machiningMinutesPerPart: 0,
+                      inspectionHours: 0, deburringMinutesPerPart: 0, materialCostPerUnit: 0,
+                      materialWastagePercentage: 10, toolingAllowance: 0, outsideProcessing: 0,
+                      packaging: 0, delivery: 0, riskPercentage: 10, profitMarginPercentage: 30,
+                      discountPercentage: 0, vatEnabled: settings?.vatEnabled ?? false, vatRate: settings?.vatRate ?? 20,
+                    });
+                    setActiveLineItemIndex(fields.length);
+                  }}>
+                    <Plus className="w-4 h-4 mr-1" /> Add Part
+                  </Button>
+                  {fields.length > 1 && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      remove(activeLineItemIndex);
+                      setActiveLineItemIndex(Math.max(0, activeLineItemIndex - 1));
+                    }}>
+                      <Trash2 className="w-4 h-4 mr-1" /> Remove Part
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -413,7 +561,19 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
 
           {/* STEP 3: ASSUMPTIONS */}
           {currentStep === 2 && (
-            <div className="space-y-6">
+            <div className="space-y-4">
+              {fields.length > 1 && (
+                <div className="flex gap-2 flex-wrap">
+                  {fields.map((_, idx) => (
+                    <button key={idx} type="button" onClick={() => setActiveLineItemIndex(idx)}
+                      className={`px-3 py-1.5 text-sm rounded border ${activeLineItemIndex === idx ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
+                    >
+                      {form.watch(`lineItems.${idx}.partName`) || `Part ${idx + 1}`}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <Card>
                 <CardHeader>
                   <CardTitle>Machining Assumptions</CardTitle>
@@ -422,7 +582,7 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-4">
-                      <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Time (Total)</h3>
+                      <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Time (Total job)</h3>
                       <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.setupHours`} render={({ field }) => (
                         <FormItem><FormLabel>Setup (Hours)</FormLabel><FormControl><Input type="number" step="0.25" min="0" {...field} /></FormControl></FormItem>
                       )} />
@@ -433,7 +593,6 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
                         <FormItem><FormLabel>Inspection (Hours)</FormLabel><FormControl><Input type="number" step="0.25" min="0" {...field} /></FormControl></FormItem>
                       )} />
                     </div>
-                    
                     <div className="space-y-4">
                       <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Time (Per Part)</h3>
                       <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.machiningMinutesPerPart`} render={({ field }) => (
@@ -443,26 +602,25 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
                         <FormItem><FormLabel>Deburring (Mins)</FormLabel><FormControl><Input type="number" step="1" min="0" {...field} /></FormControl></FormItem>
                       )} />
                     </div>
-
                     <div className="space-y-4">
                       <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Material & Direct</h3>
                       <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.materialCostPerUnit`} render={({ field }) => (
-                        <FormItem><FormLabel>Material Cost/Unit (£)</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl></FormItem>
+                        <FormItem><FormLabel>Material Cost/Unit ({currencySymbol})</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl></FormItem>
                       )} />
                       <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.materialWastagePercentage`} render={({ field }) => (
                         <FormItem><FormLabel>Material Wastage (%)</FormLabel><FormControl><Input type="number" step="1" min="0" {...field} /></FormControl></FormItem>
                       )} />
                       <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.toolingAllowance`} render={({ field }) => (
-                        <FormItem><FormLabel>Tooling Allowance (£)</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl></FormItem>
+                        <FormItem><FormLabel>Tooling Allowance ({currencySymbol})</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl></FormItem>
                       )} />
                       <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.outsideProcessing`} render={({ field }) => (
-                        <FormItem><FormLabel>Outside Processing (£)</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl></FormItem>
+                        <FormItem><FormLabel>Outside Processing ({currencySymbol})</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl></FormItem>
                       )} />
                       <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.packaging`} render={({ field }) => (
-                        <FormItem><FormLabel>Packaging (£)</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl></FormItem>
+                        <FormItem><FormLabel>Packaging ({currencySymbol})</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl></FormItem>
                       )} />
                       <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.delivery`} render={({ field }) => (
-                        <FormItem><FormLabel>Delivery (£)</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl></FormItem>
+                        <FormItem><FormLabel>Delivery ({currencySymbol})</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl></FormItem>
                       )} />
                     </div>
                   </div>
@@ -470,11 +628,9 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle>Commercials</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Commercials</CardTitle></CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.riskPercentage`} render={({ field }) => (
                       <FormItem><FormLabel>Risk Allowance (%)</FormLabel><FormControl><Input type="number" step="1" min="0" {...field} /></FormControl></FormItem>
                     )} />
@@ -484,169 +640,172 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
                     <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.discountPercentage`} render={({ field }) => (
                       <FormItem><FormLabel>Discount (%)</FormLabel><FormControl><Input type="number" step="1" min="0" {...field} /></FormControl></FormItem>
                     )} />
-                    <div className="flex flex-col space-y-2 pt-6">
-                      <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.vatEnabled`} render={({ field }) => (
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                          <FormLabel>Apply VAT</FormLabel>
-                        </FormItem>
-                      )} />
-                    </div>
+                    <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.vatEnabled`} render={({ field }) => (
+                      <FormItem className="flex items-center gap-2 space-y-0 pt-6">
+                        <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                        <FormLabel>Apply VAT</FormLabel>
+                      </FormItem>
+                    )} />
                   </div>
                 </CardContent>
               </Card>
             </div>
           )}
 
-          {/* STEP 4: REVIEW & PRICING */}
+          {/* STEP 4: REVIEW */}
           {currentStep === 3 && (
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Cost Breakdown Review</CardTitle>
-                  <CardDescription>Live cost calculations based on your assumptions</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {fields.map((field, idx) => {
-                    if (idx !== activeLineItemIndex) return null;
-                    const itemVals = form.watch(`lineItems.${idx}`);
-                    const costs = calculateCosts(itemVals);
-                    
-                    return (
-                      <div key={field.id} className="space-y-6">
-                        <div className="flex justify-between items-baseline border-b pb-4">
-                          <div>
-                            <h3 className="text-xl font-bold">{itemVals.partName || "Unnamed Part"}</h3>
-                            <p className="text-sm text-muted-foreground">Qty: {itemVals.quantity} • Material: {itemVals.material}</p>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm text-muted-foreground">Unit Price</div>
-                            <div className="text-2xl font-bold text-primary">£{costs.pricePerPart.toFixed(2)}</div>
-                            <div className="text-sm font-semibold">Total: £{costs.sellPrice.toFixed(2)}</div>
-                          </div>
-                        </div>
+            <div className="space-y-4">
+              {fields.length > 1 && (
+                <div className="flex gap-2 flex-wrap">
+                  {fields.map((_, idx) => (
+                    <button key={idx} type="button" onClick={() => setActiveLineItemIndex(idx)}
+                      className={`px-3 py-1.5 text-sm rounded border ${activeLineItemIndex === idx ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
+                    >
+                      {form.watch(`lineItems.${idx}.partName`) || `Part ${idx + 1}`}
+                    </button>
+                  ))}
+                </div>
+              )}
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                          <div className="bg-muted/50 p-3 rounded-md">
-                            <div className="text-muted-foreground mb-1">Setup Cost</div>
-                            <div className="font-semibold">£{costs.setupCost.toFixed(2)}</div>
-                          </div>
-                          <div className="bg-muted/50 p-3 rounded-md">
-                            <div className="text-muted-foreground mb-1">Programming</div>
-                            <div className="font-semibold">£{costs.programmingCost.toFixed(2)}</div>
-                          </div>
-                          <div className="bg-muted/50 p-3 rounded-md">
-                            <div className="text-muted-foreground mb-1">Machining</div>
-                            <div className="font-semibold">£{costs.machiningCost.toFixed(2)}</div>
-                          </div>
-                          <div className="bg-muted/50 p-3 rounded-md">
-                            <div className="text-muted-foreground mb-1">Material Total</div>
-                            <div className="font-semibold">£{costs.materialCostTotal.toFixed(2)}</div>
-                          </div>
+              {fields.map((field, idx) => {
+                if (idx !== activeLineItemIndex) return null;
+                const itemVals = form.watch(`lineItems.${idx}`);
+                const costs = calculateCosts(itemVals);
+                return (
+                  <Card key={field.id}>
+                    <CardHeader>
+                      <div className="flex justify-between items-baseline">
+                        <div>
+                          <CardTitle>{itemVals.partName || "Unnamed Part"}</CardTitle>
+                          <p className="text-sm text-muted-foreground mt-1">Qty: {itemVals.quantity} · {itemVals.material} · {itemVals.processType}</p>
                         </div>
-
-                        <div className="border rounded-md overflow-hidden">
-                          <table className="w-full text-sm">
-                            <tbody>
-                              <tr className="border-b bg-muted/20">
-                                <td className="py-2 px-4 font-medium w-1/2">Direct Cost</td>
-                                <td className="py-2 px-4 text-right">£{costs.directCost.toFixed(2)}</td>
-                              </tr>
-                              <tr className="border-b">
-                                <td className="py-2 px-4">Risk Allowance ({itemVals.riskPercentage || 0}%)</td>
-                                <td className="py-2 px-4 text-right">£{costs.riskValue.toFixed(2)}</td>
-                              </tr>
-                              <tr className="border-b font-medium">
-                                <td className="py-2 px-4">Cost Before Margin</td>
-                                <td className="py-2 px-4 text-right">£{costs.costBeforeMargin.toFixed(2)}</td>
-                              </tr>
-                              <tr className="border-b">
-                                <td className="py-2 px-4">Margin ({itemVals.profitMarginPercentage || 0}%)</td>
-                                <td className="py-2 px-4 text-right">£{(costs.sellPrice - costs.costBeforeMargin).toFixed(2)}</td>
-                              </tr>
-                              <tr className="border-b bg-muted/50 text-base font-bold">
-                                <td className="py-3 px-4">Sell Price</td>
-                                <td className="py-3 px-4 text-right">£{costs.sellPrice.toFixed(2)}</td>
-                              </tr>
-                              {costs.vatEnabled && (
-                                <>
-                                  <tr className="border-b">
-                                    <td className="py-2 px-4">VAT ({costs.vatRate}%)</td>
-                                    <td className="py-2 px-4 text-right">£{costs.vatAmount.toFixed(2)}</td>
-                                  </tr>
-                                  <tr className="bg-primary/5 font-bold">
-                                    <td className="py-3 px-4">Total Inc VAT</td>
-                                    <td className="py-3 px-4 text-right text-primary">£{costs.totalIncVat.toFixed(2)}</td>
-                                  </tr>
-                                </>
-                              )}
-                            </tbody>
-                          </table>
+                        <div className="text-right">
+                          <div className="text-xs text-muted-foreground">Unit Price</div>
+                          <div className="text-2xl font-bold text-primary">{currencySymbol}{costs.pricePerPart.toFixed(2)}</div>
+                          <div className="text-sm font-semibold text-muted-foreground">Total: {currencySymbol}{costs.sellPrice.toFixed(2)}</div>
                         </div>
                       </div>
-                    );
-                  })}
-                </CardContent>
-              </Card>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                        {[
+                          ["Setup", costs.setupCost],
+                          ["Programming", costs.programmingCost],
+                          ["Machining", costs.machiningCost],
+                          ["Inspection", costs.inspectionCost],
+                          ["Deburring", costs.deburringCost],
+                          ["Material", costs.materialCostTotal],
+                        ].map(([label, val]) => (
+                          <div key={label as string} className="flex justify-between p-2 bg-muted/40 rounded">
+                            <span className="text-muted-foreground">{label}</span>
+                            <span className="font-mono">{currencySymbol}{(val as number).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-3 pt-3 border-t space-y-1 text-sm">
+                        <div className="flex justify-between"><span className="text-muted-foreground">Direct Cost</span><span className="font-mono">{currencySymbol}{costs.directCost.toFixed(2)}</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Risk ({itemVals.riskPercentage}%)</span><span className="font-mono">{currencySymbol}{costs.riskValue.toFixed(2)}</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Cost before margin</span><span className="font-mono">{currencySymbol}{costs.costBeforeMargin.toFixed(2)}</span></div>
+                        <div className="flex justify-between font-semibold border-t pt-1 mt-1">
+                          <span>Sell Price (excl. VAT)</span>
+                          <span className="font-mono text-primary">{currencySymbol}{costs.sellPrice.toFixed(2)}</span>
+                        </div>
+                        {costs.vatEnabled && (
+                          <div className="flex justify-between text-muted-foreground">
+                            <span>VAT ({costs.vatRate}%)</span>
+                            <span className="font-mono">{currencySymbol}{costs.vatAmount.toFixed(2)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
 
+              {/* Quote summary */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Internal Technical Notes (Optional)</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.toolingRecommendation`} render={({ field }) => (
-                    <FormItem><FormLabel>Tooling Notes</FormLabel><FormControl><Textarea className="h-20" {...field} /></FormControl></FormItem>
-                  )} />
-                  <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.materialRecommendation`} render={({ field }) => (
-                    <FormItem><FormLabel>Material Stockholder</FormLabel><FormControl><Textarea className="h-20" {...field} /></FormControl></FormItem>
-                  )} />
-                  <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.coolantRecommendation`} render={({ field }) => (
-                    <FormItem><FormLabel>Coolant Notes</FormLabel><FormControl><Textarea className="h-20" {...field} /></FormControl></FormItem>
-                  )} />
+                <CardHeader><CardTitle>Quote Summary</CardTitle></CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                  <div className="grid grid-cols-2 gap-2">
+                    {form.watch("leadTime") && <div><span className="text-muted-foreground">Lead time:</span> <span className="font-medium">{form.watch("leadTime")}</span></div>}
+                    {form.watch("deliveryTerms") && <div><span className="text-muted-foreground">Delivery:</span> <span className="font-medium">{form.watch("deliveryTerms")}</span></div>}
+                    {form.watch("paymentTerms") && <div><span className="text-muted-foreground">Payment:</span> <span className="font-medium">{form.watch("paymentTerms")}</span></div>}
+                    {form.watch("quoteRevision") && <div><span className="text-muted-foreground">Revision:</span> <span className="font-medium">{form.watch("quoteRevision")}</span></div>}
+                  </div>
+                  {(form.watch("materialCertIncluded") || form.watch("inspectionReportIncluded") || form.watch("fairIncluded") || form.watch("cmmReportIncluded")) && (
+                    <div>
+                      <span className="text-muted-foreground">Certifications: </span>
+                      {[
+                        form.watch("materialCertIncluded") && "Material Cert",
+                        form.watch("inspectionReportIncluded") && "Inspection Report",
+                        form.watch("fairIncluded") && "FAIR",
+                        form.watch("cmmReportIncluded") && "CMM Report",
+                      ].filter(Boolean).join(", ")}
+                    </div>
+                  )}
+                  {form.watch("notes") && (
+                    <div className="p-3 bg-muted/30 rounded">
+                      <div className="text-xs text-muted-foreground uppercase mb-1">Customer Notes</div>
+                      <div>{form.watch("notes")}</div>
+                    </div>
+                  )}
+                  {form.watch("internalNotes") && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded dark:bg-amber-950/20 dark:border-amber-800">
+                      <div className="text-xs text-amber-600 dark:text-amber-400 uppercase mb-1">Internal Notes (not on PDF)</div>
+                      <div>{form.watch("internalNotes")}</div>
+                    </div>
+                  )}
+                  <div className="pt-3 border-t flex justify-between items-center">
+                    <span className="font-semibold text-base">Quote Total</span>
+                    <span className="text-xl font-bold text-primary">
+                      {currencySymbol}{fields.reduce((sum, _, idx) => {
+                        const costs = calculateCosts(form.watch(`lineItems.${idx}`));
+                        return sum + costs.sellPrice;
+                      }, 0).toFixed(2)}
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
             </div>
           )}
 
-          {/* STEP 5: FINALISE */}
+          {/* STEP 5: COMPLETE */}
           {currentStep === 4 && (
-            <Card className="text-center py-12">
-              <CardContent>
-                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Check className="w-8 h-8" />
+            <Card>
+              <CardContent className="py-12 text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
+                  <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
                 </div>
-                <h2 className="text-2xl font-bold mb-2">Quote Saved!</h2>
-                <p className="text-muted-foreground mb-8">The quote has been generated successfully. Redirecting you now…</p>
-                <div className="flex justify-center gap-4">
-                  {savedQuoteId ? (
-                    <Link href={`/quotes/${savedQuoteId}`}>
-                      <Button type="button">View Quote</Button>
-                    </Link>
-                  ) : (
-                    <Link href="/quotes">
-                      <Button type="button" variant="outline">Back to Quotes</Button>
-                    </Link>
+                <h2 className="text-2xl font-bold">Quote Saved!</h2>
+                <p className="text-muted-foreground">Your quote has been saved successfully.</p>
+                <div className="flex gap-3 justify-center pt-2">
+                  {savedQuoteId && (
+                    <Button asChild>
+                      <Link href={`/quotes/${savedQuoteId}`}>View Quote</Link>
+                    </Button>
                   )}
+                  <Button variant="outline" asChild>
+                    <Link href="/quotes">Back to Quotes</Link>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Navigation Controls */}
+          {/* Navigation */}
           {currentStep < 4 && (
-            <div className="flex justify-between pt-4 border-t">
+            <div className="flex justify-between pt-2">
               <Button type="button" variant="outline" onClick={handlePrev} disabled={currentStep === 0}>
                 <ArrowLeft className="w-4 h-4 mr-2" /> Back
               </Button>
-              
               {currentStep < 3 ? (
                 <Button type="button" onClick={handleNext}>
-                  Next Step <ArrowRight className="w-4 h-4 ml-2" />
+                  Next <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
                 <Button type="submit" disabled={isSubmitting}>
-                  <Save className="w-4 h-4 mr-2" /> 
-                  {isSubmitting ? "Saving Quote..." : "Save Quote"}
+                  <Save className="w-4 h-4 mr-2" />
+                  {isSubmitting ? "Saving…" : "Save Quote"}
                 </Button>
               )}
             </div>
