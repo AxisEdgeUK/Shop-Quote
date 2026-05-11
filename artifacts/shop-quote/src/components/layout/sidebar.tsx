@@ -10,6 +10,22 @@ const navItems = [
   { name: "Settings", href: "/settings", icon: SettingsIcon },
 ];
 
+function ShopQuoteLogo({ size = 28 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1" y="1" width="26" height="26" rx="2" fill="none" stroke="#FF6B00" strokeWidth="1.5"/>
+      <line x1="14" y1="4" x2="14" y2="9" stroke="#FF6B00" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="14" y1="19" x2="14" y2="24" stroke="#FF6B00" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="4" y1="14" x2="9" y2="14" stroke="#FF6B00" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="19" y1="14" x2="24" y2="14" stroke="#FF6B00" strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="14" cy="14" r="3.5" fill="none" stroke="#FF6B00" strokeWidth="1.5"/>
+      <circle cx="14" cy="14" r="1" fill="#FF6B00"/>
+    </svg>
+  );
+}
+
+export { ShopQuoteLogo };
+
 export function Sidebar() {
   const [location] = useLocation();
 
@@ -17,26 +33,21 @@ export function Sidebar() {
     <div className="w-64 h-screen flex flex-col fixed left-0 top-0 print:hidden"
       style={{ background: "hsl(var(--sidebar))", borderRight: "1px solid hsl(var(--sidebar-border))" }}
     >
-      {/* Logo */}
       <div className="px-5 py-5" style={{ borderBottom: "1px solid hsl(var(--sidebar-border))" }}>
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded flex items-center justify-center shrink-0"
-            style={{ background: "hsl(var(--sidebar-primary))" }}>
-            <Wrench className="w-4 h-4" style={{ color: "hsl(var(--sidebar-primary-foreground))" }} />
-          </div>
+        <Link href="/" className="flex items-center gap-3 group">
+          <ShopQuoteLogo size={28} />
           <div>
-            <div className="text-sm font-bold tracking-widest uppercase"
-              style={{ color: "hsl(var(--sidebar-foreground))", letterSpacing: "0.1em" }}>
+            <div className="text-xs font-bold tracking-widest uppercase leading-none"
+              style={{ color: "hsl(var(--sidebar-foreground))", letterSpacing: "0.12em" }}>
               SHOP
             </div>
-            <div className="text-xs font-medium" style={{ color: "hsl(var(--sidebar-primary))", letterSpacing: "0.15em" }}>
+            <div className="text-xs font-semibold mt-0.5 leading-none" style={{ color: "hsl(25 100% 50%)", letterSpacing: "0.18em" }}>
               QUOTE
             </div>
           </div>
         </Link>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 p-3 space-y-0.5 pt-4">
         <div className="text-xs font-semibold uppercase tracking-widest px-3 mb-3"
           style={{ color: "hsl(220 5% 35%)" }}>
@@ -50,13 +61,11 @@ export function Sidebar() {
               href={item.href}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all rounded",
-                isActive
-                  ? "text-white"
-                  : "hover:bg-white/5"
+                !isActive && "hover:bg-white/5"
               )}
               style={isActive ? {
                 background: "hsl(25 100% 50% / 0.18)",
-                color: "hsl(25 100% 60%)",
+                color: "hsl(25 100% 62%)",
                 borderLeft: "3px solid hsl(25 100% 50%)",
               } : {
                 color: "hsl(var(--sidebar-foreground))",
@@ -70,11 +79,8 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Version footer */}
       <div className="px-5 py-4" style={{ borderTop: "1px solid hsl(var(--sidebar-border))" }}>
-        <div className="text-xs" style={{ color: "hsl(220 5% 35%)" }}>
-          CNC Quoting Software
-        </div>
+        <div className="text-xs" style={{ color: "hsl(220 5% 32%)" }}>CNC Quoting Software</div>
       </div>
     </div>
   );

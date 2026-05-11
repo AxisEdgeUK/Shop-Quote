@@ -1,0 +1,240 @@
+Redesign the SHOP Quote landing page into a premium industrial engineering software experience.
+
+The current landing page feels too much like generic SaaS software.
+
+The new direction must feel:
+- German engineered
+- Precision manufacturing
+- Industrial
+- High-end
+- Minimal
+- Premium
+- Fast
+- Clean
+- Professional
+- Trustworthy
+
+Think:
+- DMG Mori
+- Siemens
+- Hermle
+- Porsche configurator
+- High-end CNC machine interface
+- Industrial automation software
+
+DO NOT use:
+- generic SaaS gradients
+- cartoon illustrations
+- startup-style bubbles
+- childish animations
+- playful icons
+- excessive text
+- fake AI language
+
+OVERALL STYLE:
+The customer should feel:
+“This software looks expensive and serious, but I am getting huge value for the money.”
+
+The design should feel:
+- understated
+- engineered
+- modern
+- premium
+- efficient
+
+COLOUR SYSTEM:
+Primary background:
+- deep charcoal / anthracite
+
+Secondary:
+- steel grey
+
+Cards:
+- matte off-white / very light grey
+
+Accent:
+- industrial orange OR muted electric blue
+
+Typography:
+- strong clean industrial font
+- large readable headings
+- minimal wording
+- premium spacing
+
+HERO SECTION:
+Create a split-screen landing page hero section.
+
+LEFT SIDE:
+Full-screen background video:
+CNC TURNING footage
+- premium CNC lathe
+- close-up cutting
+- coolant
+- spindle movement
+- high-end industrial feel
+- dark cinematic lighting
+- smooth slow motion
+
+RIGHT SIDE:
+Full-screen background video:
+CNC MILLING footage
+- 3-axis or 5-axis machining
+- aluminium chips
+- coolant
+- high-speed spindle
+- modern machining centre
+- premium industrial feel
+
+IMPORTANT:
+Add a subtle dark overlay to both videos so text remains readable.
+
+The split should feel perfectly balanced and symmetrical.
+
+CENTRE OVERLAY CONTENT:
+Place centered overlay content across both split sections.
+
+Main headline:
+FAST PRACTICAL QUOTING FOR SMALL CNC SHOPS
+
+Subheading:
+Create professional milling and turning quotes without relying on spreadsheets, memory, or a full-time estimator.
+
+Primary button:
+START QUOTING FASTER
+
+Secondary button:
+VIEW DEMO
+
+Add subtle premium animation only:
+- fade
+- smooth motion
+- no flashy effects
+
+HEADER / NAVIGATION:
+Minimal premium navigation.
+
+LEFT:
+SHOP Quote wordmark placeholder
+
+RIGHT:
+- Features
+- Pricing
+- Demo
+- Login
+
+Header should be:
+- transparent initially
+- become slightly solid on scroll
+
+SECTION DESIGN:
+Use lots of spacing.
+Keep layouts minimal.
+Do not overcrowd.
+
+FEATURE SECTIONS:
+Use engineering-focused layouts.
+
+Feature cards should feel like:
+- industrial control panels
+- precision instrumentation
+- machine interface design
+
+FEATURE ICON STYLE:
+Minimal line icons only.
+
+NO cartoon icons.
+
+MAIN FEATURE BLOCKS:
+1. Faster quoting
+2. Structured estimating
+3. Reduce owner workload
+4. Professional customer quotes
+5. Built for small machine shops
+
+Add subtle section dividers inspired by:
+- machine panel grooves
+- industrial UI
+- CNC control interfaces
+
+DASHBOARD MOCKUP SECTION:
+Show a sleek mockup of:
+- quote dashboard
+- cost breakdown
+- professional quote PDF
+
+This section should feel:
+- precise
+- premium
+- uncluttered
+
+QUOTE BREAKDOWN SECTION:
+Show visual examples of:
+- setup cost
+- machining cost
+- material cost
+- margin
+- sell price
+
+Present it like:
+high-end engineering software.
+
+PRICING SECTION:
+The pricing section must feel:
+- straightforward
+- honest
+- premium
+
+Plans:
+Founder Lifetime:
+£999 one-off
+
+Monthly:
+£92.50/month
+
+Add wording:
+Built for small machine shops, not enterprise ERP complexity.
+
+Avoid salesy wording.
+
+FOOTER:
+Professional engineering software feel.
+
+Include:
+- company links
+- contact
+- privacy
+- terms
+
+VIDEO BEHAVIOUR:
+- autoplay
+- muted
+- loop
+- smooth transitions
+- optimised performance
+- responsive on mobile/tablet
+
+MOBILE UX:
+On mobile:
+- stack videos vertically
+OR
+- show one combined background video
+
+Maintain premium feel.
+
+FINAL DESIGN RULES:
+The entire website should feel:
+- engineered
+- expensive
+- efficient
+- precise
+- industrial
+- premium
+
+It must NOT feel:
+- startup SaaS
+- playful
+- generic
+- over-designed
+
+The user should immediately think:
+“This was built by people who understand manufacturing.”
