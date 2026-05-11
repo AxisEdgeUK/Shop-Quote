@@ -67,8 +67,8 @@ export function PricingPage() {
               <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 36 }}>per month, cancel anytime</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 36 }}>
                 {["Unlimited quotes", "Unlimited customers", "Unlimited machines", "PDF exports", "Email support"].map(f => (
-                  <div key={f} style={{ display: "flex", gap: 12, fontSize: 13, color: "#374151" }}>
-                    <span style={{ color: BLUE }}>—</span>{f}
+                  <div key={f} style={{ fontSize: 13, color: "#374151" }}>
+                    {f}
                   </div>
                 ))}
               </div>
@@ -93,8 +93,8 @@ export function PricingPage() {
               <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 36 }}>one-off payment, yours forever</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 36 }}>
                 {["All monthly features", "Pay once, use forever", "Priority support", "All future updates included", "Early access to new features"].map(f => (
-                  <div key={f} style={{ display: "flex", gap: 12, fontSize: 13, color: "#374151" }}>
-                    <span style={{ color: BLUE }}>—</span>{f}
+                  <div key={f} style={{ fontSize: 13, color: "#374151" }}>
+                    {f}
                   </div>
                 ))}
               </div>

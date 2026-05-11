@@ -431,8 +431,8 @@ function PricingCard({ label, price, period, features, cta, href, featured }: {
       <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 32 }}>{period}</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 36 }}>
         {features.map(f => (
-          <div key={f} style={{ display: "flex", gap: 12, fontSize: 13, color: "#374151" }}>
-            <span style={{ color: BLUE }}>—</span>{f}
+          <div key={f} style={{ fontSize: 13, color: "#374151" }}>
+            {f}
           </div>
         ))}
       </div>
