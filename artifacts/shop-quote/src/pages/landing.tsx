@@ -5,8 +5,6 @@ const BLUE = "#1D8FFF";
 const BLUE_DIM = "rgba(29,143,255,0.7)";
 const BLUE_GLOW = "rgba(29,143,255,0.15)";
 
-const TURNING_IMG =
-  "https://images.pexels.com/photos/28929510/pexels-photo-28929510/free-photo-of-industrial-cnc-lathe-in-a-busy-machine-shop.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop";
 const MILLING_IMG =
   "https://images.pexels.com/photos/8956445/pexels-photo-8956445.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop";
 
@@ -40,17 +38,9 @@ function Wordmark({ light = false }: { light?: boolean }) {
   );
 }
 
-function HeroPanel({
-  imgSrc,
-  side,
-  label,
-}: {
-  imgSrc: string;
-  side: "left" | "right";
-  label: string;
-}) {
+function HeroBackground({ imgSrc }: { imgSrc: string }) {
   return (
-    <div className="relative overflow-hidden" style={{ width: "50%", height: "100%" }}>
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
       {/* Ken Burns image */}
       <div
         style={{
@@ -59,56 +49,18 @@ function HeroPanel({
           backgroundImage: `url(${imgSrc})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          animation: side === "left" ? "kenBurnsL 28s ease-in-out infinite alternate" : "kenBurnsR 28s ease-in-out infinite alternate",
+          animation: "kenBurnsR 28s ease-in-out infinite alternate",
           willChange: "transform",
         }}
       />
-      {/* Dark + slight blue vignette overlay */}
+      {/* Dark vignette overlay */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background:
-            side === "left"
-              ? "linear-gradient(135deg, rgba(5,10,20,0.72) 0%, rgba(5,10,20,0.5) 60%, rgba(5,10,20,0.68) 100%)"
-              : "linear-gradient(225deg, rgba(5,10,20,0.72) 0%, rgba(5,10,20,0.5) 60%, rgba(5,10,20,0.68) 100%)",
+          background: "linear-gradient(135deg, rgba(5,10,20,0.70) 0%, rgba(5,10,20,0.45) 50%, rgba(5,10,20,0.70) 100%)",
         }}
       />
-      {/* Inner edge fade toward divider */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            side === "left"
-              ? "linear-gradient(to right, transparent 65%, rgba(8,12,22,0.6) 100%)"
-              : "linear-gradient(to left, transparent 65%, rgba(8,12,22,0.6) 100%)",
-        }}
-      />
-      {/* Label bottom */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 48,
-          ...(side === "left" ? { left: 40 } : { right: 40 }),
-          zIndex: 10,
-          textAlign: side === "left" ? "left" : "right",
-        }}
-      >
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", color: BLUE_DIM, textTransform: "uppercase" }}>
-          {label}
-        </div>
-        <div
-          style={{
-            marginTop: 6,
-            width: 28,
-            height: 1.5,
-            background: BLUE,
-            opacity: 0.7,
-            ...(side === "right" ? { marginLeft: "auto" } : {}),
-          }}
-        />
-      </div>
     </div>
   );
 }
@@ -201,25 +153,8 @@ export function LandingPage() {
 
       {/* ── HERO ─────────────────────────────────────────────────── */}
       <section style={{ position: "relative", height: "100vh", overflow: "hidden" }}>
-        {/* Split panels */}
-        <div style={{ position: "absolute", inset: 0, display: "flex" }}>
-          <HeroPanel imgSrc={TURNING_IMG} side="left" label="CNC Turning" />
-          <HeroPanel imgSrc={MILLING_IMG} side="right" label="CNC Milling" />
-        </div>
-
-        {/* Divider line */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            bottom: 0,
-            left: "50%",
-            width: 1,
-            zIndex: 20,
-            background: `linear-gradient(to bottom, transparent 0%, ${BLUE} 20%, ${BLUE} 80%, transparent 100%)`,
-            opacity: 0.5,
-          }}
-        />
+        {/* Full-width background */}
+        <HeroBackground imgSrc={MILLING_IMG} />
 
         {/* Centre headline overlay */}
         <div
