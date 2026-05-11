@@ -6,7 +6,7 @@ const BLUE_DIM = "rgba(29,143,255,0.7)";
 const BLUE_GLOW = "rgba(29,143,255,0.15)";
 
 const MILLING_IMG =
-  "https://images.pexels.com/photos/8956445/pexels-photo-8956445.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop";
+  "https://images.pexels.com/photos/3846517/pexels-photo-3846517.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop";
 
 function LogoMark({ size = 26, color = BLUE }: { size?: number; color?: string }) {
   return (
