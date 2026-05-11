@@ -76,7 +76,7 @@ export function LandingPage() {
   }, []);
 
   return (
-    <div style={{ background: "#080C14", color: "#E0E8F0", fontFamily: "'Inter', system-ui, sans-serif", minHeight: "100vh" }}>
+    <div style={{ background: "#ffffff", color: "#111827", fontFamily: "'Inter', system-ui, sans-serif", minHeight: "100vh" }}>
 
       {/* ── KEYFRAMES injected via style tag (non-React, safe) ── */}
       <style>{`
@@ -107,10 +107,11 @@ export function LandingPage() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          transition: "background 0.3s, border-color 0.3s",
-          background: scrolled ? "rgba(8,12,20,0.92)" : "transparent",
+          transition: "background 0.3s, border-color 0.3s, box-shadow 0.3s",
+          background: scrolled ? "rgba(255,255,255,0.95)" : "transparent",
           backdropFilter: scrolled ? "blur(14px)" : "none",
-          borderBottom: scrolled ? `1px solid rgba(29,143,255,0.12)` : "1px solid transparent",
+          borderBottom: scrolled ? "1px solid #e5e7eb" : "1px solid transparent",
+          boxShadow: scrolled ? "0 1px 12px rgba(0,0,0,0.06)" : "none",
         }}
       >
         <Wordmark light />
@@ -122,9 +123,9 @@ export function LandingPage() {
             <a
               key={label}
               href={href}
-              style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.55)", letterSpacing: "0.04em", textDecoration: "none", transition: "color 0.15s" }}
+              style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.75)", letterSpacing: "0.04em", textDecoration: "none", transition: "color 0.15s" }}
               onMouseEnter={e => ((e.target as HTMLElement).style.color = "#fff")}
-              onMouseLeave={e => ((e.target as HTMLElement).style.color = "rgba(255,255,255,0.55)")}
+              onMouseLeave={e => ((e.target as HTMLElement).style.color = "rgba(255,255,255,0.75)")}
             >
               {label}
             </a>
@@ -249,7 +250,7 @@ export function LandingPage() {
         </div>
 
         {/* Bottom gradient fade to page bg */}
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 140, zIndex: 25, background: "linear-gradient(to bottom, transparent, #080C14)" }} />
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 140, zIndex: 25, background: "linear-gradient(to bottom, transparent, #ffffff)" }} />
 
         {/* Scroll cue */}
         <div style={{ position: "absolute", bottom: 32, left: "50%", transform: "translateX(-50%)", zIndex: 35, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, color: "rgba(255,255,255,0.25)", animation: "heroFadeUp 1.2s 0.6s ease-out both", opacity: 0 }}>
@@ -261,21 +262,21 @@ export function LandingPage() {
       </section>
 
       {/* ── FEATURE STRIP ─────────────────────────────────────────── */}
-      <section id="features" ref={featuresRef} style={{ padding: "100px 3rem 80px" }}>
+      <section id="features" ref={featuresRef} style={{ padding: "100px 3rem 80px", background: "#ffffff" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 64 }}>
             <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", color: BLUE, textTransform: "uppercase", marginBottom: 16 }}>
               BUILT FOR THE WORKSHOP
             </div>
-            <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3vw, 2.8rem)", letterSpacing: "-0.025em", color: "#fff", marginBottom: 16 }}>
+            <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3vw, 2.8rem)", letterSpacing: "-0.025em", color: "#111827", marginBottom: 16 }}>
               Engineered for small machine shops
             </h2>
-            <p style={{ color: "rgba(255,255,255,0.45)", maxWidth: 480, margin: "0 auto", lineHeight: 1.75, fontSize: "0.95rem" }}>
+            <p style={{ color: "#6b7280", maxWidth: 480, margin: "0 auto", lineHeight: 1.75, fontSize: "0.95rem" }}>
               Purpose-built estimating software that works the way your shop works — not enterprise ERP complexity.
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: `rgba(29,143,255,0.07)`, border: `1px solid rgba(29,143,255,0.07)` }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
             {[
               { icon: <TargetIcon />, title: "Faster Quoting", body: "Go from enquiry to professional quote in minutes — not hours. Preloaded assumptions reduce manual input." },
               { icon: <CalcIcon />,   title: "Structured Estimating", body: "Setup, machining, material, risk, and margin — every cost accounted for, every time. No more forgotten costs." },
@@ -286,13 +287,13 @@ export function LandingPage() {
             ].map((f, i) => (
               <div
                 key={i}
-                style={{ background: "#0B0F18", padding: "36px 32px", transition: "background 0.15s", cursor: "default" }}
-                onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = "#0E1420")}
-                onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = "#0B0F18")}
+                style={{ background: "#f9fafb", border: "1px solid #e5e7eb", padding: "36px 32px", transition: "border-color 0.15s, box-shadow 0.15s", cursor: "default" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = BLUE; (e.currentTarget as HTMLElement).style.boxShadow = `0 0 0 1px ${BLUE}20`; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#e5e7eb"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
               >
                 <div style={{ color: BLUE, marginBottom: 20 }}>{f.icon}</div>
-                <div style={{ fontWeight: 600, color: "#fff", marginBottom: 10, letterSpacing: "-0.01em" }}>{f.title}</div>
-                <div style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.4)", lineHeight: 1.75 }}>{f.body}</div>
+                <div style={{ fontWeight: 600, color: "#111827", marginBottom: 10, letterSpacing: "-0.01em" }}>{f.title}</div>
+                <div style={{ fontSize: "0.875rem", color: "#6b7280", lineHeight: 1.75 }}>{f.body}</div>
               </div>
             ))}
           </div>
@@ -300,14 +301,14 @@ export function LandingPage() {
       </section>
 
       {/* ── COST BREAKDOWN ───────────────────────────────────────── */}
-      <section style={{ padding: "80px 3rem", background: "#060A10" }}>
+      <section style={{ padding: "80px 3rem", background: "#f9fafb", borderTop: "1px solid #e5e7eb", borderBottom: "1px solid #e5e7eb" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
           <div>
             <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", color: BLUE, textTransform: "uppercase", marginBottom: 20 }}>COST ENGINE</div>
-            <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 2.5vw, 2.4rem)", letterSpacing: "-0.025em", color: "#fff", marginBottom: 20 }}>
+            <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem, 2.5vw, 2.4rem)", letterSpacing: "-0.025em", color: "#111827", marginBottom: 20 }}>
               Every cost. Visible.<br />Every time.
             </h2>
-            <p style={{ color: "rgba(255,255,255,0.45)", lineHeight: 1.85, marginBottom: 32, fontSize: "0.95rem" }}>
+            <p style={{ color: "#6b7280", lineHeight: 1.85, marginBottom: 32, fontSize: "0.95rem" }}>
               Small shops hate black boxes. Every calculation is transparent — setup, machining,
               material, risk, and your margin are shown clearly before you commit to a price.
             </p>
@@ -321,7 +322,7 @@ export function LandingPage() {
               ].map(item => (
                 <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
                   <div style={{ width: 5, height: 5, borderRadius: "50%", background: BLUE, marginTop: 8, flexShrink: 0 }} />
-                  <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.9rem" }}>{item}</span>
+                  <span style={{ color: "#374151", fontSize: "0.9rem" }}>{item}</span>
                 </div>
               ))}
             </div>
@@ -331,36 +332,36 @@ export function LandingPage() {
       </section>
 
       {/* ── PRICING ──────────────────────────────────────────────── */}
-      <section style={{ padding: "100px 3rem" }}>
+      <section style={{ padding: "100px 3rem", background: "#ffffff" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", color: BLUE, textTransform: "uppercase", marginBottom: 16 }}>PRICING</div>
-          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3vw, 2.8rem)", letterSpacing: "-0.025em", color: "#fff", marginBottom: 16 }}>Straightforward. Honest.</h2>
-          <p style={{ color: "rgba(255,255,255,0.4)", maxWidth: 420, margin: "0 auto 60px", lineHeight: 1.75, fontSize: "0.9rem" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "clamp(1.8rem, 3vw, 2.8rem)", letterSpacing: "-0.025em", color: "#111827", marginBottom: 16 }}>Straightforward. Honest.</h2>
+          <p style={{ color: "#6b7280", maxWidth: 420, margin: "0 auto 60px", lineHeight: 1.75, fontSize: "0.9rem" }}>
             Built for small machine shops, not enterprise ERP complexity.
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: `rgba(29,143,255,0.1)`, border: `1px solid rgba(29,143,255,0.1)`, maxWidth: 720, margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, maxWidth: 720, margin: "0 auto" }}>
             <PricingCard label="MONTHLY" price="£92.50" period="per month" features={["Unlimited quotes", "Unlimited customers", "Unlimited machines", "PDF exports", "Email support"]} cta="Start Monthly" href="/dashboard" />
             <PricingCard label="FOUNDER LIFETIME" price="£999" period="one-off payment" features={["All monthly features", "Pay once, use forever", "Priority support", "All future updates"]} cta="Buy Lifetime Access" href="/dashboard" featured />
           </div>
-          <p style={{ marginTop: 28, fontSize: 12, color: "rgba(255,255,255,0.2)" }}>No hidden fees. No per-user charges. No ERP complexity.</p>
+          <p style={{ marginTop: 28, fontSize: 12, color: "#9ca3af" }}>No hidden fees. No per-user charges. No ERP complexity.</p>
         </div>
       </section>
 
       {/* ── FOOTER ───────────────────────────────────────────────── */}
-      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.05)", padding: "48px 3rem" }}>
+      <footer style={{ borderTop: "1px solid #e5e7eb", padding: "48px 3rem", background: "#f9fafb" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 32 }}>
             <div>
-              <Wordmark light />
-              <p style={{ marginTop: 12, fontSize: 12, color: "rgba(255,255,255,0.25)", maxWidth: 220, lineHeight: 1.6 }}>CNC estimating software for small machine shops.</p>
+              <Wordmark />
+              <p style={{ marginTop: 12, fontSize: 12, color: "#9ca3af", maxWidth: 220, lineHeight: 1.6 }}>CNC estimating software for small machine shops.</p>
             </div>
             <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
               {[{ label: "Dashboard", href: "/dashboard" }, { label: "Pricing", href: "/pricing" }].map(({ label, href }) => (
-                <Link key={label} href={href}><span style={{ fontSize: 13, color: "rgba(255,255,255,0.3)" }}>{label}</span></Link>
+                <Link key={label} href={href}><span style={{ fontSize: 13, color: "#6b7280" }}>{label}</span></Link>
               ))}
             </div>
           </div>
-          <div style={{ marginTop: 40, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.04)", display: "flex", justifyContent: "space-between", fontSize: 11, color: "rgba(255,255,255,0.18)" }}>
+          <div style={{ marginTop: 40, paddingTop: 24, borderTop: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", fontSize: 11, color: "#9ca3af" }}>
             <span>© {new Date().getFullYear()} SHOP Quote</span>
             <span>Precision quoting for precision engineering</span>
           </div>
@@ -379,33 +380,33 @@ function CostBreakdownPanel() {
     { label: "Margin (30%)",        pct: 14, amt: "£205", accent: true },
   ];
   return (
-    <div style={{ background: "#0B0F18", border: `1px solid rgba(29,143,255,0.12)`, padding: 28 }}>
-      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.16em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 24 }}>
+    <div style={{ background: "#ffffff", border: "1px solid #e5e7eb", padding: 28, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
+      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.16em", color: "#9ca3af", textTransform: "uppercase", marginBottom: 24 }}>
         COST BREAKDOWN — ALUMINIUM BRACKET × 50
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {bars.map((b, i) => (
           <div key={i}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6 }}>
-              <span style={{ color: "rgba(255,255,255,0.5)" }}>{b.label}</span>
-              <span style={{ fontFamily: "monospace", color: "rgba(255,255,255,0.65)" }}>{b.amt}</span>
+              <span style={{ color: "#6b7280" }}>{b.label}</span>
+              <span style={{ fontFamily: "monospace", color: "#374151" }}>{b.amt}</span>
             </div>
-            <div style={{ height: 3, background: "rgba(255,255,255,0.06)", borderRadius: 2 }}>
-              <div style={{ height: "100%", width: `${b.pct * 2.5}%`, background: b.accent ? BLUE : `rgba(29,143,255,0.4)`, borderRadius: 2 }} />
+            <div style={{ height: 3, background: "#f3f4f6", borderRadius: 2 }}>
+              <div style={{ height: "100%", width: `${b.pct * 2.5}%`, background: b.accent ? BLUE : `rgba(29,143,255,0.35)`, borderRadius: 2 }} />
             </div>
           </div>
         ))}
       </div>
-      <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid #f3f4f6" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>Sell Price</span>
+          <span style={{ fontSize: 13, color: "#6b7280" }}>Sell Price</span>
           <span style={{ fontWeight: 700, fontFamily: "monospace", fontSize: "1.6rem", color: BLUE }}>
-            £22.34<span style={{ fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,0.3)", marginLeft: 4 }}>/ part</span>
+            £22.34<span style={{ fontSize: 13, fontWeight: 400, color: "#9ca3af", marginLeft: 4 }}>/ part</span>
           </span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.22)" }}>Margin 30% • VAT excl.</span>
-          <span style={{ fontSize: 11, fontFamily: "monospace", color: "rgba(255,255,255,0.3)" }}>£1,117 total</span>
+          <span style={{ fontSize: 11, color: "#9ca3af" }}>Margin 30% • VAT excl.</span>
+          <span style={{ fontSize: 11, fontFamily: "monospace", color: "#9ca3af" }}>£1,117 total</span>
         </div>
       </div>
     </div>
@@ -417,18 +418,18 @@ function PricingCard({ label, price, period, features, cta, href, featured }: {
   cta: string; href: string; featured?: boolean;
 }) {
   return (
-    <div style={{ background: featured ? `rgba(29,143,255,0.05)` : "#0B0F18", padding: "40px 36px" }}>
+    <div style={{ background: "#ffffff", border: featured ? `2px solid ${BLUE}` : "1px solid #e5e7eb", padding: "40px 36px", boxShadow: featured ? `0 4px 24px rgba(29,143,255,0.12)` : "0 1px 8px rgba(0,0,0,0.04)" }}>
       {featured && (
         <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.22em", color: BLUE, textTransform: "uppercase", marginBottom: 6 }}>★ RECOMMENDED</div>
       )}
-      <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.2em", color: featured ? BLUE_DIM : "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 20 }}>{label}</div>
+      <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.2em", color: featured ? BLUE : "#9ca3af", textTransform: "uppercase", marginBottom: 20 }}>{label}</div>
       <div style={{ marginBottom: 4 }}>
-        <span style={{ fontWeight: 800, fontSize: "2.6rem", color: "#fff", letterSpacing: "-0.03em" }}>{price}</span>
+        <span style={{ fontWeight: 800, fontSize: "2.6rem", color: "#111827", letterSpacing: "-0.03em" }}>{price}</span>
       </div>
-      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.32)", marginBottom: 32 }}>{period}</div>
+      <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 32 }}>{period}</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 36 }}>
         {features.map(f => (
-          <div key={f} style={{ display: "flex", gap: 12, fontSize: 13, color: "rgba(255,255,255,0.58)" }}>
+          <div key={f} style={{ display: "flex", gap: 12, fontSize: 13, color: "#374151" }}>
             <span style={{ color: BLUE }}>—</span>{f}
           </div>
         ))}
@@ -440,10 +441,10 @@ function PricingCard({ label, price, period, features, cta, href, featured }: {
             background: BLUE, color: "#fff", border: "none", cursor: "pointer", transition: "background 0.15s",
           } : {
             width: "100%", padding: "12px 0", fontSize: 13, fontWeight: 500, letterSpacing: "0.09em", textTransform: "uppercase",
-            background: "transparent", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.14)", cursor: "pointer", transition: "border-color 0.15s",
+            background: "transparent", color: "#6b7280", border: "1px solid #d1d5db", cursor: "pointer", transition: "border-color 0.15s, color 0.15s",
           }}
-          onMouseEnter={e => { if (featured) (e.currentTarget).style.background = "#0A78E8"; else (e.currentTarget).style.borderColor = "rgba(255,255,255,0.32)"; }}
-          onMouseLeave={e => { if (featured) (e.currentTarget).style.background = BLUE; else (e.currentTarget).style.borderColor = "rgba(255,255,255,0.14)"; }}
+          onMouseEnter={e => { if (featured) (e.currentTarget).style.background = "#0A78E8"; else { (e.currentTarget).style.borderColor = BLUE; (e.currentTarget).style.color = BLUE; } }}
+          onMouseLeave={e => { if (featured) (e.currentTarget).style.background = BLUE; else { (e.currentTarget).style.borderColor = "#d1d5db"; (e.currentTarget).style.color = "#6b7280"; } }}
         >
           {cta}
         </button>
