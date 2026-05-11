@@ -1,0 +1,165 @@
+Paste this into Replit:
+
+```text
+Improve SHOP Quote so the full app is properly usable on iPhone and remove all double hyphens from every page.
+
+MOBILE / IPHONE REQUIREMENTS
+
+The app must work smoothly on:
+- iPhone Safari
+- iPhone Chrome
+- iPad Safari
+- desktop browsers
+
+Use responsive design across the whole app.
+
+Main requirements:
+
+1. Mobile navigation
+Replace the desktop sidebar/header navigation with a clean mobile menu on small screens.
+
+On iPhone:
+- show a compact top bar
+- show SHOP Quote logo/name
+- show menu button
+- menu opens full-screen or slide-out
+- menu items must be easy to tap
+
+2. Touch-friendly controls
+All buttons, inputs, dropdowns, tabs, and step controls must be large enough for mobile use.
+
+Minimum tap target:
+44px height
+
+Avoid tiny icons and cramped forms.
+
+3. New Quote mobile workflow
+The New Quote workflow must be easy to use on iPhone.
+
+On mobile:
+- stack all form sections vertically
+- show one step at a time
+- use large next/back buttons
+- keep the quote total sticky at the bottom where useful
+- avoid horizontal scrolling
+
+4. Cost breakdown on mobile
+The cost breakdown must remain readable on iPhone.
+
+On mobile:
+- stack cost rows vertically
+- show key totals clearly
+- make sell price and price per part prominent
+- hide non-essential detail behind expandable sections if needed
+
+5. Tables must become mobile cards
+Do not use wide tables on iPhone.
+
+Convert these into mobile card layouts:
+- Quotes list
+- Customers list
+- Machines list
+- Dashboard recent quotes
+
+Each card should show the most important details first.
+
+6. PDF generation on mobile
+Ensure users can:
+- generate PDF
+- download PDF
+- view PDF
+- share PDF from iPhone
+
+The buttons should be clearly labelled:
+- Generate PDF
+- Download Quote
+- Share Quote
+
+7. Landing page mobile design
+The split CNC turning and CNC milling video hero must work on mobile.
+
+On mobile:
+- do not force a split-screen if it becomes cramped
+- either stack the two videos vertically
+- or use one combined background video/image
+- keep headline readable
+- keep buttons large
+- reduce text length where needed
+
+8. Performance
+Optimise videos and images for mobile.
+
+Use:
+- compressed video
+- lazy loading
+- dark overlay for readability
+- fallback image if video does not load
+
+9. Avoid horizontal scrolling
+There must be no sideways scrolling on iPhone.
+
+Check every page:
+- landing page
+- dashboard
+- new quote
+- quotes
+- customers
+- machines
+- settings
+- pricing
+
+10. Form usability
+Use correct mobile input types:
+- number input for prices, quantities, rates
+- email input for email addresses
+- tel input for phone numbers
+- date input for dates
+
+11. Sticky action buttons
+On mobile quote pages, use sticky bottom action buttons:
+- Back
+- Next
+- Save Draft
+- Generate Quote
+
+12. Test breakpoints
+Design and test at:
+- 390px width
+- 430px width
+- 768px width
+- desktop width
+
+DOUBLE HYPHEN REMOVAL
+
+Remove every double hyphen from all visible website and app copy.
+
+Search the whole codebase for:
+--
+
+Replace double hyphens with:
+- commas
+- full stops
+- single hyphens only where grammatically correct
+- parentheses
+- line breaks
+
+Important:
+No visible page, landing section, button, tooltip, PDF, pricing page, dashboard, quote, or customer-facing text should contain double hyphens.
+
+Also check generated PDF copy and default terms.
+
+DESIGN RULE
+
+Do not make the mobile version feel like a stripped-down afterthought.
+
+It must feel like a premium, high-end, German-engineered mobile app for a CNC shop owner.
+
+Final instruction:
+After completing this, give me a checklist confirming:
+- iPhone layout fixed
+- no horizontal scrolling
+- mobile quote workflow works
+- tables converted to cards
+- PDF actions work on mobile
+- all double hyphens removed
+```

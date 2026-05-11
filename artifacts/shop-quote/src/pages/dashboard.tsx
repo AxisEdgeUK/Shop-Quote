@@ -9,14 +9,14 @@ import {
 
 function KpiCard({ label, value, sub, accent }: { label: string; value: string | number; sub?: string; accent?: boolean }) {
   return (
-    <div className="rounded border p-5 flex flex-col gap-2"
+    <div className="rounded border p-4 flex flex-col gap-1.5"
       style={{
         background: "hsl(var(--card))",
         borderColor: accent ? "hsl(213 97% 58% / 0.4)" : "hsl(var(--card-border))",
         boxShadow: accent ? "0 0 0 1px hsl(213 97% 58% / 0.15)" : undefined,
       }}>
       <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "hsl(var(--muted-foreground))" }}>{label}</div>
-      <div className={`text-3xl font-bold tracking-tight tabular-nums ${accent ? "text-primary" : ""}`}
+      <div className="text-2xl md:text-3xl font-bold tracking-tight tabular-nums"
         style={accent ? { color: "hsl(213 97% 58%)" } : undefined}>
         {value}
       </div>
@@ -26,12 +26,22 @@ function KpiCard({ label, value, sub, accent }: { label: string; value: string |
 }
 
 const STATUS_COLORS: Record<string, { dot: string; text: string; bg: string }> = {
-  Draft:   { dot: "bg-zinc-400",   text: "text-zinc-400",   bg: "bg-zinc-400/10" },
-  Sent:    { dot: "bg-blue-400",   text: "text-blue-400",   bg: "bg-blue-400/10" },
-  Won:     { dot: "bg-emerald-400",text: "text-emerald-400",bg: "bg-emerald-400/10" },
-  Lost:    { dot: "bg-red-400",    text: "text-red-400",    bg: "bg-red-400/10" },
-  Expired: { dot: "bg-amber-400",  text: "text-amber-400",  bg: "bg-amber-400/10" },
+  Draft:   { dot: "bg-zinc-400",    text: "text-zinc-500",    bg: "bg-zinc-100" },
+  Sent:    { dot: "bg-blue-400",    text: "text-blue-600",    bg: "bg-blue-50" },
+  Won:     { dot: "bg-emerald-400", text: "text-emerald-600", bg: "bg-emerald-50" },
+  Lost:    { dot: "bg-red-400",     text: "text-red-600",     bg: "bg-red-50" },
+  Expired: { dot: "bg-amber-400",   text: "text-amber-600",   bg: "bg-amber-50" },
 };
+
+function StatusChip({ status }: { status: string }) {
+  const sc = STATUS_COLORS[status] ?? STATUS_COLORS.Draft;
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${sc.bg} ${sc.text}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+      {status}
+    </span>
+  );
+}
 
 export function DashboardPage() {
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
@@ -42,8 +52,8 @@ export function DashboardPage() {
   if (statsLoading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28" />)}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-24" />)}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Skeleton className="lg:col-span-2 h-96" />
@@ -58,11 +68,11 @@ export function DashboardPage() {
   const cur = "£";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight" style={{ letterSpacing: "-0.02em" }}>Workshop Dashboard</h1>
-        <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>
+        <h1 className="text-xl md:text-2xl font-bold tracking-tight" style={{ letterSpacing: "-0.02em" }}>Workshop Dashboard</h1>
+        <p className="text-sm mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>
           {format(new Date(), "EEEE d MMMM yyyy")}
         </p>
       </div>
@@ -98,11 +108,11 @@ export function DashboardPage() {
       </div>
 
       {/* Main area */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent quotes — left 2/3 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Recent quotes */}
         <div className="lg:col-span-2 rounded border overflow-hidden"
           style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--card-border))" }}>
-          <div className="flex items-center justify-between px-5 py-4"
+          <div className="flex items-center justify-between px-4 py-3.5"
             style={{ borderBottom: "1px solid hsl(var(--card-border))" }}>
             <div className="flex items-center gap-2">
               <FileText className="w-4 h-4" style={{ color: "hsl(213 97% 58%)" }} />
@@ -120,7 +130,7 @@ export function DashboardPage() {
           </div>
 
           {quotesLoading ? (
-            <div className="p-5 space-y-3">
+            <div className="p-4 space-y-3">
               {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-10" />)}
             </div>
           ) : recentQuotes.length === 0 ? (
@@ -134,20 +144,48 @@ export function DashboardPage() {
               </div>
               <div className="flex gap-3 justify-center pt-2">
                 <Link href="/quotes/new">
-                  <button className="px-4 py-2 rounded text-sm font-semibold text-white"
+                  <button className="px-4 py-2.5 rounded text-sm font-semibold text-white"
                     style={{ background: "hsl(213 97% 58%)" }}>
-                    + New Milling Quote
+                    New Quote
                   </button>
                 </Link>
               </div>
             </div>
           ) : (
-            <div className="divide-y" style={{ borderColor: "hsl(var(--card-border))" }}>
-              {recentQuotes.map((q) => {
-                const sc = STATUS_COLORS[q.status] ?? STATUS_COLORS.Draft;
-                return (
+            <>
+              {/* Mobile cards */}
+              <div className="md:hidden divide-y" style={{ borderColor: "hsl(var(--card-border))" }}>
+                {recentQuotes.map((q) => (
                   <Link key={q.id} href={`/quotes/${q.id}`}>
-                    <div className="flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.03] transition-colors cursor-pointer group">
+                    <div className="px-4 py-3.5 hover:bg-black/[0.02] transition-colors cursor-pointer">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono text-sm font-bold">{q.quoteNumber}</span>
+                            <StatusChip status={q.status} />
+                          </div>
+                          <div className="text-sm font-medium mt-0.5 truncate">{q.customerName}</div>
+                          <div className="text-xs mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>
+                            {format(new Date(q.quoteDate), "dd MMM yyyy")}
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="font-mono font-bold text-base">
+                            £{q.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </div>
+                          <ChevronRight className="w-4 h-4 ml-auto mt-1 opacity-30" />
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              {/* Desktop row layout */}
+              <div className="hidden md:block divide-y" style={{ borderColor: "hsl(var(--card-border))" }}>
+                {recentQuotes.map((q) => (
+                  <Link key={q.id} href={`/quotes/${q.id}`}>
+                    <div className="flex items-center gap-4 px-5 py-3.5 hover:bg-black/[0.02] transition-colors cursor-pointer group">
                       <div className="w-[110px] shrink-0">
                         <div className="font-mono text-sm font-semibold">{q.quoteNumber}</div>
                         <div className="text-xs mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>
@@ -163,38 +201,34 @@ export function DashboardPage() {
                         </div>
                       </div>
                       <div className="w-20 shrink-0 text-right">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${sc.bg} ${sc.text}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
-                          {q.status}
-                        </span>
+                        <StatusChip status={q.status} />
                       </div>
                       <ChevronRight className="w-4 h-4 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                         style={{ color: "hsl(213 97% 58%)" }} />
                     </div>
                   </Link>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
 
-        {/* Quick actions — right 1/3 */}
-        <div className="space-y-3">
-          <div className="rounded border p-5 space-y-3"
+        {/* Quick actions + pipeline */}
+        <div className="space-y-4">
+          <div className="rounded border p-4 space-y-2.5"
             style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--card-border))" }}>
-            <div className="text-xs font-semibold uppercase tracking-widest mb-4"
+            <div className="text-xs font-semibold uppercase tracking-widest mb-3"
               style={{ letterSpacing: "0.08em", color: "hsl(var(--muted-foreground))" }}>
               Quick Actions
             </div>
             <QuickAction href="/quotes/new?template=milling" icon={<Plus className="w-4 h-4" />} label="New Milling Quote" primary />
             <QuickAction href="/quotes/new?template=turning" icon={<Plus className="w-4 h-4" />} label="New Turning Quote" />
             <QuickAction href="/quotes/new" icon={<Plus className="w-4 h-4" />} label="New Quote" />
-            <QuickAction href="/quotes" icon={<Copy className="w-4 h-4" />} label="Duplicate Quote" />
+            <QuickAction href="/quotes" icon={<Copy className="w-4 h-4" />} label="All Quotes" />
             <QuickAction href="/customers/new" icon={<UserPlus className="w-4 h-4" />} label="Add Customer" />
           </div>
 
-          {/* Health snapshot */}
-          <div className="rounded border p-5 space-y-3"
+          <div className="rounded border p-4 space-y-3"
             style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--card-border))" }}>
             <div className="text-xs font-semibold uppercase tracking-widest"
               style={{ letterSpacing: "0.08em", color: "hsl(var(--muted-foreground))" }}>
@@ -217,7 +251,7 @@ function QuickAction({ href, icon, label, primary }: { href: string; icon: React
     <Link href={href}>
       <button
         type="button"
-        className="w-full flex items-center gap-3 px-4 py-2.5 rounded text-sm font-medium transition-all"
+        className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-medium transition-all"
         style={primary ? {
           background: "hsl(213 97% 58%)",
           color: "white",
@@ -237,7 +271,7 @@ function QuickAction({ href, icon, label, primary }: { href: string; icon: React
 function HealthRow({ icon, label, value, good, warn }: { icon: React.ReactNode; label: string; value: string; good?: boolean; warn?: boolean }) {
   const color = good ? "hsl(142 70% 50%)" : warn ? "hsl(38 92% 50%)" : "hsl(var(--foreground))";
   return (
-    <div className="flex items-center justify-between text-sm">
+    <div className="flex items-center justify-between text-sm py-0.5">
       <div className="flex items-center gap-2" style={{ color: "hsl(var(--muted-foreground))" }}>
         {icon}
         <span>{label}</span>

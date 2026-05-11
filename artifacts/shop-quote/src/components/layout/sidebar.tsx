@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Users, Wrench, FileText, Settings as SettingsIcon } from "lucide-react";
+import { LayoutDashboard, Users, Wrench, FileText, Settings as SettingsIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -26,31 +26,51 @@ function ShopQuoteLogo({ size = 28 }: { size?: number }) {
 
 export { ShopQuoteLogo };
 
-export function Sidebar() {
+export function Sidebar({ onClose }: { onClose?: () => void }) {
   const [location] = useLocation();
 
   return (
-    <div className="w-64 h-screen flex flex-col fixed left-0 top-0 print:hidden"
+    <div
+      className="w-64 h-screen flex flex-col"
       style={{ background: "hsl(var(--sidebar))", borderRight: "1px solid hsl(var(--sidebar-border))" }}
     >
-      <div className="px-5 py-5" style={{ borderBottom: "1px solid hsl(var(--sidebar-border))" }}>
-        <Link href="/" className="flex items-center gap-3 group">
+      {/* Logo row */}
+      <div className="px-5 py-5 flex items-center justify-between" style={{ borderBottom: "1px solid hsl(var(--sidebar-border))" }}>
+        <Link href="/" className="flex items-center gap-3 group" onClick={onClose}>
           <ShopQuoteLogo size={28} />
           <div>
-            <div className="text-xs font-bold tracking-widest uppercase leading-none"
-              style={{ color: "hsl(var(--sidebar-foreground))", letterSpacing: "0.12em" }}>
+            <div
+              className="text-xs font-bold tracking-widest uppercase leading-none"
+              style={{ color: "hsl(var(--sidebar-foreground))", letterSpacing: "0.12em" }}
+            >
               SHOP
             </div>
-            <div className="text-xs font-semibold mt-0.5 leading-none" style={{ color: "#1D8FFF", letterSpacing: "0.18em" }}>
+            <div
+              className="text-xs font-semibold mt-0.5 leading-none"
+              style={{ color: "#1D8FFF", letterSpacing: "0.18em" }}
+            >
               QUOTE
             </div>
           </div>
         </Link>
+        {/* Close button — mobile only */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="md:hidden p-1.5 rounded transition-colors"
+            style={{ color: "hsl(var(--sidebar-foreground))" }}
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       <nav className="flex-1 p-3 space-y-0.5 pt-4">
-        <div className="text-xs font-semibold uppercase tracking-widest px-3 mb-3"
-          style={{ color: "hsl(220 5% 35%)" }}>
+        <div
+          className="text-xs font-semibold uppercase tracking-widest px-3 mb-3"
+          style={{ color: "hsl(220 5% 35%)" }}
+        >
           Navigation
         </div>
         {navItems.map((item) => {
@@ -59,20 +79,25 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all rounded",
+                "flex items-center gap-3 px-3 py-3 text-sm font-medium transition-all rounded",
                 !isActive && "hover:bg-white/5"
               )}
-              style={isActive ? {
-                background: "rgba(29,143,255,0.12)",
-                color: "#60AFFF",
-                borderLeft: "3px solid #1D8FFF",
-              } : {
-                color: "hsl(var(--sidebar-foreground))",
-                borderLeft: "3px solid transparent",
-              }}
+              style={
+                isActive
+                  ? {
+                      background: "rgba(29,143,255,0.12)",
+                      color: "#60AFFF",
+                      borderLeft: "3px solid #1D8FFF",
+                    }
+                  : {
+                      color: "hsl(var(--sidebar-foreground))",
+                      borderLeft: "3px solid transparent",
+                    }
+              }
             >
-              <item.icon className="w-4 h-4 shrink-0" />
+              <item.icon className="w-5 h-5 shrink-0" />
               {item.name}
             </Link>
           );

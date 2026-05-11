@@ -86,7 +86,7 @@ export function CustomerForm({ initialValues, onSubmit, isSubmitting }: Customer
               <FormItem>
                 <FormLabel>Phone</FormLabel>
                 <FormControl>
-                  <Input {...field} data-testid="input-phone" />
+                  <Input type="tel" {...field} data-testid="input-phone" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
