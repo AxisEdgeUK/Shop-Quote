@@ -66,38 +66,38 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* ─── PRECISION DARK THEME ──────────────────────────────────────────────── */
+/* ─── PRECISION LIGHT THEME ──────────────────────────────────────────────── */
 :root {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
-  --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --button-outline: rgba(0,0,0, .10);
+  --badge-outline: rgba(0,0,0, .06);
+  --opaque-button-border-intensity: -6;
+  --elevate-1: rgba(0,0,0, .03);
+  --elevate-2: rgba(0,0,0, .06);
 
-  /* Deep charcoal background — #1E1F23 */
-  --background: 228 8% 13%;
-  /* Near-white foreground — #E8E9EA */
-  --foreground: 210 5% 91%;
+  /* White background */
+  --background: 0 0% 100%;
+  /* Dark foreground */
+  --foreground: 222 47% 11%;
 
-  /* Border — subtle steel separation */
-  --border: 228 6% 22%;
-  --input: 228 6% 22%;
+  /* Border — light grey */
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
   --ring: 213 97% 58%;
 
-  /* Cards — steel grey panels — #2B2D31 */
-  --card: 228 7% 18%;
-  --card-foreground: 210 5% 91%;
-  --card-border: 228 6% 24%;
+  /* Cards — white with subtle border */
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --card-border: 220 13% 90%;
 
-  /* Popover — slightly lighter than card */
-  --popover: 228 7% 21%;
-  --popover-foreground: 210 5% 91%;
-  --popover-border: 228 6% 28%;
+  /* Popover — white */
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --popover-border: 220 13% 88%;
 
-  /* Sidebar — darkest charcoal — #16171A */
-  --sidebar: 228 8% 9%;
+  /* Sidebar — keep dark for contrast */
+  --sidebar: 228 8% 11%;
   --sidebar-foreground: 210 5% 80%;
-  --sidebar-border: 228 6% 14%;
+  --sidebar-border: 228 6% 16%;
   --sidebar-primary: 213 97% 58%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 228 6% 17%;
@@ -108,17 +108,17 @@
   --primary: 213 97% 58%;
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary — muted steel */
-  --secondary: 228 6% 22%;
-  --secondary-foreground: 210 5% 85%;
+  /* Secondary — light grey */
+  --secondary: 220 14% 96%;
+  --secondary-foreground: 222 47% 11%;
 
   /* Muted */
-  --muted: 228 6% 20%;
-  --muted-foreground: 220 5% 55%;
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 9% 46%;
 
-  /* Accent — subtle blue tint for highlights */
-  --accent: 228 6% 24%;
-  --accent-foreground: 210 5% 91%;
+  /* Accent */
+  --accent: 220 14% 96%;
+  --accent-foreground: 222 47% 11%;
 
   /* Destructive */
   --destructive: 0 72% 51%;
@@ -138,14 +138,14 @@
   /* Sharp industrial corners — 3px for a precision-tool feel */
   --radius: 0.1875rem;
 
-  --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.4);
-  --shadow-xs: 0px 1px 2px 0px rgba(0,0,0,0.4);
-  --shadow-sm: 0px 1px 3px 0px rgba(0,0,0,0.5), 0px 1px 2px -1px rgba(0,0,0,0.4);
-  --shadow: 0px 2px 4px 0px rgba(0,0,0,0.5), 0px 1px 2px -1px rgba(0,0,0,0.4);
-  --shadow-md: 0px 4px 6px -1px rgba(0,0,0,0.5), 0px 2px 4px -2px rgba(0,0,0,0.4);
-  --shadow-lg: 0px 8px 16px -2px rgba(0,0,0,0.6), 0px 4px 6px -4px rgba(0,0,0,0.4);
-  --shadow-xl: 0px 16px 24px -4px rgba(0,0,0,0.6), 0px 8px 10px -6px rgba(0,0,0,0.4);
-  --shadow-2xl: 0px 24px 48px -8px rgba(0,0,0,0.7);
+  --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.06);
+  --shadow-xs: 0px 1px 2px 0px rgba(0,0,0,0.08);
+  --shadow-sm: 0px 1px 3px 0px rgba(0,0,0,0.10), 0px 1px 2px -1px rgba(0,0,0,0.08);
+  --shadow: 0px 2px 4px 0px rgba(0,0,0,0.10), 0px 1px 2px -1px rgba(0,0,0,0.08);
+  --shadow-md: 0px 4px 6px -1px rgba(0,0,0,0.10), 0px 2px 4px -2px rgba(0,0,0,0.08);
+  --shadow-lg: 0px 8px 16px -2px rgba(0,0,0,0.12), 0px 4px 6px -4px rgba(0,0,0,0.08);
+  --shadow-xl: 0px 16px 24px -4px rgba(0,0,0,0.12), 0px 8px 10px -6px rgba(0,0,0,0.08);
+  --shadow-2xl: 0px 24px 48px -8px rgba(0,0,0,0.14);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 

@@ -5,8 +5,7 @@ const BLUE = "#1D8FFF";
 const BLUE_DIM = "rgba(29,143,255,0.7)";
 const BLUE_GLOW = "rgba(29,143,255,0.15)";
 
-const MILLING_IMG =
-  "https://images.pexels.com/photos/3846517/pexels-photo-3846517.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop";
+const HERO_VIDEO = "/hero.mp4";
 
 function LogoMark({ size = 26, color = BLUE }: { size?: number; color?: string }) {
   return (
@@ -38,19 +37,22 @@ function Wordmark({ light = false }: { light?: boolean }) {
   );
 }
 
-function HeroBackground({ imgSrc }: { imgSrc: string }) {
+function HeroBackground({ src }: { src: string }) {
   return (
     <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-      {/* Ken Burns image */}
-      <div
+      <video
+        src={src}
+        autoPlay
+        muted
+        loop
+        playsInline
         style={{
           position: "absolute",
           inset: 0,
-          backgroundImage: `url(${imgSrc})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          animation: "kenBurnsR 28s ease-in-out infinite alternate",
-          willChange: "transform",
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          objectPosition: "center",
         }}
       />
       {/* Dark vignette overlay */}
@@ -58,7 +60,7 @@ function HeroBackground({ imgSrc }: { imgSrc: string }) {
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(135deg, rgba(5,10,20,0.70) 0%, rgba(5,10,20,0.45) 50%, rgba(5,10,20,0.70) 100%)",
+          background: "linear-gradient(135deg, rgba(5,10,20,0.65) 0%, rgba(5,10,20,0.40) 50%, rgba(5,10,20,0.65) 100%)",
         }}
       />
     </div>
@@ -155,7 +157,7 @@ export function LandingPage() {
       {/* ── HERO ─────────────────────────────────────────────────── */}
       <section style={{ position: "relative", height: "100vh", overflow: "hidden" }}>
         {/* Full-width background */}
-        <HeroBackground imgSrc={MILLING_IMG} />
+        <HeroBackground src={HERO_VIDEO} />
 
         {/* Centre headline overlay */}
         <div
