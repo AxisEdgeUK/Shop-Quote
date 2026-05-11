@@ -1,0 +1,328 @@
+Copy this into a **new Replit Agent project**:
+
+```text
+Build a working MVP web app called SHOP Quote.
+
+SHOP Quote is a practical quoting companion for small CNC milling and turning machine shops.
+
+It is NOT AI quoting.
+It is NOT ERP.
+It is NOT CAM.
+It is NOT for large manufacturers.
+
+It is for small owner-operated machine shops who currently quote using Excel, memory, paper notes, and experience.
+
+Core aim:
+Help a small CNC shop owner or admin create a clear professional quote in under 10 minutes.
+
+Build as a full working MVP, not static mockups.
+
+Tech stack:
+- React
+- TypeScript
+- Tailwind CSS
+- Node/Express or Next.js
+- PostgreSQL or Supabase
+- PDF generation
+
+Design:
+Industrial, clean, practical.
+Use charcoal, steel grey, white cards, and one strong accent colour.
+No childish styling.
+No generic SaaS fluff.
+No AI buzzwords.
+
+Navigation:
+- Dashboard
+- New Quote
+- Quotes
+- Customers
+- Machines
+- Settings
+
+Features:
+
+1. Dashboard
+Show:
+- total quotes
+- draft quotes
+- sent quotes
+- won quotes
+- lost quotes
+- total quoted value
+- won value
+- conversion rate
+- quotes needing follow-up
+
+2. Customers
+Allow create, edit, delete customers.
+
+Fields:
+- company name
+- contact name
+- email
+- phone
+- address
+- notes
+
+3. Machines
+Allow create, edit, delete machines.
+
+Fields:
+- machine name
+- machine type: Milling, Turning, Mill-Turn, Manual, Other
+- axis count
+- hourly rate
+- setup rate
+- notes
+- active/inactive
+
+4. Settings
+Company settings:
+- company name
+- address
+- email
+- phone
+- website
+- VAT number
+- currency GBP/USD
+- default hourly rate
+- default setup rate
+- default margin percentage
+- VAT enabled yes/no
+- VAT rate
+- quote validity days
+
+5. Quotes
+Show quote list with:
+- quote number
+- customer
+- date
+- valid until
+- value
+- status
+- actions: view, edit, duplicate, download PDF
+
+Quote statuses:
+- Draft
+- Sent
+- Won
+- Lost
+- Expired
+
+6. New Quote Workflow
+
+Step 1:
+Select or create customer.
+
+Step 2:
+Add part details:
+- part name
+- drawing number
+- revision
+- quantity
+- material
+- process type: Milling, Turning, Mill-Turn, Manual, Other
+- selected machine
+- tolerance class: Loose, Standard, Tight, Critical
+- surface finish: Standard, Fine, Critical
+- complexity: Simple, Medium, Complex, Very Complex
+
+Step 3:
+Machining assumptions:
+- setup hours
+- programming hours
+- machining minutes per part
+- inspection hours
+- deburring minutes per part
+- material cost per unit
+- material wastage percentage
+- tooling allowance
+- outside processing
+- packaging
+- delivery
+- risk percentage
+- profit margin percentage
+- discount percentage optional
+- VAT optional
+
+Every field must be manually editable.
+
+Step 4:
+Review cost breakdown clearly:
+- setup cost
+- programming cost
+- machining cost
+- inspection cost
+- deburring cost
+- material cost
+- tooling allowance
+- outside processing
+- packaging
+- delivery
+- direct cost
+- risk allowance
+- cost before margin
+- profit margin
+- sell price
+- price per part
+- VAT amount if enabled
+- total including VAT if enabled
+
+Step 5:
+Save quote and generate professional PDF.
+
+Calculation logic:
+
+setup_cost = setup_hours × setup_rate
+
+programming_cost = programming_hours × hourly_rate
+
+machining_cost = machining_minutes_per_part / 60 × quantity × machine_hourly_rate
+
+inspection_cost = inspection_hours × hourly_rate
+
+deburring_cost = deburring_minutes_per_part / 60 × quantity × hourly_rate
+
+material_cost_total = material_cost_per_unit × quantity × (1 + material_wastage_percentage)
+
+direct_cost =
+setup_cost +
+programming_cost +
+machining_cost +
+inspection_cost +
+deburring_cost +
+material_cost_total +
+tooling_allowance +
+outside_processing +
+packaging +
+delivery
+
+risk_value = direct_cost × risk_percentage
+
+cost_before_margin = direct_cost + risk_value
+
+IMPORTANT:
+Use margin, not markup.
+
+sell_price = cost_before_margin / (1 - profit_margin_percentage)
+
+price_per_part = sell_price / quantity
+
+If VAT enabled:
+vat_amount = sell_price × vat_rate
+total_inc_vat = sell_price + vat_amount
+
+Important percentage handling:
+If user enters 30 for margin, treat it as 30%, meaning 0.30 in calculations.
+If user enters 8 for risk, treat it as 8%, meaning 0.08 in calculations.
+If user enters 10 for material wastage, treat it as 10%, meaning 0.10 in calculations.
+
+PDF quote must include:
+- SHOP Quote generated professional layout
+- supplier company details from settings
+- customer details
+- quote number
+- quote date
+- valid until date
+- part line items
+- quantity
+- price per part
+- total price
+- VAT if enabled
+- customer notes
+- payment terms
+- terms section
+
+Add optional supplier recommendation placeholders on quote review page:
+- Tooling recommendation
+- Material stockholder recommendation
+- Coolant recommendation
+
+These must look like useful technical support, not adverts.
+
+Add pricing page:
+Lifetime License: £999 one-off
+Monthly Plan: £92.50/month
+
+Landing page headline:
+Fast practical quoting for small CNC shops.
+
+Landing page subheading:
+Create clear, consistent milling and turning quotes without relying on spreadsheets, memory, or a full-time estimator.
+
+Do not build:
+- STEP file recognition
+- CAM
+- ERP
+- machine scheduling
+- advanced AI
+- automatic toolpath simulation
+- live supplier pricing
+- accounting integrations
+
+Database tables:
+- users
+- companies
+- machines
+- customers
+- quotes
+- quote_line_items
+- supplier_partners
+- quote_supplier_recommendations
+
+Seed test data:
+
+Company:
+Herring Developments Engineering
+
+Customer:
+ABC Manufacturing Ltd
+
+Machine:
+Haas VF2
+Type: Milling
+Axis: 3
+Hourly rate: £65
+Setup rate: £65
+
+Test quote:
+Part: Aluminium mounting block
+Quantity: 50
+Material: Aluminium 6082
+Process: 3-axis CNC milling
+Machine: Haas VF2
+Setup: 2.5 hours
+Programming: 1.5 hours
+Machining: 12 minutes per part
+Inspection: 1 hour
+Deburring: 2 minutes per part
+Material cost: £8.50 per unit
+Wastage: 10%
+Tooling: £45
+Outside processing: £0
+Packaging: £15
+Delivery: £25
+Risk: 8%
+Margin: 30%
+
+Expected result:
+Setup cost: £162.50
+Programming cost: £97.50
+Machining cost: £650.00
+Inspection cost: £65.00
+Deburring cost: £108.33
+Material cost: £467.50
+Direct cost: £1,635.83
+Risk: £130.87
+Cost before margin: £1,766.70
+Sell price: £2,523.86
+Price per part: £50.48
+
+Build the app so the test quote matches these results.
+
+Final instruction:
+Prioritise a working quoting engine, clean workflow, accurate calculations, saved quotes, editable assumptions, and PDF output.
+Do not overbuild.
+Do not make static screens.
+```

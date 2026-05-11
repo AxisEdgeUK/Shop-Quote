@@ -1,0 +1,399 @@
+import { Router, type IRouter } from "express";
+import { eq, desc } from "drizzle-orm";
+import { db, quotesTable, quoteLineItemsTable, customersTable, machinesTable, settingsTable } from "@workspace/db";
+import {
+  CreateQuoteBody,
+  GetQuoteParams,
+  GetQuoteResponse,
+  UpdateQuoteParams,
+  UpdateQuoteBody,
+  UpdateQuoteResponse,
+  DeleteQuoteParams,
+  DuplicateQuoteParams,
+  ListQuotesResponse,
+} from "@workspace/api-zod";
+
+const router: IRouter = Router();
+
+function calcLineItem(item: {
+  setupHours: number;
+  programmingHours: number;
+  machiningMinutesPerPart: number;
+  inspectionHours: number;
+  deburringMinutesPerPart: number;
+  materialCostPerUnit: number;
+  materialWastagePercentage: number;
+  toolingAllowance: number;
+  outsideProcessing: number;
+  packaging: number;
+  delivery: number;
+  riskPercentage: number;
+  profitMarginPercentage: number;
+  vatEnabled: boolean;
+  vatRate: number;
+  quantity: number;
+  setupRate: number;
+  hourlyRate: number;
+  machineHourlyRate: number;
+}) {
+  const setupCost = item.setupHours * item.setupRate;
+  const programmingCost = item.programmingHours * item.hourlyRate;
+  const machiningCost = (item.machiningMinutesPerPart / 60) * item.quantity * item.machineHourlyRate;
+  const inspectionCost = item.inspectionHours * item.hourlyRate;
+  const deburringCost = (item.deburringMinutesPerPart / 60) * item.quantity * item.hourlyRate;
+  const materialCostTotal = item.materialCostPerUnit * item.quantity * (1 + item.materialWastagePercentage / 100);
+
+  const directCost = setupCost + programmingCost + machiningCost + inspectionCost + deburringCost
+    + materialCostTotal + item.toolingAllowance + item.outsideProcessing + item.packaging + item.delivery;
+
+  const riskValue = directCost * (item.riskPercentage / 100);
+  const costBeforeMargin = directCost + riskValue;
+  const margin = item.profitMarginPercentage / 100;
+  const sellPrice = margin >= 1 ? costBeforeMargin : costBeforeMargin / (1 - margin);
+  const pricePerPart = item.quantity > 0 ? sellPrice / item.quantity : 0;
+  const vatAmount = item.vatEnabled ? sellPrice * (item.vatRate / 100) : 0;
+  const totalIncVat = item.vatEnabled ? sellPrice + vatAmount : sellPrice;
+
+  return { setupCost, programmingCost, machiningCost, inspectionCost, deburringCost, materialCostTotal, directCost, riskValue, costBeforeMargin, sellPrice, pricePerPart, vatAmount, totalIncVat };
+}
+
+function parseLineItem(item: typeof quoteLineItemsTable.$inferSelect) {
+  return {
+    ...item,
+    setupHours: parseFloat(item.setupHours),
+    programmingHours: parseFloat(item.programmingHours),
+    machiningMinutesPerPart: parseFloat(item.machiningMinutesPerPart),
+    inspectionHours: parseFloat(item.inspectionHours),
+    deburringMinutesPerPart: parseFloat(item.deburringMinutesPerPart),
+    materialCostPerUnit: parseFloat(item.materialCostPerUnit),
+    materialWastagePercentage: parseFloat(item.materialWastagePercentage),
+    toolingAllowance: parseFloat(item.toolingAllowance),
+    outsideProcessing: parseFloat(item.outsideProcessing),
+    packaging: parseFloat(item.packaging),
+    delivery: parseFloat(item.delivery),
+    riskPercentage: parseFloat(item.riskPercentage),
+    profitMarginPercentage: parseFloat(item.profitMarginPercentage),
+    discountPercentage: parseFloat(item.discountPercentage),
+    vatRate: parseFloat(item.vatRate),
+    setupCost: parseFloat(item.setupCost),
+    programmingCost: parseFloat(item.programmingCost),
+    machiningCost: parseFloat(item.machiningCost),
+    inspectionCost: parseFloat(item.inspectionCost),
+    deburringCost: parseFloat(item.deburringCost),
+    materialCostTotal: parseFloat(item.materialCostTotal),
+    directCost: parseFloat(item.directCost),
+    riskValue: parseFloat(item.riskValue),
+    costBeforeMargin: parseFloat(item.costBeforeMargin),
+    sellPrice: parseFloat(item.sellPrice),
+    pricePerPart: parseFloat(item.pricePerPart),
+    vatAmount: parseFloat(item.vatAmount),
+    totalIncVat: parseFloat(item.totalIncVat),
+  };
+}
+
+function parseQuote(quote: typeof quotesTable.$inferSelect, lineItems: (typeof quoteLineItemsTable.$inferSelect)[]) {
+  return {
+    ...quote,
+    createdAt: quote.createdAt.toISOString(),
+    updatedAt: quote.updatedAt.toISOString(),
+    lineItems: lineItems.map(parseLineItem),
+  };
+}
+
+async function generateQuoteNumber(): Promise<string> {
+  const year = new Date().getFullYear();
+  const quotes = await db.select({ quoteNumber: quotesTable.quoteNumber })
+    .from(quotesTable)
+    .where(eq(quotesTable.quoteNumber, quotesTable.quoteNumber));
+  const prefix = `QT-${year}-`;
+  const existingNumbers = quotes
+    .map(q => q.quoteNumber)
+    .filter(n => n.startsWith(prefix))
+    .map(n => parseInt(n.replace(prefix, ""), 10))
+    .filter(n => !isNaN(n));
+  const next = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+  return `${prefix}${String(next).padStart(4, "0")}`;
+}
+
+async function getDefaultRates() {
+  const rows = await db.select().from(settingsTable).limit(1);
+  if (rows.length > 0) {
+    return {
+      defaultHourlyRate: parseFloat(rows[0].defaultHourlyRate),
+      defaultSetupRate: parseFloat(rows[0].defaultSetupRate),
+    };
+  }
+  return { defaultHourlyRate: 65, defaultSetupRate: 65 };
+}
+
+async function insertLineItems(quoteId: number, lineItemsData: NonNullable<typeof CreateQuoteBody._type.lineItems>) {
+  const defaults = await getDefaultRates();
+
+  for (const item of lineItemsData) {
+    let machineHourlyRate = defaults.defaultHourlyRate;
+    let setupRate = defaults.defaultSetupRate;
+    let hourlyRate = defaults.defaultHourlyRate;
+
+    if (item.machineId) {
+      const [machine] = await db.select().from(machinesTable).where(eq(machinesTable.id, item.machineId));
+      if (machine) {
+        machineHourlyRate = parseFloat(machine.hourlyRate);
+        setupRate = parseFloat(machine.setupRate);
+        hourlyRate = parseFloat(machine.hourlyRate);
+      }
+    }
+
+    const calcs = calcLineItem({
+      setupHours: item.setupHours,
+      programmingHours: item.programmingHours,
+      machiningMinutesPerPart: item.machiningMinutesPerPart,
+      inspectionHours: item.inspectionHours,
+      deburringMinutesPerPart: item.deburringMinutesPerPart,
+      materialCostPerUnit: item.materialCostPerUnit,
+      materialWastagePercentage: item.materialWastagePercentage,
+      toolingAllowance: item.toolingAllowance,
+      outsideProcessing: item.outsideProcessing,
+      packaging: item.packaging,
+      delivery: item.delivery,
+      riskPercentage: item.riskPercentage,
+      profitMarginPercentage: item.profitMarginPercentage,
+      vatEnabled: item.vatEnabled ?? false,
+      vatRate: item.vatRate ?? 20,
+      quantity: item.quantity,
+      setupRate,
+      hourlyRate,
+      machineHourlyRate,
+    });
+
+    await db.insert(quoteLineItemsTable).values({
+      quoteId,
+      partName: item.partName,
+      drawingNumber: item.drawingNumber ?? "",
+      revision: item.revision ?? "",
+      quantity: item.quantity,
+      material: item.material,
+      processType: item.processType,
+      machineId: item.machineId ?? null,
+      toleranceClass: item.toleranceClass ?? "Standard",
+      surfaceFinish: item.surfaceFinish ?? "Standard",
+      complexity: item.complexity ?? "Medium",
+      setupHours: String(item.setupHours),
+      programmingHours: String(item.programmingHours),
+      machiningMinutesPerPart: String(item.machiningMinutesPerPart),
+      inspectionHours: String(item.inspectionHours),
+      deburringMinutesPerPart: String(item.deburringMinutesPerPart),
+      materialCostPerUnit: String(item.materialCostPerUnit),
+      materialWastagePercentage: String(item.materialWastagePercentage),
+      toolingAllowance: String(item.toolingAllowance),
+      outsideProcessing: String(item.outsideProcessing),
+      packaging: String(item.packaging),
+      delivery: String(item.delivery),
+      riskPercentage: String(item.riskPercentage),
+      profitMarginPercentage: String(item.profitMarginPercentage),
+      discountPercentage: String(item.discountPercentage ?? 0),
+      vatEnabled: item.vatEnabled ?? false,
+      vatRate: String(item.vatRate ?? 20),
+      setupCost: String(calcs.setupCost),
+      programmingCost: String(calcs.programmingCost),
+      machiningCost: String(calcs.machiningCost),
+      inspectionCost: String(calcs.inspectionCost),
+      deburringCost: String(calcs.deburringCost),
+      materialCostTotal: String(calcs.materialCostTotal),
+      directCost: String(calcs.directCost),
+      riskValue: String(calcs.riskValue),
+      costBeforeMargin: String(calcs.costBeforeMargin),
+      sellPrice: String(calcs.sellPrice),
+      pricePerPart: String(calcs.pricePerPart),
+      vatAmount: String(calcs.vatAmount),
+      totalIncVat: String(calcs.totalIncVat),
+      toolingRecommendation: item.toolingRecommendation ?? "",
+      materialRecommendation: item.materialRecommendation ?? "",
+      coolantRecommendation: item.coolantRecommendation ?? "",
+    });
+  }
+}
+
+router.get("/quotes", async (req, res): Promise<void> => {
+  const quotes = await db.select({
+    id: quotesTable.id,
+    quoteNumber: quotesTable.quoteNumber,
+    customerId: quotesTable.customerId,
+    status: quotesTable.status,
+    quoteDate: quotesTable.quoteDate,
+    validUntil: quotesTable.validUntil,
+    createdAt: quotesTable.createdAt,
+    customerName: customersTable.companyName,
+  })
+    .from(quotesTable)
+    .leftJoin(customersTable, eq(quotesTable.customerId, customersTable.id))
+    .orderBy(desc(quotesTable.createdAt));
+
+  const lineItems = await db.select({
+    quoteId: quoteLineItemsTable.quoteId,
+    sellPrice: quoteLineItemsTable.sellPrice,
+  }).from(quoteLineItemsTable);
+
+  const quoteTotals = new Map<number, number>();
+  for (const item of lineItems) {
+    const current = quoteTotals.get(item.quoteId) ?? 0;
+    quoteTotals.set(item.quoteId, current + parseFloat(item.sellPrice));
+  }
+
+  const result = quotes.map(q => ({
+    id: q.id,
+    quoteNumber: q.quoteNumber,
+    customerId: q.customerId,
+    customerName: q.customerName ?? "Unknown",
+    status: q.status,
+    quoteDate: q.quoteDate,
+    validUntil: q.validUntil,
+    totalValue: quoteTotals.get(q.id) ?? 0,
+    createdAt: q.createdAt.toISOString(),
+  }));
+
+  res.json(ListQuotesResponse.parse(result));
+});
+
+router.post("/quotes", async (req, res): Promise<void> => {
+  const parsed = CreateQuoteBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const today = new Date().toISOString().split("T")[0];
+  const settings = await db.select().from(settingsTable).limit(1);
+  const validDays = settings.length > 0 ? settings[0].quoteValidityDays : 30;
+  const validUntilDate = new Date();
+  validUntilDate.setDate(validUntilDate.getDate() + validDays);
+  const validUntil = validUntilDate.toISOString().split("T")[0];
+  const terms = settings.length > 0 ? settings[0].termsAndConditions : "";
+  const payment = settings.length > 0 ? settings[0].paymentTerms : "30 days from invoice date";
+
+  const quoteNumber = await generateQuoteNumber();
+  const [quote] = await db.insert(quotesTable).values({
+    quoteNumber,
+    customerId: parsed.data.customerId,
+    status: parsed.data.status ?? "Draft",
+    quoteDate: parsed.data.quoteDate ?? today,
+    validUntil: parsed.data.validUntil ?? validUntil,
+    notes: parsed.data.notes ?? "",
+    paymentTerms: parsed.data.paymentTerms ?? payment,
+    termsAndConditions: parsed.data.termsAndConditions ?? terms,
+  }).returning();
+
+  if (parsed.data.lineItems && parsed.data.lineItems.length > 0) {
+    await insertLineItems(quote.id, parsed.data.lineItems);
+  }
+
+  const items = await db.select().from(quoteLineItemsTable).where(eq(quoteLineItemsTable.quoteId, quote.id));
+  res.status(201).json(GetQuoteResponse.parse(parseQuote(quote, items)));
+});
+
+router.get("/quotes/:id", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const params = GetQuoteParams.safeParse({ id: parseInt(raw, 10) });
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const [quote] = await db.select().from(quotesTable).where(eq(quotesTable.id, params.data.id));
+  if (!quote) {
+    res.status(404).json({ error: "Quote not found" });
+    return;
+  }
+  const items = await db.select().from(quoteLineItemsTable).where(eq(quoteLineItemsTable.quoteId, quote.id));
+  res.json(GetQuoteResponse.parse(parseQuote(quote, items)));
+});
+
+router.patch("/quotes/:id", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const params = UpdateQuoteParams.safeParse({ id: parseInt(raw, 10) });
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const parsed = UpdateQuoteBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const updateData: Record<string, unknown> = {};
+  if (parsed.data.customerId !== undefined) updateData.customerId = parsed.data.customerId;
+  if (parsed.data.status !== undefined) updateData.status = parsed.data.status;
+  if (parsed.data.quoteDate !== undefined) updateData.quoteDate = parsed.data.quoteDate;
+  if (parsed.data.validUntil !== undefined) updateData.validUntil = parsed.data.validUntil;
+  if (parsed.data.notes !== undefined) updateData.notes = parsed.data.notes;
+  if (parsed.data.paymentTerms !== undefined) updateData.paymentTerms = parsed.data.paymentTerms;
+  if (parsed.data.termsAndConditions !== undefined) updateData.termsAndConditions = parsed.data.termsAndConditions;
+
+  const [quote] = await db.update(quotesTable).set(updateData).where(eq(quotesTable.id, params.data.id)).returning();
+  if (!quote) {
+    res.status(404).json({ error: "Quote not found" });
+    return;
+  }
+
+  if (parsed.data.lineItems !== undefined) {
+    await db.delete(quoteLineItemsTable).where(eq(quoteLineItemsTable.quoteId, quote.id));
+    if (parsed.data.lineItems.length > 0) {
+      await insertLineItems(quote.id, parsed.data.lineItems);
+    }
+  }
+
+  const items = await db.select().from(quoteLineItemsTable).where(eq(quoteLineItemsTable.quoteId, quote.id));
+  res.json(UpdateQuoteResponse.parse(parseQuote(quote, items)));
+});
+
+router.delete("/quotes/:id", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const params = DeleteQuoteParams.safeParse({ id: parseInt(raw, 10) });
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const [quote] = await db.delete(quotesTable).where(eq(quotesTable.id, params.data.id)).returning();
+  if (!quote) {
+    res.status(404).json({ error: "Quote not found" });
+    return;
+  }
+  res.sendStatus(204);
+});
+
+router.post("/quotes/:id/duplicate", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const params = DuplicateQuoteParams.safeParse({ id: parseInt(raw, 10) });
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const [original] = await db.select().from(quotesTable).where(eq(quotesTable.id, params.data.id));
+  if (!original) {
+    res.status(404).json({ error: "Quote not found" });
+    return;
+  }
+  const originalItems = await db.select().from(quoteLineItemsTable).where(eq(quoteLineItemsTable.quoteId, original.id));
+
+  const quoteNumber = await generateQuoteNumber();
+  const today = new Date().toISOString().split("T")[0];
+  const [newQuote] = await db.insert(quotesTable).values({
+    quoteNumber,
+    customerId: original.customerId,
+    status: "Draft",
+    quoteDate: today,
+    validUntil: original.validUntil,
+    notes: original.notes,
+    paymentTerms: original.paymentTerms,
+    termsAndConditions: original.termsAndConditions,
+  }).returning();
+
+  for (const item of originalItems) {
+    const { id, quoteId, createdAt, ...rest } = item;
+    await db.insert(quoteLineItemsTable).values({ ...rest, quoteId: newQuote.id });
+  }
+
+  const items = await db.select().from(quoteLineItemsTable).where(eq(quoteLineItemsTable.quoteId, newQuote.id));
+  res.status(201).json(GetQuoteResponse.parse(parseQuote(newQuote, items)));
+});
+
+export default router;

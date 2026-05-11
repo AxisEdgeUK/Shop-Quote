@@ -1,22 +1,30 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: SHOP Quote API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: customers
+    description: Customer operations
+  - name: machines
+    description: Machine operations
+  - name: quotes
+    description: Quote operations
+  - name: settings
+    description: Company settings
+  - name: dashboard
+    description: Dashboard stats
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +32,336 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard statistics
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List all customers
+      responses:
+        "200":
+          description: List of customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create a customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+
+  /customers/{id}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      summary: Get a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateCustomer
+      tags: [customers]
+      summary: Update a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+    delete:
+      operationId: deleteCustomer
+      tags: [customers]
+      summary: Delete a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /machines:
+    get:
+      operationId: listMachines
+      tags: [machines]
+      summary: List all machines
+      responses:
+        "200":
+          description: List of machines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Machine"
+    post:
+      operationId: createMachine
+      tags: [machines]
+      summary: Create a machine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MachineInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Machine"
+
+  /machines/{id}:
+    get:
+      operationId: getMachine
+      tags: [machines]
+      summary: Get a machine
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Machine
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Machine"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateMachine
+      tags: [machines]
+      summary: Update a machine
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MachineUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Machine"
+    delete:
+      operationId: deleteMachine
+      tags: [machines]
+      summary: Delete a machine
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /quotes:
+    get:
+      operationId: listQuotes
+      tags: [quotes]
+      summary: List all quotes
+      responses:
+        "200":
+          description: List of quotes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuoteSummary"
+    post:
+      operationId: createQuote
+      tags: [quotes]
+      summary: Create a quote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+
+  /quotes/{id}:
+    get:
+      operationId: getQuote
+      tags: [quotes]
+      summary: Get a quote with line items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateQuote
+      tags: [quotes]
+      summary: Update a quote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+    delete:
+      operationId: deleteQuote
+      tags: [quotes]
+      summary: Delete a quote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /quotes/{id}/duplicate:
+    post:
+      operationId: duplicateQuote
+      tags: [quotes]
+      summary: Duplicate a quote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Duplicated quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get company settings
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+    patch:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update company settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +372,601 @@ components:
       required:
         - status
 
+    DashboardStats:
+      type: object
+      required:
+        - totalQuotes
+        - draftQuotes
+        - sentQuotes
+        - wonQuotes
+        - lostQuotes
+        - expiredQuotes
+        - totalQuotedValue
+        - wonValue
+        - conversionRate
+        - followUpNeeded
+      properties:
+        totalQuotes:
+          type: integer
+        draftQuotes:
+          type: integer
+        sentQuotes:
+          type: integer
+        wonQuotes:
+          type: integer
+        lostQuotes:
+          type: integer
+        expiredQuotes:
+          type: integer
+        totalQuotedValue:
+          type: number
+        wonValue:
+          type: number
+        conversionRate:
+          type: number
+        followUpNeeded:
+          type: integer
+
+    Customer:
+      type: object
+      required:
+        - id
+        - companyName
+        - contactName
+        - email
+        - phone
+        - address
+        - notes
+        - createdAt
+      properties:
+        id:
+          type: integer
+        companyName:
+          type: string
+        contactName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        notes:
+          type: string
+        createdAt:
+          type: string
+
+    CustomerInput:
+      type: object
+      required:
+        - companyName
+        - contactName
+        - email
+      properties:
+        companyName:
+          type: string
+        contactName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        notes:
+          type: string
+
+    CustomerUpdate:
+      type: object
+      properties:
+        companyName:
+          type: string
+        contactName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        notes:
+          type: string
+
+    Machine:
+      type: object
+      required:
+        - id
+        - name
+        - machineType
+        - axisCount
+        - hourlyRate
+        - setupRate
+        - notes
+        - active
+        - createdAt
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        machineType:
+          type: string
+        axisCount:
+          type: integer
+        hourlyRate:
+          type: number
+        setupRate:
+          type: number
+        notes:
+          type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+
+    MachineInput:
+      type: object
+      required:
+        - name
+        - machineType
+        - hourlyRate
+        - setupRate
+      properties:
+        name:
+          type: string
+        machineType:
+          type: string
+        axisCount:
+          type: integer
+        hourlyRate:
+          type: number
+        setupRate:
+          type: number
+        notes:
+          type: string
+        active:
+          type: boolean
+
+    MachineUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        machineType:
+          type: string
+        axisCount:
+          type: integer
+        hourlyRate:
+          type: number
+        setupRate:
+          type: number
+        notes:
+          type: string
+        active:
+          type: boolean
+
+    QuoteLineItem:
+      type: object
+      required:
+        - id
+        - quoteId
+        - partName
+        - drawingNumber
+        - revision
+        - quantity
+        - material
+        - processType
+        - machineId
+        - toleranceClass
+        - surfaceFinish
+        - complexity
+        - setupHours
+        - programmingHours
+        - machiningMinutesPerPart
+        - inspectionHours
+        - deburringMinutesPerPart
+        - materialCostPerUnit
+        - materialWastagePercentage
+        - toolingAllowance
+        - outsideProcessing
+        - packaging
+        - delivery
+        - riskPercentage
+        - profitMarginPercentage
+        - discountPercentage
+        - vatEnabled
+        - vatRate
+        - setupCost
+        - programmingCost
+        - machiningCost
+        - inspectionCost
+        - deburringCost
+        - materialCostTotal
+        - directCost
+        - riskValue
+        - costBeforeMargin
+        - sellPrice
+        - pricePerPart
+        - vatAmount
+        - totalIncVat
+        - toolingRecommendation
+        - materialRecommendation
+        - coolantRecommendation
+      properties:
+        id:
+          type: integer
+        quoteId:
+          type: integer
+        partName:
+          type: string
+        drawingNumber:
+          type: string
+        revision:
+          type: string
+        quantity:
+          type: integer
+        material:
+          type: string
+        processType:
+          type: string
+        machineId:
+          type: ["integer", "null"]
+        toleranceClass:
+          type: string
+        surfaceFinish:
+          type: string
+        complexity:
+          type: string
+        setupHours:
+          type: number
+        programmingHours:
+          type: number
+        machiningMinutesPerPart:
+          type: number
+        inspectionHours:
+          type: number
+        deburringMinutesPerPart:
+          type: number
+        materialCostPerUnit:
+          type: number
+        materialWastagePercentage:
+          type: number
+        toolingAllowance:
+          type: number
+        outsideProcessing:
+          type: number
+        packaging:
+          type: number
+        delivery:
+          type: number
+        riskPercentage:
+          type: number
+        profitMarginPercentage:
+          type: number
+        discountPercentage:
+          type: number
+        vatEnabled:
+          type: boolean
+        vatRate:
+          type: number
+        setupCost:
+          type: number
+        programmingCost:
+          type: number
+        machiningCost:
+          type: number
+        inspectionCost:
+          type: number
+        deburringCost:
+          type: number
+        materialCostTotal:
+          type: number
+        directCost:
+          type: number
+        riskValue:
+          type: number
+        costBeforeMargin:
+          type: number
+        sellPrice:
+          type: number
+        pricePerPart:
+          type: number
+        vatAmount:
+          type: number
+        totalIncVat:
+          type: number
+        toolingRecommendation:
+          type: string
+        materialRecommendation:
+          type: string
+        coolantRecommendation:
+          type: string
+
+    QuoteLineItemInput:
+      type: object
+      required:
+        - partName
+        - quantity
+        - material
+        - processType
+        - setupHours
+        - programmingHours
+        - machiningMinutesPerPart
+        - inspectionHours
+        - deburringMinutesPerPart
+        - materialCostPerUnit
+        - materialWastagePercentage
+        - toolingAllowance
+        - outsideProcessing
+        - packaging
+        - delivery
+        - riskPercentage
+        - profitMarginPercentage
+      properties:
+        partName:
+          type: string
+        drawingNumber:
+          type: string
+        revision:
+          type: string
+        quantity:
+          type: integer
+        material:
+          type: string
+        processType:
+          type: string
+        machineId:
+          type: ["integer", "null"]
+        toleranceClass:
+          type: string
+        surfaceFinish:
+          type: string
+        complexity:
+          type: string
+        setupHours:
+          type: number
+        programmingHours:
+          type: number
+        machiningMinutesPerPart:
+          type: number
+        inspectionHours:
+          type: number
+        deburringMinutesPerPart:
+          type: number
+        materialCostPerUnit:
+          type: number
+        materialWastagePercentage:
+          type: number
+        toolingAllowance:
+          type: number
+        outsideProcessing:
+          type: number
+        packaging:
+          type: number
+        delivery:
+          type: number
+        riskPercentage:
+          type: number
+        profitMarginPercentage:
+          type: number
+        discountPercentage:
+          type: number
+        vatEnabled:
+          type: boolean
+        vatRate:
+          type: number
+        toolingRecommendation:
+          type: string
+        materialRecommendation:
+          type: string
+        coolantRecommendation:
+          type: string
+
+    QuoteSummary:
+      type: object
+      required:
+        - id
+        - quoteNumber
+        - customerId
+        - customerName
+        - status
+        - quoteDate
+        - validUntil
+        - totalValue
+        - createdAt
+      properties:
+        id:
+          type: integer
+        quoteNumber:
+          type: string
+        customerId:
+          type: integer
+        customerName:
+          type: string
+        status:
+          type: string
+        quoteDate:
+          type: string
+        validUntil:
+          type: string
+        totalValue:
+          type: number
+        createdAt:
+          type: string
+
+    Quote:
+      type: object
+      required:
+        - id
+        - quoteNumber
+        - customerId
+        - status
+        - quoteDate
+        - validUntil
+        - notes
+        - paymentTerms
+        - termsAndConditions
+        - lineItems
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+        quoteNumber:
+          type: string
+        customerId:
+          type: integer
+        status:
+          type: string
+        quoteDate:
+          type: string
+        validUntil:
+          type: string
+        notes:
+          type: string
+        paymentTerms:
+          type: string
+        termsAndConditions:
+          type: string
+        lineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuoteLineItem"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    QuoteInput:
+      type: object
+      required:
+        - customerId
+        - lineItems
+      properties:
+        customerId:
+          type: integer
+        status:
+          type: string
+        quoteDate:
+          type: string
+        validUntil:
+          type: string
+        notes:
+          type: string
+        paymentTerms:
+          type: string
+        termsAndConditions:
+          type: string
+        lineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuoteLineItemInput"
+
+    QuoteUpdate:
+      type: object
+      properties:
+        customerId:
+          type: integer
+        status:
+          type: string
+        quoteDate:
+          type: string
+        validUntil:
+          type: string
+        notes:
+          type: string
+        paymentTerms:
+          type: string
+        termsAndConditions:
+          type: string
+        lineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuoteLineItemInput"
+
+    Settings:
+      type: object
+      required:
+        - id
+        - companyName
+        - address
+        - email
+        - phone
+        - website
+        - vatNumber
+        - currency
+        - defaultHourlyRate
+        - defaultSetupRate
+        - defaultMarginPercentage
+        - vatEnabled
+        - vatRate
+        - quoteValidityDays
+        - paymentTerms
+        - termsAndConditions
+      properties:
+        id:
+          type: integer
+        companyName:
+          type: string
+        address:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        website:
+          type: string
+        vatNumber:
+          type: string
+        currency:
+          type: string
+        defaultHourlyRate:
+          type: number
+        defaultSetupRate:
+          type: number
+        defaultMarginPercentage:
+          type: number
+        vatEnabled:
+          type: boolean
+        vatRate:
+          type: number
+        quoteValidityDays:
+          type: integer
+        paymentTerms:
+          type: string
+        termsAndConditions:
+          type: string
+
+    SettingsUpdate:
+      type: object
+      properties:
+        companyName:
+          type: string
+        address:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        website:
+          type: string
+        vatNumber:
+          type: string
+        currency:
+          type: string
+        defaultHourlyRate:
+          type: number
+        defaultSetupRate:
+          type: number
+        defaultMarginPercentage:
+          type: number
+        vatEnabled:
+          type: boolean
+        vatRate:
+          type: number
+        quoteValidityDays:
+          type: integer
+        paymentTerms:
+          type: string
+        termsAndConditions:
+          type: string
