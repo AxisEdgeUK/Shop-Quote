@@ -52,6 +52,7 @@ function HeroBackground({ src }: { src: string }) {
           height: "100%",
           objectFit: "cover",
           objectPosition: "center",
+          pointerEvents: "none",
         }}
       />
       <div
@@ -79,6 +80,14 @@ export function LandingPage() {
     <div style={{ background: "#ffffff", color: "#111827", fontFamily: "'Inter', system-ui, sans-serif", minHeight: "100vh" }}>
 
       <style>{`
+        video::-webkit-media-controls,
+        video::-webkit-media-controls-enclosure,
+        video::-webkit-media-controls-panel,
+        video::-webkit-media-controls-play-button,
+        video::-webkit-media-controls-start-playback-button {
+          display: none !important;
+          -webkit-appearance: none;
+        }
         @keyframes heroFadeUp {
           from { opacity: 0; transform: translateY(28px); }
           to   { opacity: 1; transform: translateY(0); }
@@ -346,7 +355,7 @@ export function LandingPage() {
           <div className="landing-features-grid">
             {[
               { icon: <TargetIcon />, title: "Faster Quoting", body: "Go from enquiry to professional quote in minutes. Preloaded assumptions reduce manual input." },
-              { icon: <CalcIcon />,   title: "Structured Estimating", body: "Setup, machining, material, risk, and margin — every cost accounted for, every time." },
+              { icon: <CalcIcon />,   title: "Structured Estimating", body: "Setup, machining, material, risk, and margin. Every cost accounted for, every time." },
               { icon: <ChipIcon />,   title: "Reduce Owner Workload", body: "Delegate quoting with confidence. New staff can quote accurately using your established rates." },
               { icon: <DocIcon />,    title: "Professional PDFs", body: "Clean quote documents that reflect your shop's quality. Not a spreadsheet printout." },
               { icon: <ShopIcon />,   title: "Built for Small Shops", body: "No bloated features. No enterprise complexity. Designed for 1 to 20 person CNC machine shops." },
