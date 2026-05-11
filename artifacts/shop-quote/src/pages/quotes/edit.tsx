@@ -54,7 +54,8 @@ export function EditQuote() {
         <QuoteWizard 
           initialValues={quote}
           onSubmit={handleSubmit} 
-          isSubmitting={updateQuote.isPending} 
+          isSubmitting={updateQuote.isPending}
+          savedQuoteId={id}
         />
       </div>
     </div>

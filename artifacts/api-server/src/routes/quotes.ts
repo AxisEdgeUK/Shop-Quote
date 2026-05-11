@@ -29,6 +29,7 @@ function calcLineItem(item: {
   delivery: number;
   riskPercentage: number;
   profitMarginPercentage: number;
+  discountPercentage: number;
   vatEnabled: boolean;
   vatRate: number;
   quantity: number;
@@ -49,7 +50,10 @@ function calcLineItem(item: {
   const riskValue = directCost * (item.riskPercentage / 100);
   const costBeforeMargin = directCost + riskValue;
   const margin = item.profitMarginPercentage / 100;
-  const sellPrice = margin >= 1 ? costBeforeMargin : costBeforeMargin / (1 - margin);
+  const preSellPrice = margin >= 1 ? costBeforeMargin : costBeforeMargin / (1 - margin);
+  const sellPrice = item.discountPercentage > 0
+    ? preSellPrice * (1 - item.discountPercentage / 100)
+    : preSellPrice;
   const pricePerPart = item.quantity > 0 ? sellPrice / item.quantity : 0;
   const vatAmount = item.vatEnabled ? sellPrice * (item.vatRate / 100) : 0;
   const totalIncVat = item.vatEnabled ? sellPrice + vatAmount : sellPrice;
@@ -103,8 +107,7 @@ function parseQuote(quote: typeof quotesTable.$inferSelect, lineItems: (typeof q
 async function generateQuoteNumber(): Promise<string> {
   const year = new Date().getFullYear();
   const quotes = await db.select({ quoteNumber: quotesTable.quoteNumber })
-    .from(quotesTable)
-    .where(eq(quotesTable.quoteNumber, quotesTable.quoteNumber));
+    .from(quotesTable);
   const prefix = `QT-${year}-`;
   const existingNumbers = quotes
     .map(q => q.quoteNumber)
@@ -157,6 +160,7 @@ async function insertLineItems(quoteId: number, lineItemsData: NonNullable<typeo
       delivery: item.delivery,
       riskPercentage: item.riskPercentage,
       profitMarginPercentage: item.profitMarginPercentage,
+      discountPercentage: item.discountPercentage ?? 0,
       vatEnabled: item.vatEnabled ?? false,
       vatRate: item.vatRate ?? 20,
       quantity: item.quantity,

@@ -56,6 +56,7 @@ A full-stack CNC shop quoting MVP for small machine shops — create, calculate,
 - Do NOT put `<style dangerouslySetInnerHTML>` inside React components — it injects document-global styles that break print media and SSR tooling
 - Wouter v3 `/:rest*` with inline children breaks nested Switch routing — keep routing flat
 - The API server base path is `/api` — all routes must be prefixed
+- `calcLineItem` applies discount AFTER margin: `sellPrice = (costBeforeMargin / (1 - margin)) * (1 - discount%)`. The wizard preview and the server-side stored value both use this formula — keep them in sync if you change one.
 
 ## Pointers
 

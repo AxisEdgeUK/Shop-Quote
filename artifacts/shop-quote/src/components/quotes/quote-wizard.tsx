@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Trash2, ArrowRight, ArrowLeft, Check, Save } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Link } from "wouter";
 
 const lineItemSchema = z.object({
   partName: z.string().min(1, "Part name is required"),
@@ -67,11 +68,12 @@ interface QuoteWizardProps {
   initialValues?: Partial<QuoteFormValues>;
   onSubmit: (values: QuoteFormValues) => void;
   isSubmitting?: boolean;
+  savedQuoteId?: number;
 }
 
 const STEPS = ["Customer", "Part Details", "Assumptions", "Review", "Complete"];
 
-export function QuoteWizard({ initialValues, onSubmit, isSubmitting }: QuoteWizardProps) {
+export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteId }: QuoteWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const { data: customers, isLoading: isLoadingCustomers } = useListCustomers();
   const { data: machines, isLoading: isLoadingMachines } = useListMachines();
@@ -279,6 +281,33 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting }: QuoteWiza
                     </FormItem>
                   )}
                 />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormField control={form.control} name="status" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quote Status</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="Draft">Draft</SelectItem>
+                          <SelectItem value="Sent">Sent</SelectItem>
+                          <SelectItem value="Won">Won</SelectItem>
+                          <SelectItem value="Lost">Lost</SelectItem>
+                          <SelectItem value="Expired">Expired</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="quoteDate" render={({ field }) => (
+                    <FormItem><FormLabel>Quote Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="validUntil" render={({ field }) => (
+                    <FormItem><FormLabel>Valid Until</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                </div>
+                <FormField control={form.control} name="notes" render={({ field }) => (
+                  <FormItem><FormLabel>Quote Notes (Optional)</FormLabel><FormControl><Textarea className="h-20" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
               </CardContent>
             </Card>
           )}
@@ -428,6 +457,12 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting }: QuoteWiza
                       )} />
                       <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.outsideProcessing`} render={({ field }) => (
                         <FormItem><FormLabel>Outside Processing (£)</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl></FormItem>
+                      )} />
+                      <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.packaging`} render={({ field }) => (
+                        <FormItem><FormLabel>Packaging (£)</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl></FormItem>
+                      )} />
+                      <FormField control={form.control} name={`lineItems.${activeLineItemIndex}.delivery`} render={({ field }) => (
+                        <FormItem><FormLabel>Delivery (£)</FormLabel><FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl></FormItem>
                       )} />
                     </div>
                   </div>
@@ -581,10 +616,17 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting }: QuoteWiza
                   <Check className="w-8 h-8" />
                 </div>
                 <h2 className="text-2xl font-bold mb-2">Quote Saved!</h2>
-                <p className="text-muted-foreground mb-8">The quote has been generated successfully.</p>
-                {/* PDF Download will be handled by the parent component after redirect */}
+                <p className="text-muted-foreground mb-8">The quote has been generated successfully. Redirecting you now…</p>
                 <div className="flex justify-center gap-4">
-                  <Button type="button" disabled variant="outline">Generating PDF...</Button>
+                  {savedQuoteId ? (
+                    <Link href={`/quotes/${savedQuoteId}`}>
+                      <Button type="button">View Quote</Button>
+                    </Link>
+                  ) : (
+                    <Link href="/quotes">
+                      <Button type="button" variant="outline">Back to Quotes</Button>
+                    </Link>
+                  )}
                 </div>
               </CardContent>
             </Card>

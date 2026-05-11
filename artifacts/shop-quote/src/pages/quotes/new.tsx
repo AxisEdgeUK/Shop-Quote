@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useCreateQuote, getListQuotesQueryKey } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
@@ -12,19 +13,19 @@ export function NewQuote() {
   const createQuote = useCreateQuote();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [savedQuoteId, setSavedQuoteId] = useState<number | undefined>();
 
   const handleSubmit = (data: QuoteFormValues) => {
-    // API expects structure matching QuoteInput
     createQuote.mutate(
       { data: data as any },
       {
         onSuccess: (result) => {
           queryClient.invalidateQueries({ queryKey: getListQuotesQueryKey() });
           toast({ title: "Quote generated successfully" });
-          // Give the success screen a moment to show, then redirect to view
+          setSavedQuoteId(result.id);
           setTimeout(() => {
             setLocation(`/quotes/${result.id}`);
-          }, 1500);
+          }, 2000);
         },
         onError: () => {
           toast({ title: "Failed to generate quote", variant: "destructive" });
@@ -45,7 +46,7 @@ export function NewQuote() {
       </div>
       
       <div className="bg-background">
-        <QuoteWizard onSubmit={handleSubmit} isSubmitting={createQuote.isPending} />
+        <QuoteWizard onSubmit={handleSubmit} isSubmitting={createQuote.isPending} savedQuoteId={savedQuoteId} />
       </div>
     </div>
   );
