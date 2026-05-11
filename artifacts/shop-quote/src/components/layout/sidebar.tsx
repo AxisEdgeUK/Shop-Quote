@@ -13,13 +13,13 @@ const navItems = [
 function ShopQuoteLogo({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="1" y="1" width="26" height="26" rx="2" fill="none" stroke="#FF6B00" strokeWidth="1.5"/>
-      <line x1="14" y1="4" x2="14" y2="9" stroke="#FF6B00" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="14" y1="19" x2="14" y2="24" stroke="#FF6B00" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="4" y1="14" x2="9" y2="14" stroke="#FF6B00" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="19" y1="14" x2="24" y2="14" stroke="#FF6B00" strokeWidth="1.5" strokeLinecap="round"/>
-      <circle cx="14" cy="14" r="3.5" fill="none" stroke="#FF6B00" strokeWidth="1.5"/>
-      <circle cx="14" cy="14" r="1" fill="#FF6B00"/>
+      <rect x="1" y="1" width="26" height="26" rx="2" fill="none" stroke="#1D8FFF" strokeWidth="1.5"/>
+      <line x1="14" y1="4" x2="14" y2="9" stroke="#1D8FFF" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="14" y1="19" x2="14" y2="24" stroke="#1D8FFF" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="4" y1="14" x2="9" y2="14" stroke="#1D8FFF" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="19" y1="14" x2="24" y2="14" stroke="#1D8FFF" strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="14" cy="14" r="3.5" fill="none" stroke="#1D8FFF" strokeWidth="1.5"/>
+      <circle cx="14" cy="14" r="1" fill="#1D8FFF"/>
     </svg>
   );
 }
@@ -41,7 +41,7 @@ export function Sidebar() {
               style={{ color: "hsl(var(--sidebar-foreground))", letterSpacing: "0.12em" }}>
               SHOP
             </div>
-            <div className="text-xs font-semibold mt-0.5 leading-none" style={{ color: "hsl(25 100% 50%)", letterSpacing: "0.18em" }}>
+            <div className="text-xs font-semibold mt-0.5 leading-none" style={{ color: "#1D8FFF", letterSpacing: "0.18em" }}>
               QUOTE
             </div>
           </div>
@@ -64,9 +64,9 @@ export function Sidebar() {
                 !isActive && "hover:bg-white/5"
               )}
               style={isActive ? {
-                background: "hsl(25 100% 50% / 0.18)",
-                color: "hsl(25 100% 62%)",
-                borderLeft: "3px solid hsl(25 100% 50%)",
+                background: "rgba(29,143,255,0.12)",
+                color: "#60AFFF",
+                borderLeft: "3px solid #1D8FFF",
               } : {
                 color: "hsl(var(--sidebar-foreground))",
                 borderLeft: "3px solid transparent",

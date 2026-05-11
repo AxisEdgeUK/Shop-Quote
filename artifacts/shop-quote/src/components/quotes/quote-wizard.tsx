@@ -987,7 +987,7 @@ export function QuoteWizard({ initialValues, onSubmit, isSubmitting, savedQuoteI
                         <a
                           href={mailtoHref}
                           className="inline-flex items-center gap-2 px-5 py-2.5 rounded text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                          style={{ background: "hsl(25 100% 50%)" }}
+                          style={{ background: "hsl(213 97% 58%)" }}
                         >
                           <ArrowRight className="w-4 h-4" />
                           Open in Email Client

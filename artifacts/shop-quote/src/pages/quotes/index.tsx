@@ -53,7 +53,7 @@ export function QuotesList() {
       case "Sent": return "bg-blue-100 text-blue-800 border-blue-200";
       case "Won": return "bg-green-100 text-green-800 border-green-200";
       case "Lost": return "bg-red-100 text-red-800 border-red-200";
-      case "Expired": return "bg-orange-100 text-orange-800 border-orange-200";
+      case "Expired": return "bg-blue-100 text-blue-800 border-blue-200";
       default: return "bg-gray-100 text-gray-800";
     }
   };

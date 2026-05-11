@@ -12,12 +12,12 @@ function KpiCard({ label, value, sub, accent }: { label: string; value: string |
     <div className="rounded border p-5 flex flex-col gap-2"
       style={{
         background: "hsl(var(--card))",
-        borderColor: accent ? "hsl(25 100% 50% / 0.4)" : "hsl(var(--card-border))",
-        boxShadow: accent ? "0 0 0 1px hsl(25 100% 50% / 0.15)" : undefined,
+        borderColor: accent ? "hsl(213 97% 58% / 0.4)" : "hsl(var(--card-border))",
+        boxShadow: accent ? "0 0 0 1px hsl(213 97% 58% / 0.15)" : undefined,
       }}>
       <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "hsl(var(--muted-foreground))" }}>{label}</div>
       <div className={`text-3xl font-bold tracking-tight tabular-nums ${accent ? "text-primary" : ""}`}
-        style={accent ? { color: "hsl(25 100% 50%)" } : undefined}>
+        style={accent ? { color: "hsl(213 97% 58%)" } : undefined}>
         {value}
       </div>
       {sub && <div className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{sub}</div>}
@@ -105,7 +105,7 @@ export function DashboardPage() {
           <div className="flex items-center justify-between px-5 py-4"
             style={{ borderBottom: "1px solid hsl(var(--card-border))" }}>
             <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4" style={{ color: "hsl(25 100% 50%)" }} />
+              <FileText className="w-4 h-4" style={{ color: "hsl(213 97% 58%)" }} />
               <span className="text-sm font-semibold tracking-wide uppercase"
                 style={{ letterSpacing: "0.06em", color: "hsl(var(--muted-foreground))" }}>
                 Recent Quotes
@@ -113,7 +113,7 @@ export function DashboardPage() {
             </div>
             <Link href="/quotes">
               <span className="text-xs font-medium flex items-center gap-1 hover:underline"
-                style={{ color: "hsl(25 100% 50%)" }}>
+                style={{ color: "hsl(213 97% 58%)" }}>
                 View all <ChevronRight className="w-3 h-3" />
               </span>
             </Link>
@@ -135,7 +135,7 @@ export function DashboardPage() {
               <div className="flex gap-3 justify-center pt-2">
                 <Link href="/quotes/new">
                   <button className="px-4 py-2 rounded text-sm font-semibold text-white"
-                    style={{ background: "hsl(25 100% 50%)" }}>
+                    style={{ background: "hsl(213 97% 58%)" }}>
                     + New Milling Quote
                   </button>
                 </Link>
@@ -169,7 +169,7 @@ export function DashboardPage() {
                         </span>
                       </div>
                       <ChevronRight className="w-4 h-4 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        style={{ color: "hsl(25 100% 50%)" }} />
+                        style={{ color: "hsl(213 97% 58%)" }} />
                     </div>
                   </Link>
                 );
@@ -219,7 +219,7 @@ function QuickAction({ href, icon, label, primary }: { href: string; icon: React
         type="button"
         className="w-full flex items-center gap-3 px-4 py-2.5 rounded text-sm font-medium transition-all"
         style={primary ? {
-          background: "hsl(25 100% 50%)",
+          background: "hsl(213 97% 58%)",
           color: "white",
         } : {
           background: "hsl(var(--secondary))",
