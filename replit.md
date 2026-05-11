@@ -29,8 +29,15 @@ A full-stack CNC shop quoting MVP for small machine shops — create, calculate,
 - `lib/api-client-react/src/generated/` — generated hooks and Zod schemas (don't edit manually)
 - `artifacts/api-server/src/routes/` — Express route handlers
 - `artifacts/shop-quote/src/pages/` — React pages (dashboard, quotes, customers, machines, settings, landing, pricing)
-- `artifacts/shop-quote/src/components/quotes/` — QuoteWizard (5-step), PrintLayout
+- `artifacts/shop-quote/src/components/quotes/` — QuoteWizard (5-step), PrintLayout, QuoteWorkspace, DrawingViewer
 - `artifacts/shop-quote/src/components/layout/` — AppLayout, Sidebar
+
+## Estimating Workspace (split-screen)
+
+- `QuoteWorkspace` wraps the New/Edit quote pages — dark header bar + draggable split pane (drawing left, quote wizard right)
+- Desktop layout: `-mx-8 -mb-8` breaks out of AppLayout's horizontal/bottom padding; header is `height: 44px`; split pane uses `calc(100vh - 44px)`. Do NOT use `-mt-8` — AppLayout has `md:pt-0` (no top padding on desktop).
+- Mobile layout: `-mx-4 -mt-4 -mb-4` + `height: calc(100svh - 3.5rem)` (accounts for 56px mobile top bar); shows Drawing/Quote tab switcher.
+- `DrawingViewer` — dark engineering viewer (PDF via native browser `<iframe>`, images with CSS transform zoom+pan). Files are client-side object URLs only (no server upload). Supports drag-to-upload, wheel zoom, touch pinch-zoom.
 
 ## Architecture decisions
 

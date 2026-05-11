@@ -1,0 +1,340 @@
+That is exactly the correct direction.
+
+That changes the app from:
+
+> “quote calculator”
+
+into:
+
+> “working estimator workspace.”
+
+That is a major UX improvement.
+
+And honestly, this is probably how the product should fundamentally work.
+
+Because real estimators constantly:
+
+* look at drawing,
+* estimate,
+* check tolerances,
+* go back to drawing,
+* check revisions,
+* estimate setups,
+* check notes again.
+
+If the user keeps:
+
+* opening PDFs,
+* switching tabs,
+* zooming,
+* losing drawings,
+  the workflow becomes annoying quickly.
+
+A side-by-side estimating workspace is much more professional.
+
+This is very similar to:
+
+* CAD workspace logic,
+* CAM workspace logic,
+* professional estimating workflow.
+
+Very strong idea.
+
+---
+
+# Recommended UX Structure
+
+## Desktop Layout
+
+### LEFT SIDE (45–55%)
+
+### Drawing Workspace
+
+Show:
+
+* PDF viewer
+* image viewer
+* zoom
+* pan
+* page navigation
+* fullscreen toggle
+
+Support:
+
+* PDF
+* image
+* future STEP preview placeholder
+
+---
+
+### RIGHT SIDE (45–55%)
+
+### Quote Builder
+
+Sticky structured quote workflow:
+
+* customer
+* part
+* material
+* machine
+* setup
+* machining
+* costing
+* review
+
+This is the correct professional workflow.
+
+---
+
+# Why This Is Powerful
+
+This creates:
+
+## “estimating cockpit”
+
+instead of:
+
+## “form builder.”
+
+Massive difference.
+
+---
+
+# Important UX Rule
+
+The drawing must remain visible while estimating.
+
+This is critical.
+
+Estimator should NOT:
+
+* open/close modals,
+* switch tabs constantly,
+* download drawings repeatedly.
+
+The app should feel:
+
+> “I am quoting directly from the drawing.”
+
+---
+
+# Recommended Features
+
+## Drawing Viewer
+
+### PDF Viewer
+
+Allow:
+
+* zoom
+* pan
+* multi-page support
+* rotate
+* fullscreen
+
+### Image Viewer
+
+Allow:
+
+* zoom
+* pan
+
+---
+
+# Sticky Quote Panel
+
+The quote panel should:
+
+* stay fixed,
+* scroll independently,
+* remain usable while drawing stays visible.
+
+Very important.
+
+---
+
+# Even Better UX Idea
+
+## Resizable Divider
+
+Allow user to drag divider:
+
+* more drawing space,
+* more quote space.
+
+This feels very premium.
+
+---
+
+# Future Opportunity
+
+Eventually:
+you could allow:
+
+* dimension measuring,
+* note pinning,
+* markup tools,
+* tolerance highlighting.
+
+But NOT now.
+
+---
+
+# Mobile / iPad Behaviour
+
+## Desktop
+
+Side-by-side split workspace.
+
+## Tablet/iPad
+
+Still split if landscape.
+
+## iPhone
+
+Tabbed view:
+
+* Drawing
+* Quote
+
+Because split screen will become cramped.
+
+---
+
+# This Is NOT Feature Creep
+
+This is:
+
+## workflow optimisation.
+
+This directly improves:
+
+* speed,
+* usability,
+* professionalism,
+* workflow realism.
+
+Very good decision.
+
+---
+
+# Most Important UX Insight
+
+Your product should feel:
+
+> “like estimating directly from the print.”
+
+Not:
+
+> “filling out an online form.”
+
+That is the difference between:
+
+* a generic SaaS app,
+  and:
+* serious manufacturing software.
+
+---
+
+# Paste This Into Replit
+
+```text
+Redesign the quote workflow into a professional split-screen estimating workspace.
+
+The user must be able to view the drawing while building the quote.
+
+This is one of the most important UX features in SHOP Quote.
+
+DESKTOP LAYOUT:
+
+LEFT SIDE:
+Drawing workspace viewer.
+
+RIGHT SIDE:
+Quote builder and costing workflow.
+
+The user should never need to constantly switch tabs or reopen the drawing while quoting.
+
+LEFT SIDE REQUIREMENTS:
+Support:
+- PDF viewing
+- image viewing
+- STEP placeholder
+- DXF placeholder
+
+PDF viewer features:
+- zoom
+- pan
+- page navigation
+- fullscreen mode
+- fit-to-screen
+- smooth scrolling
+
+Image viewer:
+- zoom
+- pan
+
+Show:
+- filename
+- drawing number
+- revision
+- uploaded date
+
+RIGHT SIDE REQUIREMENTS:
+Sticky quote builder panel.
+
+Include:
+- customer
+- part details
+- material
+- machine
+- setup
+- machining
+- inspection
+- tooling
+- costing
+- review
+
+The quote panel should scroll independently from the drawing viewer.
+
+RESIZABLE DIVIDER:
+Add draggable divider between drawing and quote panel.
+
+User should be able to resize:
+- drawing area
+- quote area
+
+This should feel premium and engineered.
+
+WORKFLOW GOAL:
+The app should feel like:
+“quoting directly from the drawing.”
+
+NOT:
+“filling out an online form.”
+
+MOBILE / TABLET BEHAVIOUR:
+
+DESKTOP:
+Split-screen workspace.
+
+iPad landscape:
+Maintain split-screen where possible.
+
+iPhone:
+Use tab switching:
+- Drawing
+- Quote
+
+Avoid cramped layouts on small screens.
+
+DESIGN STYLE:
+Industrial.
+Premium.
+German-engineered feel.
+Dark engineering workspace.
+Minimal clutter.
+High-end CAD/CAM software inspiration.
+
+Do not use generic SaaS layouts.
+```
