@@ -8,16 +8,20 @@ const router: IRouter = Router();
 router.get("/dashboard/stats", async (req, res): Promise<void> => {
   const today = new Date().toISOString().split("T")[0];
 
-  const quotes = await db.select({
-    status: quotesTable.status,
-    validUntil: quotesTable.validUntil,
-    id: quotesTable.id,
-  }).from(quotesTable);
+  const quotes = await db
+    .select({
+      status: quotesTable.status,
+      validUntil: quotesTable.validUntil,
+      id: quotesTable.id,
+    })
+    .from(quotesTable);
 
-  const lineItems = await db.select({
-    quoteId: quoteLineItemsTable.quoteId,
-    sellPrice: quoteLineItemsTable.sellPrice,
-  }).from(quoteLineItemsTable);
+  const lineItems = await db
+    .select({
+      quoteId: quoteLineItemsTable.quoteId,
+      sellPrice: quoteLineItemsTable.sellPrice,
+    })
+    .from(quoteLineItemsTable);
 
   // Sum sell prices per quote
   const quoteTotals = new Map<number, number>();
@@ -42,7 +46,9 @@ router.get("/dashboard/stats", async (req, res): Promise<void> => {
     totalQuotedValue += value;
 
     switch (quote.status) {
-      case "Draft": draftQuotes++; break;
+      case "Draft":
+        draftQuotes++;
+        break;
       case "Sent":
         sentQuotes++;
         if (quote.validUntil < today) followUpNeeded++;
@@ -51,26 +57,32 @@ router.get("/dashboard/stats", async (req, res): Promise<void> => {
         wonQuotes++;
         wonValue += value;
         break;
-      case "Lost": lostQuotes++; break;
-      case "Expired": expiredQuotes++; break;
+      case "Lost":
+        lostQuotes++;
+        break;
+      case "Expired":
+        expiredQuotes++;
+        break;
     }
   }
 
   const sentAndWon = wonQuotes + lostQuotes;
   const conversionRate = sentAndWon > 0 ? (wonQuotes / sentAndWon) * 100 : 0;
 
-  res.json(GetDashboardStatsResponse.parse({
-    totalQuotes,
-    draftQuotes,
-    sentQuotes,
-    wonQuotes,
-    lostQuotes,
-    expiredQuotes,
-    totalQuotedValue,
-    wonValue,
-    conversionRate,
-    followUpNeeded,
-  }));
+  res.json(
+    GetDashboardStatsResponse.parse({
+      totalQuotes,
+      draftQuotes,
+      sentQuotes,
+      wonQuotes,
+      lostQuotes,
+      expiredQuotes,
+      totalQuotedValue,
+      wonValue,
+      conversionRate,
+      followUpNeeded,
+    }),
+  );
 });
 
 export default router;

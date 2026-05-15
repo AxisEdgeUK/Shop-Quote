@@ -328,6 +328,8 @@ export const GetQuoteResponse = zod.object({
       discountPercentage: zod.number(),
       vatEnabled: zod.boolean(),
       vatRate: zod.number(),
+      machineHourlyRate: zod.number(),
+      machineSetupRate: zod.number(),
       setupCost: zod.number(),
       programmingCost: zod.number(),
       machiningCost: zod.number(),
@@ -468,6 +470,8 @@ export const UpdateQuoteResponse = zod.object({
       discountPercentage: zod.number(),
       vatEnabled: zod.boolean(),
       vatRate: zod.number(),
+      machineHourlyRate: zod.number(),
+      machineSetupRate: zod.number(),
       setupCost: zod.number(),
       programmingCost: zod.number(),
       machiningCost: zod.number(),
@@ -502,6 +506,50 @@ export const DeleteQuoteParams = zod.object({
  */
 export const DuplicateQuoteParams = zod.object({
   id: zod.coerce.number(),
+});
+
+/**
+ * @summary List drawings for a quote
+ */
+export const ListQuoteDrawingsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ListQuoteDrawingsResponseItem = zod.object({
+  id: zod.number(),
+  quoteId: zod.number(),
+  filename: zod.string(),
+  contentType: zod.string(),
+  objectPath: zod.string(),
+  drawingNumber: zod.string(),
+  revision: zod.string(),
+  uploadedAt: zod.string(),
+});
+export const ListQuoteDrawingsResponse = zod.array(
+  ListQuoteDrawingsResponseItem,
+);
+
+/**
+ * @summary Add a drawing record to a quote
+ */
+export const CreateQuoteDrawingParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const CreateQuoteDrawingBody = zod.object({
+  objectPath: zod.string(),
+  filename: zod.string(),
+  contentType: zod.string(),
+  drawingNumber: zod.string().optional(),
+  revision: zod.string().optional(),
+});
+
+/**
+ * @summary Delete a drawing from a quote
+ */
+export const DeleteQuoteDrawingParams = zod.object({
+  id: zod.coerce.number(),
+  drawingId: zod.coerce.number(),
 });
 
 /**

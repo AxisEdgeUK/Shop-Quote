@@ -1,4 +1,7 @@
-import { useCreateCustomer, getListCustomersQueryKey } from "@workspace/api-client-react";
+import {
+  useCreateCustomer,
+  getListCustomersQueryKey,
+} from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -18,14 +21,16 @@ export function NewCustomer() {
       { data },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListCustomersQueryKey() });
+          queryClient.invalidateQueries({
+            queryKey: getListCustomersQueryKey(),
+          });
           toast({ title: "Customer created successfully" });
           setLocation("/customers");
         },
         onError: () => {
           toast({ title: "Failed to create customer", variant: "destructive" });
-        }
-      }
+        },
+      },
     );
   };
 
@@ -39,9 +44,12 @@ export function NewCustomer() {
         </Link>
         <h1 className="text-3xl font-bold tracking-tight">New Customer</h1>
       </div>
-      
+
       <div className="border p-6 rounded-md bg-card">
-        <CustomerForm onSubmit={handleSubmit} isSubmitting={createCustomer.isPending} />
+        <CustomerForm
+          onSubmit={handleSubmit}
+          isSubmitting={createCustomer.isPending}
+        />
       </div>
     </div>
   );

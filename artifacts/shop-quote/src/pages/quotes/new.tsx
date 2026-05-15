@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { useCreateQuote, getListQuotesQueryKey } from "@workspace/api-client-react";
+import {
+  useCreateQuote,
+  getListQuotesQueryKey,
+} from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -26,7 +29,7 @@ export function NewQuote() {
         onError: () => {
           toast({ title: "Failed to save quote", variant: "destructive" });
         },
-      }
+      },
     );
   };
 

@@ -26,7 +26,8 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
   {
     id: "prototype_milling",
     label: "Prototype Milling",
-    description: "High setup, heavy programming, elevated risk. Ideal for first-off parts.",
+    description:
+      "High setup, heavy programming, elevated risk. Ideal for first-off parts.",
     processType: "Milling",
     defaults: {
       setupHours: 4,
@@ -49,7 +50,8 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
   {
     id: "repeat_milling",
     label: "Repeat Milling Batch",
-    description: "Reduced setup, established toolpaths, repeat fixture. Volume efficiency.",
+    description:
+      "Reduced setup, established toolpaths, repeat fixture. Volume efficiency.",
     processType: "Milling",
     defaults: {
       setupHours: 1,
@@ -72,7 +74,8 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
   {
     id: "cnc_turning",
     label: "CNC Turning",
-    description: "Bar-fed turning. Standard tooling allowance, efficient cycle times.",
+    description:
+      "Bar-fed turning. Standard tooling allowance, efficient cycle times.",
     processType: "Turning",
     defaults: {
       setupHours: 1,
@@ -95,7 +98,8 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
   {
     id: "mill_turn",
     label: "Mill-Turn",
-    description: "Live tooling complexity, higher setup multiplier, premium rates.",
+    description:
+      "Live tooling complexity, higher setup multiplier, premium rates.",
     processType: "Mill-Turn",
     defaults: {
       setupHours: 3,
@@ -118,7 +122,8 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
   {
     id: "fabrication",
     label: "Fabrication / Secondary Ops",
-    description: "Welding, assembly, subcontract finishing. Labour-heavy, lower machining.",
+    description:
+      "Welding, assembly, subcontract finishing. Labour-heavy, lower machining.",
     processType: "Other",
     defaults: {
       setupHours: 2,

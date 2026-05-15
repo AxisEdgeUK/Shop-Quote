@@ -21,9 +21,12 @@ function parseSettings(s: typeof settingsTable.$inferSelect) {
 async function ensureSettings() {
   const rows = await db.select().from(settingsTable).limit(1);
   if (rows.length > 0) return rows[0];
-  const [settings] = await db.insert(settingsTable).values({
-    companyName: "Your Company Name",
-  }).returning();
+  const [settings] = await db
+    .insert(settingsTable)
+    .values({
+      companyName: "Your Company Name",
+    })
+    .returning();
   return settings;
 }
 
@@ -59,22 +62,34 @@ router.patch("/settings", async (req, res): Promise<void> => {
   if (d.sortCode !== undefined) updateData.sortCode = d.sortCode;
   if (d.iban !== undefined) updateData.iban = d.iban;
   if (d.swiftBic !== undefined) updateData.swiftBic = d.swiftBic;
-  if (d.showBankDetails !== undefined) updateData.showBankDetails = d.showBankDetails;
+  if (d.showBankDetails !== undefined)
+    updateData.showBankDetails = d.showBankDetails;
 
   // Quoting defaults
-  if (d.defaultHourlyRate !== undefined) updateData.defaultHourlyRate = String(d.defaultHourlyRate);
-  if (d.defaultSetupRate !== undefined) updateData.defaultSetupRate = String(d.defaultSetupRate);
-  if (d.defaultMarginPercentage !== undefined) updateData.defaultMarginPercentage = String(d.defaultMarginPercentage);
+  if (d.defaultHourlyRate !== undefined)
+    updateData.defaultHourlyRate = String(d.defaultHourlyRate);
+  if (d.defaultSetupRate !== undefined)
+    updateData.defaultSetupRate = String(d.defaultSetupRate);
+  if (d.defaultMarginPercentage !== undefined)
+    updateData.defaultMarginPercentage = String(d.defaultMarginPercentage);
   if (d.vatEnabled !== undefined) updateData.vatEnabled = d.vatEnabled;
   if (d.vatRate !== undefined) updateData.vatRate = String(d.vatRate);
-  if (d.quoteValidityDays !== undefined) updateData.quoteValidityDays = d.quoteValidityDays;
-  if (d.defaultLeadTime !== undefined) updateData.defaultLeadTime = d.defaultLeadTime;
-  if (d.defaultDeliveryTerms !== undefined) updateData.defaultDeliveryTerms = d.defaultDeliveryTerms;
+  if (d.quoteValidityDays !== undefined)
+    updateData.quoteValidityDays = d.quoteValidityDays;
+  if (d.defaultLeadTime !== undefined)
+    updateData.defaultLeadTime = d.defaultLeadTime;
+  if (d.defaultDeliveryTerms !== undefined)
+    updateData.defaultDeliveryTerms = d.defaultDeliveryTerms;
   if (d.paymentTerms !== undefined) updateData.paymentTerms = d.paymentTerms;
-  if (d.termsAndConditions !== undefined) updateData.termsAndConditions = d.termsAndConditions;
+  if (d.termsAndConditions !== undefined)
+    updateData.termsAndConditions = d.termsAndConditions;
 
   const { eq } = await import("drizzle-orm");
-  const [settings] = await db.update(settingsTable).set(updateData).where(eq(settingsTable.id, existing.id)).returning();
+  const [settings] = await db
+    .update(settingsTable)
+    .set(updateData)
+    .where(eq(settingsTable.id, existing.id))
+    .returning();
   res.json(UpdateSettingsResponse.parse(parseSettings(settings)));
 });
 

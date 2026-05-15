@@ -23,7 +23,11 @@ import { ViewQuote } from "@/pages/quotes/view";
 
 const queryClient = new QueryClient();
 
-function AppRoute({ component: Component }: { component: React.ComponentType }) {
+function AppRoute({
+  component: Component,
+}: {
+  component: React.ComponentType;
+}) {
   return (
     <AppLayout>
       <Component />

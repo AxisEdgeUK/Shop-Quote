@@ -1,5 +1,12 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Users, Wrench, FileText, Settings as SettingsIcon, X } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Wrench,
+  FileText,
+  Settings as SettingsIcon,
+  X,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -12,14 +19,68 @@ const navItems = [
 
 function ShopQuoteLogo({ size = 28 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="1" y="1" width="26" height="26" rx="2" fill="none" stroke="#1D8FFF" strokeWidth="1.5"/>
-      <line x1="14" y1="4" x2="14" y2="9" stroke="#1D8FFF" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="14" y1="19" x2="14" y2="24" stroke="#1D8FFF" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="4" y1="14" x2="9" y2="14" stroke="#1D8FFF" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="19" y1="14" x2="24" y2="14" stroke="#1D8FFF" strokeWidth="1.5" strokeLinecap="round"/>
-      <circle cx="14" cy="14" r="3.5" fill="none" stroke="#1D8FFF" strokeWidth="1.5"/>
-      <circle cx="14" cy="14" r="1" fill="#1D8FFF"/>
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 28 28"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        x="1"
+        y="1"
+        width="26"
+        height="26"
+        rx="2"
+        fill="none"
+        stroke="#1D8FFF"
+        strokeWidth="1.5"
+      />
+      <line
+        x1="14"
+        y1="4"
+        x2="14"
+        y2="9"
+        stroke="#1D8FFF"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="14"
+        y1="19"
+        x2="14"
+        y2="24"
+        stroke="#1D8FFF"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="4"
+        y1="14"
+        x2="9"
+        y2="14"
+        stroke="#1D8FFF"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="19"
+        y1="14"
+        x2="24"
+        y2="14"
+        stroke="#1D8FFF"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <circle
+        cx="14"
+        cy="14"
+        r="3.5"
+        fill="none"
+        stroke="#1D8FFF"
+        strokeWidth="1.5"
+      />
+      <circle cx="14" cy="14" r="1" fill="#1D8FFF" />
     </svg>
   );
 }
@@ -32,16 +93,29 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   return (
     <div
       className="w-64 h-screen flex flex-col"
-      style={{ background: "hsl(var(--sidebar))", borderRight: "1px solid hsl(var(--sidebar-border))" }}
+      style={{
+        background: "hsl(var(--sidebar))",
+        borderRight: "1px solid hsl(var(--sidebar-border))",
+      }}
     >
       {/* Logo row */}
-      <div className="px-5 py-5 flex items-center justify-between" style={{ borderBottom: "1px solid hsl(var(--sidebar-border))" }}>
-        <Link href="/" className="flex items-center gap-3 group" onClick={onClose}>
+      <div
+        className="px-5 py-5 flex items-center justify-between"
+        style={{ borderBottom: "1px solid hsl(var(--sidebar-border))" }}
+      >
+        <Link
+          href="/"
+          className="flex items-center gap-3 group"
+          onClick={onClose}
+        >
           <ShopQuoteLogo size={28} />
           <div>
             <div
               className="text-xs font-bold tracking-widest uppercase leading-none"
-              style={{ color: "hsl(var(--sidebar-foreground))", letterSpacing: "0.12em" }}
+              style={{
+                color: "hsl(var(--sidebar-foreground))",
+                letterSpacing: "0.12em",
+              }}
             >
               SHOP
             </div>
@@ -82,7 +156,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               onClick={onClose}
               className={cn(
                 "flex items-center gap-3 px-3 py-3 text-sm font-medium transition-all rounded",
-                !isActive && "hover:bg-white/5"
+                !isActive && "hover:bg-white/5",
               )}
               style={
                 isActive
@@ -104,8 +178,13 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         })}
       </nav>
 
-      <div className="px-5 py-4" style={{ borderTop: "1px solid hsl(var(--sidebar-border))" }}>
-        <div className="text-xs" style={{ color: "hsl(220 5% 32%)" }}>CNC Quoting Software</div>
+      <div
+        className="px-5 py-4"
+        style={{ borderTop: "1px solid hsl(var(--sidebar-border))" }}
+      >
+        <div className="text-xs" style={{ color: "hsl(220 5% 32%)" }}>
+          CNC Quoting Software
+        </div>
       </div>
     </div>
   );

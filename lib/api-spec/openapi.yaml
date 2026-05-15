@@ -334,6 +334,70 @@ paths:
               schema:
                 $ref: "#/components/schemas/Quote"
 
+  /quotes/{id}/drawings:
+    get:
+      operationId: listQuoteDrawings
+      tags: [quotes]
+      summary: List drawings for a quote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of drawings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuoteDrawing"
+    post:
+      operationId: createQuoteDrawing
+      tags: [quotes]
+      summary: Add a drawing record to a quote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateQuoteDrawingBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteDrawing"
+
+  /quotes/{id}/drawings/{drawingId}:
+    delete:
+      operationId: deleteQuoteDrawing
+      tags: [quotes]
+      summary: Delete a drawing from a quote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: drawingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
   /settings:
     get:
       operationId: getSettings
@@ -597,6 +661,8 @@ components:
         - discountPercentage
         - vatEnabled
         - vatRate
+        - machineHourlyRate
+        - machineSetupRate
         - setupCost
         - programmingCost
         - machiningCost
@@ -675,6 +741,10 @@ components:
         vatEnabled:
           type: boolean
         vatRate:
+          type: number
+        machineHourlyRate:
+          type: number
+        machineSetupRate:
           type: number
         setupCost:
           type: number
@@ -1127,6 +1197,53 @@ components:
         paymentTerms:
           type: string
         termsAndConditions:
+          type: string
+
+    QuoteDrawing:
+      type: object
+      required:
+        - id
+        - quoteId
+        - filename
+        - contentType
+        - objectPath
+        - drawingNumber
+        - revision
+        - uploadedAt
+      properties:
+        id:
+          type: integer
+        quoteId:
+          type: integer
+        filename:
+          type: string
+        contentType:
+          type: string
+        objectPath:
+          type: string
+        drawingNumber:
+          type: string
+        revision:
+          type: string
+        uploadedAt:
+          type: string
+
+    CreateQuoteDrawingBody:
+      type: object
+      required:
+        - objectPath
+        - filename
+        - contentType
+      properties:
+        objectPath:
+          type: string
+        filename:
+          type: string
+        contentType:
+          type: string
+        drawingNumber:
+          type: string
+        revision:
           type: string
 
     RequestUploadUrlBody:

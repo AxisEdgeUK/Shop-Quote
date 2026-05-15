@@ -1,4 +1,9 @@
-import { useGetQuote, useUpdateQuote, getGetQuoteQueryKey, getListQuotesQueryKey } from "@workspace/api-client-react";
+import {
+  useGetQuote,
+  useUpdateQuote,
+  getGetQuoteQueryKey,
+  getListQuotesQueryKey,
+} from "@workspace/api-client-react";
 import { useLocation, useParams } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -30,7 +35,7 @@ export function EditQuote() {
         onError: () => {
           toast({ title: "Failed to update quote", variant: "destructive" });
         },
-      }
+      },
     );
   };
 
@@ -38,7 +43,11 @@ export function EditQuote() {
   if (!quote) return <div>Quote not found</div>;
 
   return (
-    <QuoteWorkspace title={`Edit ${quote.quoteNumber}`} backHref="/quotes">
+    <QuoteWorkspace
+      title={`Edit ${quote.quoteNumber}`}
+      backHref="/quotes"
+      quoteId={id}
+    >
       <QuoteWizard
         initialValues={quote}
         onSubmit={handleSubmit}

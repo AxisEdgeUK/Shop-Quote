@@ -2,10 +2,23 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 
 const machineSchema = z.object({
@@ -26,7 +39,11 @@ interface MachineFormProps {
   isSubmitting?: boolean;
 }
 
-export function MachineForm({ initialValues, onSubmit, isSubmitting }: MachineFormProps) {
+export function MachineForm({
+  initialValues,
+  onSubmit,
+  isSubmitting,
+}: MachineFormProps) {
   const form = useForm<MachineFormValues>({
     resolver: zodResolver(machineSchema),
     defaultValues: {
@@ -42,7 +59,10 @@ export function MachineForm({ initialValues, onSubmit, isSubmitting }: MachineFo
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6 max-w-2xl"
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -63,7 +83,10 @@ export function MachineForm({ initialValues, onSubmit, isSubmitting }: MachineFo
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger data-testid="select-machine-type">
                       <SelectValue placeholder="Select type" />
@@ -88,7 +111,13 @@ export function MachineForm({ initialValues, onSubmit, isSubmitting }: MachineFo
               <FormItem>
                 <FormLabel>Axis Count</FormLabel>
                 <FormControl>
-                  <Input type="number" min="1" step="1" {...field} data-testid="input-axis-count" />
+                  <Input
+                    type="number"
+                    min="1"
+                    step="1"
+                    {...field}
+                    data-testid="input-axis-count"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -119,7 +148,13 @@ export function MachineForm({ initialValues, onSubmit, isSubmitting }: MachineFo
               <FormItem>
                 <FormLabel>Hourly Rate (£)</FormLabel>
                 <FormControl>
-                  <Input type="number" min="0" step="0.01" {...field} data-testid="input-hourly-rate" />
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    {...field}
+                    data-testid="input-hourly-rate"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -132,14 +167,20 @@ export function MachineForm({ initialValues, onSubmit, isSubmitting }: MachineFo
               <FormItem>
                 <FormLabel>Setup Rate (£/hr)</FormLabel>
                 <FormControl>
-                  <Input type="number" min="0" step="0.01" {...field} data-testid="input-setup-rate" />
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    {...field}
+                    data-testid="input-setup-rate"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-        
+
         <FormField
           control={form.control}
           name="notes"
@@ -153,9 +194,13 @@ export function MachineForm({ initialValues, onSubmit, isSubmitting }: MachineFo
             </FormItem>
           )}
         />
-        
+
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting} data-testid="button-submit-machine">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            data-testid="button-submit-machine"
+          >
             {isSubmitting ? "Saving..." : "Save Machine"}
           </Button>
         </div>

@@ -7,11 +7,17 @@ interface QuoteWorkspaceProps {
   title: string;
   backHref?: string;
   children: React.ReactNode;
+  quoteId?: number;
 }
 
 const BLUE = "#1D8FFF";
 
-export function QuoteWorkspace({ title, backHref = "/quotes", children }: QuoteWorkspaceProps) {
+export function QuoteWorkspace({
+  title,
+  backHref = "/quotes",
+  children,
+  quoteId,
+}: QuoteWorkspaceProps) {
   const [splitPct, setSplitPct] = useState(46);
   const [mobileTab, setMobileTab] = useState<"drawing" | "quote">("quote");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -62,13 +68,18 @@ export function QuoteWorkspace({ title, backHref = "/quotes", children }: QuoteW
             className="shrink-0 overflow-hidden h-full"
             style={{ width: `${splitPct}%` }}
           >
-            <DrawingViewer />
+            <DrawingViewer quoteId={quoteId} />
           </div>
 
           {/* Divider */}
           <div
             className="shrink-0 relative flex items-center justify-center"
-            style={{ width: 6, background: "#0D1117", cursor: "col-resize", zIndex: 10 }}
+            style={{
+              width: 6,
+              background: "#0D1117",
+              cursor: "col-resize",
+              zIndex: 10,
+            }}
             onMouseDown={handleDividerMouseDown}
           >
             <DividerHandle />
@@ -79,9 +90,7 @@ export function QuoteWorkspace({ title, backHref = "/quotes", children }: QuoteW
             className="flex-1 overflow-y-auto h-full"
             style={{ background: "hsl(var(--background))" }}
           >
-            <div className="p-5 xl:p-7 max-w-3xl">
-              {children}
-            </div>
+            <div className="p-5 xl:p-7 max-w-3xl">{children}</div>
           </div>
         </div>
       </div>
@@ -97,7 +106,10 @@ export function QuoteWorkspace({ title, backHref = "/quotes", children }: QuoteW
         {/* Tab bar */}
         <div
           className="flex shrink-0"
-          style={{ background: "hsl(var(--card))", borderBottom: "1px solid hsl(var(--card-border))" }}
+          style={{
+            background: "hsl(var(--card))",
+            borderBottom: "1px solid hsl(var(--card-border))",
+          }}
         >
           <MobileTab
             label="Drawing"
@@ -116,12 +128,10 @@ export function QuoteWorkspace({ title, backHref = "/quotes", children }: QuoteW
         {/* Tab content */}
         <div className="flex-1 overflow-hidden">
           {mobileTab === "drawing" ? (
-            <DrawingViewer />
+            <DrawingViewer quoteId={quoteId} />
           ) : (
             <div className="h-full overflow-y-auto">
-              <div className="p-4 pb-28">
-                {children}
-              </div>
+              <div className="p-4 pb-28">{children}</div>
             </div>
           )}
         </div>
@@ -130,7 +140,13 @@ export function QuoteWorkspace({ title, backHref = "/quotes", children }: QuoteW
   );
 }
 
-function WorkspaceHeader({ title, backHref }: { title: string; backHref: string }) {
+function WorkspaceHeader({
+  title,
+  backHref,
+}: {
+  title: string;
+  backHref: string;
+}) {
   return (
     <div
       className="flex items-center gap-2 px-4 shrink-0"
@@ -145,8 +161,8 @@ function WorkspaceHeader({ title, backHref }: { title: string; backHref: string 
           type="button"
           className="w-8 h-8 flex items-center justify-center rounded transition-colors"
           style={{ color: "#8B949E" }}
-          onMouseEnter={e => (e.currentTarget.style.color = "#E6EDF3")}
-          onMouseLeave={e => (e.currentTarget.style.color = "#8B949E")}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#E6EDF3")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#8B949E")}
         >
           <ArrowLeft className="w-4 h-4" />
         </button>
@@ -154,7 +170,12 @@ function WorkspaceHeader({ title, backHref }: { title: string; backHref: string 
       <div className="w-px h-5 mx-1" style={{ background: "#30363D" }} />
       <div className="flex items-center gap-2">
         <div className="w-1 h-4 rounded-full" style={{ background: BLUE }} />
-        <span className="text-sm font-semibold tracking-tight" style={{ color: "#E6EDF3" }}>{title}</span>
+        <span
+          className="text-sm font-semibold tracking-tight"
+          style={{ color: "#E6EDF3" }}
+        >
+          {title}
+        </span>
       </div>
       <div className="ml-auto hidden lg:flex items-center gap-1.5">
         <span
@@ -186,8 +207,16 @@ function DividerHandle() {
 }
 
 function MobileTab({
-  label, icon, active, onClick,
-}: { label: string; icon: React.ReactNode; active: boolean; onClick: () => void }) {
+  label,
+  icon,
+  active,
+  onClick,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  active: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"

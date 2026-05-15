@@ -1,4 +1,7 @@
-import { useCreateMachine, getListMachinesQueryKey } from "@workspace/api-client-react";
+import {
+  useCreateMachine,
+  getListMachinesQueryKey,
+} from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -18,14 +21,16 @@ export function NewMachine() {
       { data },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListMachinesQueryKey() });
+          queryClient.invalidateQueries({
+            queryKey: getListMachinesQueryKey(),
+          });
           toast({ title: "Machine added successfully" });
           setLocation("/machines");
         },
         onError: () => {
           toast({ title: "Failed to add machine", variant: "destructive" });
-        }
-      }
+        },
+      },
     );
   };
 
@@ -39,9 +44,12 @@ export function NewMachine() {
         </Link>
         <h1 className="text-3xl font-bold tracking-tight">New Machine</h1>
       </div>
-      
+
       <div className="border p-6 rounded-md bg-card">
-        <MachineForm onSubmit={handleSubmit} isSubmitting={createMachine.isPending} />
+        <MachineForm
+          onSubmit={handleSubmit}
+          isSubmitting={createMachine.isPending}
+        />
       </div>
     </div>
   );

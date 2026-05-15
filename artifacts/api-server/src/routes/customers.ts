@@ -19,10 +19,14 @@ router.get("/customers", async (req, res): Promise<void> => {
     .select()
     .from(customersTable)
     .orderBy(customersTable.companyName);
-  res.json(ListCustomersResponse.parse(customers.map(c => ({
-    ...c,
-    createdAt: c.createdAt.toISOString(),
-  }))));
+  res.json(
+    ListCustomersResponse.parse(
+      customers.map((c) => ({
+        ...c,
+        createdAt: c.createdAt.toISOString(),
+      })),
+    ),
+  );
 });
 
 router.post("/customers", async (req, res): Promise<void> => {
@@ -31,18 +35,23 @@ router.post("/customers", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const [customer] = await db.insert(customersTable).values({
-    companyName: parsed.data.companyName,
-    contactName: parsed.data.contactName ?? "",
-    email: parsed.data.email ?? "",
-    phone: parsed.data.phone ?? "",
-    address: parsed.data.address ?? "",
-    notes: parsed.data.notes ?? "",
-  }).returning();
-  res.status(201).json(GetCustomerResponse.parse({
-    ...customer,
-    createdAt: customer.createdAt.toISOString(),
-  }));
+  const [customer] = await db
+    .insert(customersTable)
+    .values({
+      companyName: parsed.data.companyName,
+      contactName: parsed.data.contactName ?? "",
+      email: parsed.data.email ?? "",
+      phone: parsed.data.phone ?? "",
+      address: parsed.data.address ?? "",
+      notes: parsed.data.notes ?? "",
+    })
+    .returning();
+  res.status(201).json(
+    GetCustomerResponse.parse({
+      ...customer,
+      createdAt: customer.createdAt.toISOString(),
+    }),
+  );
 });
 
 router.get("/customers/:id", async (req, res): Promise<void> => {
@@ -52,12 +61,20 @@ router.get("/customers/:id", async (req, res): Promise<void> => {
     res.status(400).json({ error: params.error.message });
     return;
   }
-  const [customer] = await db.select().from(customersTable).where(eq(customersTable.id, params.data.id));
+  const [customer] = await db
+    .select()
+    .from(customersTable)
+    .where(eq(customersTable.id, params.data.id));
   if (!customer) {
     res.status(404).json({ error: "Customer not found" });
     return;
   }
-  res.json(GetCustomerResponse.parse({ ...customer, createdAt: customer.createdAt.toISOString() }));
+  res.json(
+    GetCustomerResponse.parse({
+      ...customer,
+      createdAt: customer.createdAt.toISOString(),
+    }),
+  );
 });
 
 router.patch("/customers/:id", async (req, res): Promise<void> => {
@@ -81,7 +98,12 @@ router.patch("/customers/:id", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Customer not found" });
     return;
   }
-  res.json(UpdateCustomerResponse.parse({ ...customer, createdAt: customer.createdAt.toISOString() }));
+  res.json(
+    UpdateCustomerResponse.parse({
+      ...customer,
+      createdAt: customer.createdAt.toISOString(),
+    }),
+  );
 });
 
 router.delete("/customers/:id", async (req, res): Promise<void> => {
@@ -91,7 +113,10 @@ router.delete("/customers/:id", async (req, res): Promise<void> => {
     res.status(400).json({ error: params.error.message });
     return;
   }
-  const [customer] = await db.delete(customersTable).where(eq(customersTable.id, params.data.id)).returning();
+  const [customer] = await db
+    .delete(customersTable)
+    .where(eq(customersTable.id, params.data.id))
+    .returning();
   if (!customer) {
     res.status(404).json({ error: "Customer not found" });
     return;

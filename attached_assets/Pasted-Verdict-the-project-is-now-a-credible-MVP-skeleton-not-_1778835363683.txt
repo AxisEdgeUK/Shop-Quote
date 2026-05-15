@@ -1,0 +1,117 @@
+Verdict: the project is now a **credible MVP skeleton**, not just a mockup. The repo shows a real React/Vite frontend, Express API, PostgreSQL/Drizzle setup, generated API hooks, and a structured quoting workspace. The documentation also confirms the split-screen estimating workspace, mobile drawing/quote tabs, and the correct margin formula are already part of the architecture. ([GitHub][1])
+
+Main positives:
+
+* Good technical stack for an MVP.
+* Quote wizard has multi-line items, hidden PDF lines, templates, certification options, price breaks, and internal notes.
+* PDF layout already handles company logo, customer details, quote metadata, line items, price breaks, bank details, VAT and terms.
+* Margin calculation is correctly using `cost / (1 - margin%)`, not markup. ([GitHub][2])
+* The landing page messaging is mostly right: small shops, no ERP complexity, no spreadsheet positioning. ([GitHub][3])
+
+Main issues:
+
+* The code is compressed into single-line files, which will make future development harder.
+* The landing page still feels more “software landing page” than “German-engineered industrial tool.”
+* Drawing uploads are currently client-side object URLs only, so files are **not actually stored permanently**. That is fine for demo, but not for real users. ([GitHub][1])
+* Price break calculation appears to reuse default hourly/setup rates rather than the selected machine rate, which could cause incorrect customer PDF price breaks. ([GitHub][4])
+* The PDF is strong structurally, but it needs sharper premium styling.
+
+Next Replit prompt:
+
+```text
+Audit and improve the current SHOP Quote codebase.
+
+Priority 1:
+Format the codebase properly.
+Many files are compressed into single-line code. Reformat all TypeScript, TSX, CSS and config files using Prettier so the project is maintainable.
+
+Priority 2:
+Fix quantity price break calculations.
+Price breaks must use the selected machine hourly rate and setup rate for each line item, not only the company default hourly/setup rate.
+
+If a line item has a selected machine:
+- use that machine hourlyRate
+- use that machine setupRate
+
+Only fall back to company defaults if no machine is selected.
+
+Priority 3:
+Make drawing uploads persistent.
+Current drawing files appear to be local object URLs only.
+For MVP, store uploaded drawing files against the quote using server-side upload storage or database metadata.
+
+Support:
+- PDF
+- JPG
+- PNG
+- STEP placeholder
+- DXF placeholder
+
+Store:
+- filename
+- file type
+- uploaded date
+- quote ID
+- line item ID if relevant
+- drawing number
+- revision
+
+Priority 4:
+Improve landing page visual identity.
+It still feels too generic.
+Make it feel like premium German-engineered manufacturing software.
+
+Design direction:
+- more DMG Mori / Siemens / Hermle
+- less SaaS
+- sharper typography
+- stronger grid
+- more precision engineering feel
+- fewer marketing phrases
+- more confidence and restraint
+
+Use:
+- anthracite
+- steel grey
+- off-white
+- precise blue accent
+- strong spacing
+- square industrial geometry
+
+Priority 5:
+Improve PDF quote styling.
+The structure is good, but the visual design should feel like a serious precision engineering company quotation.
+
+PDF must feel:
+- clean
+- technical
+- premium
+- not template-generated
+- suitable for aerospace/precision subcontract machining
+
+Priority 6:
+Remove repeated copy on landing page.
+The pricing section repeats:
+“No hidden fees. No per-user charges. No ERP complexity.”
+Keep this message only once.
+
+Priority 7:
+Add a formal test quote verification screen or developer test.
+The seeded test quote must be checked automatically against expected values:
+Direct cost: £1,635.83
+Risk: £130.87
+Cost before margin: £1,766.70
+Sell price: £2,523.86
+Price per part: £50.48
+
+Final instruction:
+Do not add new features yet.
+Tighten correctness, maintainability, persistence, premium visual design, and trust.
+```
+
+The most important fix is **persistent file storage**. Without it, the split-screen drawing feature looks good in demo but falls apart for real quotes.
+
+[1]: https://github.com/AxisEdgeUK/Shop-Quote/blob/main/replit.md "Shop-Quote/replit.md at main · AxisEdgeUK/Shop-Quote · GitHub"
+[2]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/src/components/quotes/quote-wizard.tsx "raw.githubusercontent.com"
+[3]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/src/pages/landing.tsx "raw.githubusercontent.com"
+[4]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/src/components/quotes/print-layout.tsx "raw.githubusercontent.com"

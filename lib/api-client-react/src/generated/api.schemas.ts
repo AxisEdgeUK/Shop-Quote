@@ -115,6 +115,8 @@ export interface QuoteLineItem {
   discountPercentage: number;
   vatEnabled: boolean;
   vatRate: number;
+  machineHourlyRate: number;
+  machineSetupRate: number;
   setupCost: number;
   programmingCost: number;
   machiningCost: number;
@@ -305,6 +307,25 @@ export interface SettingsUpdate {
   defaultDeliveryTerms?: string;
   paymentTerms?: string;
   termsAndConditions?: string;
+}
+
+export interface QuoteDrawing {
+  id: number;
+  quoteId: number;
+  filename: string;
+  contentType: string;
+  objectPath: string;
+  drawingNumber: string;
+  revision: string;
+  uploadedAt: string;
+}
+
+export interface CreateQuoteDrawingBody {
+  objectPath: string;
+  filename: string;
+  contentType: string;
+  drawingNumber?: string;
+  revision?: string;
 }
 
 export interface RequestUploadUrlBody {

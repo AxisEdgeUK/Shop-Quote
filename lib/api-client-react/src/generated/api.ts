@@ -17,6 +17,7 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  CreateQuoteDrawingBody,
   Customer,
   CustomerInput,
   CustomerUpdate,
@@ -26,6 +27,7 @@ import type {
   MachineInput,
   MachineUpdate,
   Quote,
+  QuoteDrawing,
   QuoteInput,
   QuoteSummary,
   QuoteUpdate,
@@ -1531,6 +1533,265 @@ export const useDuplicateQuote = <
   TContext
 > => {
   return useMutation(getDuplicateQuoteMutationOptions(options));
+};
+
+/**
+ * @summary List drawings for a quote
+ */
+export const getListQuoteDrawingsUrl = (id: number) => {
+  return `/api/quotes/${id}/drawings`;
+};
+
+export const listQuoteDrawings = async (
+  id: number,
+  options?: RequestInit,
+): Promise<QuoteDrawing[]> => {
+  return customFetch<QuoteDrawing[]>(getListQuoteDrawingsUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListQuoteDrawingsQueryKey = (id: number) => {
+  return [`/api/quotes/${id}/drawings`] as const;
+};
+
+export const getListQuoteDrawingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listQuoteDrawings>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listQuoteDrawings>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListQuoteDrawingsQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listQuoteDrawings>>
+  > = ({ signal }) => listQuoteDrawings(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listQuoteDrawings>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListQuoteDrawingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listQuoteDrawings>>
+>;
+export type ListQuoteDrawingsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List drawings for a quote
+ */
+
+export function useListQuoteDrawings<
+  TData = Awaited<ReturnType<typeof listQuoteDrawings>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listQuoteDrawings>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListQuoteDrawingsQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add a drawing record to a quote
+ */
+export const getCreateQuoteDrawingUrl = (id: number) => {
+  return `/api/quotes/${id}/drawings`;
+};
+
+export const createQuoteDrawing = async (
+  id: number,
+  createQuoteDrawingBody: CreateQuoteDrawingBody,
+  options?: RequestInit,
+): Promise<QuoteDrawing> => {
+  return customFetch<QuoteDrawing>(getCreateQuoteDrawingUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createQuoteDrawingBody),
+  });
+};
+
+export const getCreateQuoteDrawingMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createQuoteDrawing>>,
+    TError,
+    { id: number; data: BodyType<CreateQuoteDrawingBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createQuoteDrawing>>,
+  TError,
+  { id: number; data: BodyType<CreateQuoteDrawingBody> },
+  TContext
+> => {
+  const mutationKey = ["createQuoteDrawing"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createQuoteDrawing>>,
+    { id: number; data: BodyType<CreateQuoteDrawingBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return createQuoteDrawing(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateQuoteDrawingMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createQuoteDrawing>>
+>;
+export type CreateQuoteDrawingMutationBody = BodyType<CreateQuoteDrawingBody>;
+export type CreateQuoteDrawingMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add a drawing record to a quote
+ */
+export const useCreateQuoteDrawing = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createQuoteDrawing>>,
+    TError,
+    { id: number; data: BodyType<CreateQuoteDrawingBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createQuoteDrawing>>,
+  TError,
+  { id: number; data: BodyType<CreateQuoteDrawingBody> },
+  TContext
+> => {
+  return useMutation(getCreateQuoteDrawingMutationOptions(options));
+};
+
+/**
+ * @summary Delete a drawing from a quote
+ */
+export const getDeleteQuoteDrawingUrl = (id: number, drawingId: number) => {
+  return `/api/quotes/${id}/drawings/${drawingId}`;
+};
+
+export const deleteQuoteDrawing = async (
+  id: number,
+  drawingId: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteQuoteDrawingUrl(id, drawingId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteQuoteDrawingMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteQuoteDrawing>>,
+    TError,
+    { id: number; drawingId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteQuoteDrawing>>,
+  TError,
+  { id: number; drawingId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteQuoteDrawing"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteQuoteDrawing>>,
+    { id: number; drawingId: number }
+  > = (props) => {
+    const { id, drawingId } = props ?? {};
+
+    return deleteQuoteDrawing(id, drawingId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteQuoteDrawingMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteQuoteDrawing>>
+>;
+
+export type DeleteQuoteDrawingMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a drawing from a quote
+ */
+export const useDeleteQuoteDrawing = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteQuoteDrawing>>,
+    TError,
+    { id: number; drawingId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteQuoteDrawing>>,
+  TError,
+  { id: number; drawingId: number },
+  TContext
+> => {
+  return useMutation(getDeleteQuoteDrawingMutationOptions(options));
 };
 
 /**

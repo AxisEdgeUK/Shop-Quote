@@ -2,7 +2,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -23,7 +30,11 @@ interface CustomerFormProps {
   isSubmitting?: boolean;
 }
 
-export function CustomerForm({ initialValues, onSubmit, isSubmitting }: CustomerFormProps) {
+export function CustomerForm({
+  initialValues,
+  onSubmit,
+  isSubmitting,
+}: CustomerFormProps) {
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
     defaultValues: {
@@ -38,7 +49,10 @@ export function CustomerForm({ initialValues, onSubmit, isSubmitting }: Customer
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6 max-w-2xl"
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -93,7 +107,7 @@ export function CustomerForm({ initialValues, onSubmit, isSubmitting }: Customer
             )}
           />
         </div>
-        
+
         <FormField
           control={form.control}
           name="address"
@@ -107,7 +121,7 @@ export function CustomerForm({ initialValues, onSubmit, isSubmitting }: Customer
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="notes"
@@ -121,9 +135,13 @@ export function CustomerForm({ initialValues, onSubmit, isSubmitting }: Customer
             </FormItem>
           )}
         />
-        
+
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting} data-testid="button-submit-customer">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            data-testid="button-submit-customer"
+          >
             {isSubmitting ? "Saving..." : "Save Customer"}
           </Button>
         </div>

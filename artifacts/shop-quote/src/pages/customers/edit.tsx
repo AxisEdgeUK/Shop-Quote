@@ -1,4 +1,9 @@
-import { useGetCustomer, useUpdateCustomer, getGetCustomerQueryKey, getListCustomersQueryKey } from "@workspace/api-client-react";
+import {
+  useGetCustomer,
+  useUpdateCustomer,
+  getGetCustomerQueryKey,
+  getListCustomersQueryKey,
+} from "@workspace/api-client-react";
 import { useLocation, useParams } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -12,7 +17,9 @@ export function EditCustomer() {
   const params = useParams();
   const id = Number(params.id);
   const [, setLocation] = useLocation();
-  const { data: customer, isLoading } = useGetCustomer(id, { query: { enabled: !!id, queryKey: getGetCustomerQueryKey(id) } });
+  const { data: customer, isLoading } = useGetCustomer(id, {
+    query: { enabled: !!id, queryKey: getGetCustomerQueryKey(id) },
+  });
   const updateCustomer = useUpdateCustomer();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -22,15 +29,19 @@ export function EditCustomer() {
       { id, data },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetCustomerQueryKey(id) });
-          queryClient.invalidateQueries({ queryKey: getListCustomersQueryKey() });
+          queryClient.invalidateQueries({
+            queryKey: getGetCustomerQueryKey(id),
+          });
+          queryClient.invalidateQueries({
+            queryKey: getListCustomersQueryKey(),
+          });
           toast({ title: "Customer updated successfully" });
           setLocation("/customers");
         },
         onError: () => {
           toast({ title: "Failed to update customer", variant: "destructive" });
-        }
-      }
+        },
+      },
     );
   };
 
@@ -47,12 +58,12 @@ export function EditCustomer() {
         </Link>
         <h1 className="text-3xl font-bold tracking-tight">Edit Customer</h1>
       </div>
-      
+
       <div className="border p-6 rounded-md bg-card">
-        <CustomerForm 
+        <CustomerForm
           initialValues={customer}
-          onSubmit={handleSubmit} 
-          isSubmitting={updateCustomer.isPending} 
+          onSubmit={handleSubmit}
+          isSubmitting={updateCustomer.isPending}
         />
       </div>
     </div>

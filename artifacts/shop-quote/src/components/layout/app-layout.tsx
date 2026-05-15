@@ -8,7 +8,10 @@ function MobileTopBar({ onMenuClick }: { onMenuClick: () => void }) {
   return (
     <div
       className="md:hidden fixed top-0 left-0 right-0 z-40 h-14 flex items-center justify-between px-4 print:hidden"
-      style={{ background: "hsl(var(--background))", borderBottom: "1px solid hsl(var(--border))" }}
+      style={{
+        background: "hsl(var(--background))",
+        borderBottom: "1px solid hsl(var(--border))",
+      }}
     >
       <Link href="/dashboard" className="flex items-center gap-2.5">
         <ShopQuoteLogo size={24} />

@@ -1,6 +1,14 @@
 import { Router, type IRouter } from "express";
 import { eq, desc } from "drizzle-orm";
-import { db, quotesTable, quoteLineItemsTable, customersTable, machinesTable, settingsTable } from "@workspace/db";
+import {
+  db,
+  quotesTable,
+  quoteLineItemsTable,
+  customersTable,
+  machinesTable,
+  settingsTable,
+  quoteDrawingsTable,
+} from "@workspace/db";
 import {
   CreateQuoteBody,
   GetQuoteParams,
@@ -39,26 +47,58 @@ function calcLineItem(item: {
 }) {
   const setupCost = item.setupHours * item.setupRate;
   const programmingCost = item.programmingHours * item.hourlyRate;
-  const machiningCost = (item.machiningMinutesPerPart / 60) * item.quantity * item.machineHourlyRate;
+  const machiningCost =
+    (item.machiningMinutesPerPart / 60) *
+    item.quantity *
+    item.machineHourlyRate;
   const inspectionCost = item.inspectionHours * item.hourlyRate;
-  const deburringCost = (item.deburringMinutesPerPart / 60) * item.quantity * item.hourlyRate;
-  const materialCostTotal = item.materialCostPerUnit * item.quantity * (1 + item.materialWastagePercentage / 100);
+  const deburringCost =
+    (item.deburringMinutesPerPart / 60) * item.quantity * item.hourlyRate;
+  const materialCostTotal =
+    item.materialCostPerUnit *
+    item.quantity *
+    (1 + item.materialWastagePercentage / 100);
 
-  const directCost = setupCost + programmingCost + machiningCost + inspectionCost + deburringCost
-    + materialCostTotal + item.toolingAllowance + item.outsideProcessing + item.packaging + item.delivery;
+  const directCost =
+    setupCost +
+    programmingCost +
+    machiningCost +
+    inspectionCost +
+    deburringCost +
+    materialCostTotal +
+    item.toolingAllowance +
+    item.outsideProcessing +
+    item.packaging +
+    item.delivery;
 
   const riskValue = directCost * (item.riskPercentage / 100);
   const costBeforeMargin = directCost + riskValue;
   const margin = item.profitMarginPercentage / 100;
-  const preSellPrice = margin >= 1 ? costBeforeMargin : costBeforeMargin / (1 - margin);
-  const sellPrice = item.discountPercentage > 0
-    ? preSellPrice * (1 - item.discountPercentage / 100)
-    : preSellPrice;
+  const preSellPrice =
+    margin >= 1 ? costBeforeMargin : costBeforeMargin / (1 - margin);
+  const sellPrice =
+    item.discountPercentage > 0
+      ? preSellPrice * (1 - item.discountPercentage / 100)
+      : preSellPrice;
   const pricePerPart = item.quantity > 0 ? sellPrice / item.quantity : 0;
   const vatAmount = item.vatEnabled ? sellPrice * (item.vatRate / 100) : 0;
   const totalIncVat = item.vatEnabled ? sellPrice + vatAmount : sellPrice;
 
-  return { setupCost, programmingCost, machiningCost, inspectionCost, deburringCost, materialCostTotal, directCost, riskValue, costBeforeMargin, sellPrice, pricePerPart, vatAmount, totalIncVat };
+  return {
+    setupCost,
+    programmingCost,
+    machiningCost,
+    inspectionCost,
+    deburringCost,
+    materialCostTotal,
+    directCost,
+    riskValue,
+    costBeforeMargin,
+    sellPrice,
+    pricePerPart,
+    vatAmount,
+    totalIncVat,
+  };
 }
 
 function parseLineItem(item: typeof quoteLineItemsTable.$inferSelect) {
@@ -79,6 +119,8 @@ function parseLineItem(item: typeof quoteLineItemsTable.$inferSelect) {
     profitMarginPercentage: parseFloat(item.profitMarginPercentage),
     discountPercentage: parseFloat(item.discountPercentage),
     vatRate: parseFloat(item.vatRate),
+    machineHourlyRate: parseFloat(item.machineHourlyRate),
+    machineSetupRate: parseFloat(item.machineSetupRate),
     setupCost: parseFloat(item.setupCost),
     programmingCost: parseFloat(item.programmingCost),
     machiningCost: parseFloat(item.machiningCost),
@@ -95,7 +137,10 @@ function parseLineItem(item: typeof quoteLineItemsTable.$inferSelect) {
   };
 }
 
-function parseQuote(quote: typeof quotesTable.$inferSelect, lineItems: (typeof quoteLineItemsTable.$inferSelect)[]) {
+function parseQuote(
+  quote: typeof quotesTable.$inferSelect,
+  lineItems: (typeof quoteLineItemsTable.$inferSelect)[],
+) {
   return {
     ...quote,
     createdAt: quote.createdAt.toISOString(),
@@ -106,14 +151,17 @@ function parseQuote(quote: typeof quotesTable.$inferSelect, lineItems: (typeof q
 
 async function generateQuoteNumber(): Promise<string> {
   const year = new Date().getFullYear();
-  const quotes = await db.select({ quoteNumber: quotesTable.quoteNumber }).from(quotesTable);
+  const quotes = await db
+    .select({ quoteNumber: quotesTable.quoteNumber })
+    .from(quotesTable);
   const prefix = `QT-${year}-`;
   const existingNumbers = quotes
-    .map(q => q.quoteNumber)
-    .filter(n => n.startsWith(prefix))
-    .map(n => parseInt(n.replace(prefix, ""), 10))
-    .filter(n => !isNaN(n));
-  const next = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+    .map((q) => q.quoteNumber)
+    .filter((n) => n.startsWith(prefix))
+    .map((n) => parseInt(n.replace(prefix, ""), 10))
+    .filter((n) => !isNaN(n));
+  const next =
+    existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
   return `${prefix}${String(next).padStart(4, "0")}`;
 }
 
@@ -128,7 +176,10 @@ async function getDefaultRates() {
   return { defaultHourlyRate: 65, defaultSetupRate: 65 };
 }
 
-async function insertLineItems(quoteId: number, lineItemsData: NonNullable<typeof CreateQuoteBody._type.lineItems>) {
+async function insertLineItems(
+  quoteId: number,
+  lineItemsData: NonNullable<typeof CreateQuoteBody._type.lineItems>,
+) {
   const defaults = await getDefaultRates();
 
   for (const item of lineItemsData) {
@@ -137,7 +188,10 @@ async function insertLineItems(quoteId: number, lineItemsData: NonNullable<typeo
     let hourlyRate = defaults.defaultHourlyRate;
 
     if (item.machineId) {
-      const [machine] = await db.select().from(machinesTable).where(eq(machinesTable.id, item.machineId));
+      const [machine] = await db
+        .select()
+        .from(machinesTable)
+        .where(eq(machinesTable.id, item.machineId));
       if (machine) {
         machineHourlyRate = parseFloat(machine.hourlyRate);
         setupRate = parseFloat(machine.setupRate);
@@ -198,6 +252,8 @@ async function insertLineItems(quoteId: number, lineItemsData: NonNullable<typeo
       discountPercentage: String(item.discountPercentage ?? 0),
       vatEnabled: item.vatEnabled ?? false,
       vatRate: String(item.vatRate ?? 20),
+      machineHourlyRate: String(machineHourlyRate),
+      machineSetupRate: String(setupRate),
       setupCost: String(calcs.setupCost),
       programmingCost: String(calcs.programmingCost),
       machiningCost: String(calcs.machiningCost),
@@ -219,24 +275,27 @@ async function insertLineItems(quoteId: number, lineItemsData: NonNullable<typeo
 }
 
 router.get("/quotes", async (req, res): Promise<void> => {
-  const quotes = await db.select({
-    id: quotesTable.id,
-    quoteNumber: quotesTable.quoteNumber,
-    customerId: quotesTable.customerId,
-    status: quotesTable.status,
-    quoteDate: quotesTable.quoteDate,
-    validUntil: quotesTable.validUntil,
-    createdAt: quotesTable.createdAt,
-    customerName: customersTable.companyName,
-  })
+  const quotes = await db
+    .select({
+      id: quotesTable.id,
+      quoteNumber: quotesTable.quoteNumber,
+      customerId: quotesTable.customerId,
+      status: quotesTable.status,
+      quoteDate: quotesTable.quoteDate,
+      validUntil: quotesTable.validUntil,
+      createdAt: quotesTable.createdAt,
+      customerName: customersTable.companyName,
+    })
     .from(quotesTable)
     .leftJoin(customersTable, eq(quotesTable.customerId, customersTable.id))
     .orderBy(desc(quotesTable.createdAt));
 
-  const lineItems = await db.select({
-    quoteId: quoteLineItemsTable.quoteId,
-    sellPrice: quoteLineItemsTable.sellPrice,
-  }).from(quoteLineItemsTable);
+  const lineItems = await db
+    .select({
+      quoteId: quoteLineItemsTable.quoteId,
+      sellPrice: quoteLineItemsTable.sellPrice,
+    })
+    .from(quoteLineItemsTable);
 
   const quoteTotals = new Map<number, number>();
   for (const item of lineItems) {
@@ -244,7 +303,7 @@ router.get("/quotes", async (req, res): Promise<void> => {
     quoteTotals.set(item.quoteId, current + parseFloat(item.sellPrice));
   }
 
-  const result = quotes.map(q => ({
+  const result = quotes.map((q) => ({
     id: q.id,
     quoteNumber: q.quoteNumber,
     customerId: q.customerId,
@@ -275,33 +334,43 @@ router.post("/quotes", async (req, res): Promise<void> => {
   const validUntil = validUntilDate.toISOString().split("T")[0];
 
   const quoteNumber = await generateQuoteNumber();
-  const [quote] = await db.insert(quotesTable).values({
-    quoteNumber,
-    customerId: parsed.data.customerId,
-    status: parsed.data.status ?? "Draft",
-    lostReason: parsed.data.lostReason ?? "",
-    quoteDate: parsed.data.quoteDate ?? today,
-    validUntil: parsed.data.validUntil ?? validUntil,
-    quoteRevision: parsed.data.quoteRevision ?? "A",
-    revisionNotes: parsed.data.revisionNotes ?? "",
-    leadTime: parsed.data.leadTime ?? (s?.defaultLeadTime ?? ""),
-    deliveryTerms: parsed.data.deliveryTerms ?? (s?.defaultDeliveryTerms ?? ""),
-    notes: parsed.data.notes ?? "",
-    internalNotes: parsed.data.internalNotes ?? "",
-    paymentTerms: parsed.data.paymentTerms ?? (s?.paymentTerms ?? "30 days from invoice date"),
-    termsAndConditions: parsed.data.termsAndConditions ?? (s?.termsAndConditions ?? ""),
-    materialCertIncluded: parsed.data.materialCertIncluded ?? false,
-    inspectionReportIncluded: parsed.data.inspectionReportIncluded ?? false,
-    fairIncluded: parsed.data.fairIncluded ?? false,
-    cmmReportIncluded: parsed.data.cmmReportIncluded ?? false,
-    priceBreakQtys: parsed.data.priceBreakQtys ?? "",
-  }).returning();
+  const [quote] = await db
+    .insert(quotesTable)
+    .values({
+      quoteNumber,
+      customerId: parsed.data.customerId,
+      status: parsed.data.status ?? "Draft",
+      lostReason: parsed.data.lostReason ?? "",
+      quoteDate: parsed.data.quoteDate ?? today,
+      validUntil: parsed.data.validUntil ?? validUntil,
+      quoteRevision: parsed.data.quoteRevision ?? "A",
+      revisionNotes: parsed.data.revisionNotes ?? "",
+      leadTime: parsed.data.leadTime ?? s?.defaultLeadTime ?? "",
+      deliveryTerms: parsed.data.deliveryTerms ?? s?.defaultDeliveryTerms ?? "",
+      notes: parsed.data.notes ?? "",
+      internalNotes: parsed.data.internalNotes ?? "",
+      paymentTerms:
+        parsed.data.paymentTerms ??
+        s?.paymentTerms ??
+        "30 days from invoice date",
+      termsAndConditions:
+        parsed.data.termsAndConditions ?? s?.termsAndConditions ?? "",
+      materialCertIncluded: parsed.data.materialCertIncluded ?? false,
+      inspectionReportIncluded: parsed.data.inspectionReportIncluded ?? false,
+      fairIncluded: parsed.data.fairIncluded ?? false,
+      cmmReportIncluded: parsed.data.cmmReportIncluded ?? false,
+      priceBreakQtys: parsed.data.priceBreakQtys ?? "",
+    })
+    .returning();
 
   if (parsed.data.lineItems && parsed.data.lineItems.length > 0) {
     await insertLineItems(quote.id, parsed.data.lineItems);
   }
 
-  const items = await db.select().from(quoteLineItemsTable).where(eq(quoteLineItemsTable.quoteId, quote.id));
+  const items = await db
+    .select()
+    .from(quoteLineItemsTable)
+    .where(eq(quoteLineItemsTable.quoteId, quote.id));
   res.status(201).json(GetQuoteResponse.parse(parseQuote(quote, items)));
 });
 
@@ -312,12 +381,18 @@ router.get("/quotes/:id", async (req, res): Promise<void> => {
     res.status(400).json({ error: params.error.message });
     return;
   }
-  const [quote] = await db.select().from(quotesTable).where(eq(quotesTable.id, params.data.id));
+  const [quote] = await db
+    .select()
+    .from(quotesTable)
+    .where(eq(quotesTable.id, params.data.id));
   if (!quote) {
     res.status(404).json({ error: "Quote not found" });
     return;
   }
-  const items = await db.select().from(quoteLineItemsTable).where(eq(quoteLineItemsTable.quoteId, quote.id));
+  const items = await db
+    .select()
+    .from(quoteLineItemsTable)
+    .where(eq(quoteLineItemsTable.quoteId, quote.id));
   res.json(GetQuoteResponse.parse(parseQuote(quote, items)));
 });
 
@@ -348,27 +423,41 @@ router.patch("/quotes/:id", async (req, res): Promise<void> => {
   if (d.notes !== undefined) updateData.notes = d.notes;
   if (d.internalNotes !== undefined) updateData.internalNotes = d.internalNotes;
   if (d.paymentTerms !== undefined) updateData.paymentTerms = d.paymentTerms;
-  if (d.termsAndConditions !== undefined) updateData.termsAndConditions = d.termsAndConditions;
-  if (d.materialCertIncluded !== undefined) updateData.materialCertIncluded = d.materialCertIncluded;
-  if (d.inspectionReportIncluded !== undefined) updateData.inspectionReportIncluded = d.inspectionReportIncluded;
+  if (d.termsAndConditions !== undefined)
+    updateData.termsAndConditions = d.termsAndConditions;
+  if (d.materialCertIncluded !== undefined)
+    updateData.materialCertIncluded = d.materialCertIncluded;
+  if (d.inspectionReportIncluded !== undefined)
+    updateData.inspectionReportIncluded = d.inspectionReportIncluded;
   if (d.fairIncluded !== undefined) updateData.fairIncluded = d.fairIncluded;
-  if (d.cmmReportIncluded !== undefined) updateData.cmmReportIncluded = d.cmmReportIncluded;
-  if (d.priceBreakQtys !== undefined) updateData.priceBreakQtys = d.priceBreakQtys;
+  if (d.cmmReportIncluded !== undefined)
+    updateData.cmmReportIncluded = d.cmmReportIncluded;
+  if (d.priceBreakQtys !== undefined)
+    updateData.priceBreakQtys = d.priceBreakQtys;
 
-  const [quote] = await db.update(quotesTable).set(updateData).where(eq(quotesTable.id, params.data.id)).returning();
+  const [quote] = await db
+    .update(quotesTable)
+    .set(updateData)
+    .where(eq(quotesTable.id, params.data.id))
+    .returning();
   if (!quote) {
     res.status(404).json({ error: "Quote not found" });
     return;
   }
 
   if (d.lineItems !== undefined) {
-    await db.delete(quoteLineItemsTable).where(eq(quoteLineItemsTable.quoteId, quote.id));
+    await db
+      .delete(quoteLineItemsTable)
+      .where(eq(quoteLineItemsTable.quoteId, quote.id));
     if (d.lineItems.length > 0) {
       await insertLineItems(quote.id, d.lineItems);
     }
   }
 
-  const items = await db.select().from(quoteLineItemsTable).where(eq(quoteLineItemsTable.quoteId, quote.id));
+  const items = await db
+    .select()
+    .from(quoteLineItemsTable)
+    .where(eq(quoteLineItemsTable.quoteId, quote.id));
   res.json(UpdateQuoteResponse.parse(parseQuote(quote, items)));
 });
 
@@ -379,7 +468,10 @@ router.delete("/quotes/:id", async (req, res): Promise<void> => {
     res.status(400).json({ error: params.error.message });
     return;
   }
-  const [quote] = await db.delete(quotesTable).where(eq(quotesTable.id, params.data.id)).returning();
+  const [quote] = await db
+    .delete(quotesTable)
+    .where(eq(quotesTable.id, params.data.id))
+    .returning();
   if (!quote) {
     res.status(404).json({ error: "Quote not found" });
     return;
@@ -394,44 +486,145 @@ router.post("/quotes/:id/duplicate", async (req, res): Promise<void> => {
     res.status(400).json({ error: params.error.message });
     return;
   }
-  const [original] = await db.select().from(quotesTable).where(eq(quotesTable.id, params.data.id));
+  const [original] = await db
+    .select()
+    .from(quotesTable)
+    .where(eq(quotesTable.id, params.data.id));
   if (!original) {
     res.status(404).json({ error: "Quote not found" });
     return;
   }
-  const originalItems = await db.select().from(quoteLineItemsTable).where(eq(quoteLineItemsTable.quoteId, original.id));
+  const originalItems = await db
+    .select()
+    .from(quoteLineItemsTable)
+    .where(eq(quoteLineItemsTable.quoteId, original.id));
 
   const quoteNumber = await generateQuoteNumber();
   const today = new Date().toISOString().split("T")[0];
-  const [newQuote] = await db.insert(quotesTable).values({
-    quoteNumber,
-    customerId: original.customerId,
-    status: "Draft",
-    lostReason: "",
-    quoteDate: today,
-    validUntil: original.validUntil,
-    quoteRevision: "A",
-    revisionNotes: "",
-    leadTime: original.leadTime,
-    deliveryTerms: original.deliveryTerms,
-    notes: original.notes,
-    internalNotes: original.internalNotes,
-    paymentTerms: original.paymentTerms,
-    termsAndConditions: original.termsAndConditions,
-    materialCertIncluded: original.materialCertIncluded,
-    inspectionReportIncluded: original.inspectionReportIncluded,
-    fairIncluded: original.fairIncluded,
-    cmmReportIncluded: original.cmmReportIncluded,
-    priceBreakQtys: original.priceBreakQtys,
-  }).returning();
+  const [newQuote] = await db
+    .insert(quotesTable)
+    .values({
+      quoteNumber,
+      customerId: original.customerId,
+      status: "Draft",
+      lostReason: "",
+      quoteDate: today,
+      validUntil: original.validUntil,
+      quoteRevision: "A",
+      revisionNotes: "",
+      leadTime: original.leadTime,
+      deliveryTerms: original.deliveryTerms,
+      notes: original.notes,
+      internalNotes: original.internalNotes,
+      paymentTerms: original.paymentTerms,
+      termsAndConditions: original.termsAndConditions,
+      materialCertIncluded: original.materialCertIncluded,
+      inspectionReportIncluded: original.inspectionReportIncluded,
+      fairIncluded: original.fairIncluded,
+      cmmReportIncluded: original.cmmReportIncluded,
+      priceBreakQtys: original.priceBreakQtys,
+    })
+    .returning();
 
   for (const item of originalItems) {
     const { id, quoteId, createdAt, ...rest } = item;
-    await db.insert(quoteLineItemsTable).values({ ...rest, quoteId: newQuote.id });
+    await db
+      .insert(quoteLineItemsTable)
+      .values({ ...rest, quoteId: newQuote.id });
   }
 
-  const items = await db.select().from(quoteLineItemsTable).where(eq(quoteLineItemsTable.quoteId, newQuote.id));
+  const items = await db
+    .select()
+    .from(quoteLineItemsTable)
+    .where(eq(quoteLineItemsTable.quoteId, newQuote.id));
   res.status(201).json(GetQuoteResponse.parse(parseQuote(newQuote, items)));
 });
+
+router.get("/quotes/:id/drawings", async (req, res): Promise<void> => {
+  const id = parseInt(
+    Array.isArray(req.params.id) ? req.params.id[0] : req.params.id,
+    10,
+  );
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+  const drawings = await db
+    .select()
+    .from(quoteDrawingsTable)
+    .where(eq(quoteDrawingsTable.quoteId, id));
+  res.json(
+    drawings.map((d) => ({ ...d, uploadedAt: d.uploadedAt.toISOString() })),
+  );
+});
+
+router.post("/quotes/:id/drawings", async (req, res): Promise<void> => {
+  const id = parseInt(
+    Array.isArray(req.params.id) ? req.params.id[0] : req.params.id,
+    10,
+  );
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+  const {
+    objectPath,
+    filename,
+    contentType,
+    drawingNumber = "",
+    revision = "",
+  } = req.body as {
+    objectPath?: string;
+    filename?: string;
+    contentType?: string;
+    drawingNumber?: string;
+    revision?: string;
+  };
+  if (!objectPath || !filename || !contentType) {
+    res
+      .status(400)
+      .json({ error: "objectPath, filename, and contentType are required" });
+    return;
+  }
+  const [drawing] = await db
+    .insert(quoteDrawingsTable)
+    .values({
+      quoteId: id,
+      filename,
+      contentType,
+      objectPath,
+      drawingNumber,
+      revision,
+    })
+    .returning();
+  res
+    .status(201)
+    .json({ ...drawing, uploadedAt: drawing.uploadedAt.toISOString() });
+});
+
+router.delete(
+  "/quotes/:id/drawings/:drawingId",
+  async (req, res): Promise<void> => {
+    const drawingId = parseInt(
+      Array.isArray(req.params.drawingId)
+        ? req.params.drawingId[0]
+        : req.params.drawingId,
+      10,
+    );
+    if (isNaN(drawingId)) {
+      res.status(400).json({ error: "Invalid drawingId" });
+      return;
+    }
+    const [deleted] = await db
+      .delete(quoteDrawingsTable)
+      .where(eq(quoteDrawingsTable.id, drawingId))
+      .returning();
+    if (!deleted) {
+      res.status(404).json({ error: "Drawing not found" });
+      return;
+    }
+    res.sendStatus(204);
+  },
+);
 
 export default router;

@@ -1,4 +1,9 @@
-import { useGetMachine, useUpdateMachine, getGetMachineQueryKey, getListMachinesQueryKey } from "@workspace/api-client-react";
+import {
+  useGetMachine,
+  useUpdateMachine,
+  getGetMachineQueryKey,
+  getListMachinesQueryKey,
+} from "@workspace/api-client-react";
 import { useLocation, useParams } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -12,7 +17,9 @@ export function EditMachine() {
   const params = useParams();
   const id = Number(params.id);
   const [, setLocation] = useLocation();
-  const { data: machine, isLoading } = useGetMachine(id, { query: { enabled: !!id, queryKey: getGetMachineQueryKey(id) } });
+  const { data: machine, isLoading } = useGetMachine(id, {
+    query: { enabled: !!id, queryKey: getGetMachineQueryKey(id) },
+  });
   const updateMachine = useUpdateMachine();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -22,15 +29,19 @@ export function EditMachine() {
       { id, data },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetMachineQueryKey(id) });
-          queryClient.invalidateQueries({ queryKey: getListMachinesQueryKey() });
+          queryClient.invalidateQueries({
+            queryKey: getGetMachineQueryKey(id),
+          });
+          queryClient.invalidateQueries({
+            queryKey: getListMachinesQueryKey(),
+          });
           toast({ title: "Machine updated successfully" });
           setLocation("/machines");
         },
         onError: () => {
           toast({ title: "Failed to update machine", variant: "destructive" });
-        }
-      }
+        },
+      },
     );
   };
 
@@ -47,12 +58,12 @@ export function EditMachine() {
         </Link>
         <h1 className="text-3xl font-bold tracking-tight">Edit Machine</h1>
       </div>
-      
+
       <div className="border p-6 rounded-md bg-card">
-        <MachineForm 
+        <MachineForm
           initialValues={machine}
-          onSubmit={handleSubmit} 
-          isSubmitting={updateMachine.isPending} 
+          onSubmit={handleSubmit}
+          isSubmitting={updateMachine.isPending}
         />
       </div>
     </div>
