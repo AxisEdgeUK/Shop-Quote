@@ -28,6 +28,11 @@ export const GetDashboardStatsResponse = zod.object({
   wonValue: zod.number(),
   conversionRate: zod.number(),
   followUpNeeded: zod.number(),
+  wonThisMonth: zod.number(),
+  lostThisMonth: zod.number(),
+  wonValueThisMonth: zod.number(),
+  lostValueThisMonth: zod.number(),
+  avgWonValue: zod.number(),
 });
 
 /**
@@ -206,6 +211,7 @@ export const ListQuotesResponseItem = zod.object({
   validUntil: zod.string(),
   totalValue: zod.number(),
   createdAt: zod.string(),
+  lostReason: zod.string().optional(),
 });
 export const ListQuotesResponse = zod.array(ListQuotesResponseItem);
 
@@ -281,6 +287,12 @@ export const GetQuoteResponse = zod.object({
   customerId: zod.number(),
   status: zod.string(),
   lostReason: zod.string(),
+  lostNotes: zod.string(),
+  lostDate: zod.string().nullable(),
+  wonDate: zod.string().nullable(),
+  wonNotes: zod.string(),
+  poNumber: zod.string(),
+  expectedDelivery: zod.string(),
   quoteDate: zod.string(),
   validUntil: zod.string(),
   quoteRevision: zod.string(),
@@ -363,6 +375,12 @@ export const UpdateQuoteBody = zod.object({
   customerId: zod.number().optional(),
   status: zod.string().optional(),
   lostReason: zod.string().optional(),
+  lostNotes: zod.string().optional(),
+  lostDate: zod.string().nullish(),
+  wonDate: zod.string().nullish(),
+  wonNotes: zod.string().optional(),
+  poNumber: zod.string().optional(),
+  expectedDelivery: zod.string().optional(),
   quoteDate: zod.string().optional(),
   validUntil: zod.string().optional(),
   quoteRevision: zod.string().optional(),
@@ -423,6 +441,12 @@ export const UpdateQuoteResponse = zod.object({
   customerId: zod.number(),
   status: zod.string(),
   lostReason: zod.string(),
+  lostNotes: zod.string(),
+  lostDate: zod.string().nullable(),
+  wonDate: zod.string().nullable(),
+  wonNotes: zod.string(),
+  poNumber: zod.string(),
+  expectedDelivery: zod.string(),
   quoteDate: zod.string(),
   validUntil: zod.string(),
   quoteRevision: zod.string(),

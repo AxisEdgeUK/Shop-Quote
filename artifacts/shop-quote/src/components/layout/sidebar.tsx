@@ -5,6 +5,7 @@ import {
   Wrench,
   FileText,
   Settings as SettingsIcon,
+  BarChart3,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,7 @@ const navItems = [
   { name: "Quotes", href: "/quotes", icon: FileText },
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Machines", href: "/machines", icon: Wrench },
+  { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Settings", href: "/settings", icon: SettingsIcon },
 ];
 

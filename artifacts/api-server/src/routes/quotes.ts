@@ -434,6 +434,13 @@ router.patch("/quotes/:id", async (req, res): Promise<void> => {
     updateData.cmmReportIncluded = d.cmmReportIncluded;
   if (d.priceBreakQtys !== undefined)
     updateData.priceBreakQtys = d.priceBreakQtys;
+  if (d.wonDate !== undefined) updateData.wonDate = d.wonDate;
+  if (d.wonNotes !== undefined) updateData.wonNotes = d.wonNotes;
+  if (d.poNumber !== undefined) updateData.poNumber = d.poNumber;
+  if (d.expectedDelivery !== undefined)
+    updateData.expectedDelivery = d.expectedDelivery;
+  if (d.lostDate !== undefined) updateData.lostDate = d.lostDate;
+  if (d.lostNotes !== undefined) updateData.lostNotes = d.lostNotes;
 
   const [quote] = await db
     .update(quotesTable)

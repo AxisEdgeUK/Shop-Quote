@@ -470,6 +470,11 @@ components:
         - wonValue
         - conversionRate
         - followUpNeeded
+        - wonThisMonth
+        - lostThisMonth
+        - wonValueThisMonth
+        - lostValueThisMonth
+        - avgWonValue
       properties:
         totalQuotes:
           type: integer
@@ -491,6 +496,16 @@ components:
           type: number
         followUpNeeded:
           type: integer
+        wonThisMonth:
+          type: integer
+        lostThisMonth:
+          type: integer
+        wonValueThisMonth:
+          type: number
+        lostValueThisMonth:
+          type: number
+        avgWonValue:
+          type: number
 
     Customer:
       type: object
@@ -894,6 +909,8 @@ components:
           type: number
         createdAt:
           type: string
+        lostReason:
+          type: string
 
     Quote:
       type: object
@@ -903,6 +920,12 @@ components:
         - customerId
         - status
         - lostReason
+        - lostNotes
+        - lostDate
+        - wonDate
+        - wonNotes
+        - poNumber
+        - expectedDelivery
         - quoteDate
         - validUntil
         - quoteRevision
@@ -931,6 +954,18 @@ components:
         status:
           type: string
         lostReason:
+          type: string
+        lostNotes:
+          type: string
+        lostDate:
+          type: ["string", "null"]
+        wonDate:
+          type: ["string", "null"]
+        wonNotes:
+          type: string
+        poNumber:
+          type: string
+        expectedDelivery:
           type: string
         quoteDate:
           type: string
@@ -1026,6 +1061,18 @@ components:
         status:
           type: string
         lostReason:
+          type: string
+        lostNotes:
+          type: string
+        lostDate:
+          type: ["string", "null"]
+        wonDate:
+          type: ["string", "null"]
+        wonNotes:
+          type: string
+        poNumber:
+          type: string
+        expectedDelivery:
           type: string
         quoteDate:
           type: string

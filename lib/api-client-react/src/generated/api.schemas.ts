@@ -20,6 +20,11 @@ export interface DashboardStats {
   wonValue: number;
   conversionRate: number;
   followUpNeeded: number;
+  wonThisMonth: number;
+  lostThisMonth: number;
+  wonValueThisMonth: number;
+  lostValueThisMonth: number;
+  avgWonValue: number;
 }
 
 export interface Customer {
@@ -180,6 +185,7 @@ export interface QuoteSummary {
   validUntil: string;
   totalValue: number;
   createdAt: string;
+  lostReason?: string;
 }
 
 export interface Quote {
@@ -188,6 +194,14 @@ export interface Quote {
   customerId: number;
   status: string;
   lostReason: string;
+  lostNotes: string;
+  /** @nullable */
+  lostDate: string | null;
+  /** @nullable */
+  wonDate: string | null;
+  wonNotes: string;
+  poNumber: string;
+  expectedDelivery: string;
   quoteDate: string;
   validUntil: string;
   quoteRevision: string;
@@ -234,6 +248,14 @@ export interface QuoteUpdate {
   customerId?: number;
   status?: string;
   lostReason?: string;
+  lostNotes?: string;
+  /** @nullable */
+  lostDate?: string | null;
+  /** @nullable */
+  wonDate?: string | null;
+  wonNotes?: string;
+  poNumber?: string;
+  expectedDelivery?: string;
   quoteDate?: string;
   validUntil?: string;
   quoteRevision?: string;

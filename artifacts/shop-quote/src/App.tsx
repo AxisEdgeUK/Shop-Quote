@@ -10,8 +10,10 @@ import { LandingPage } from "@/pages/landing";
 import { PricingPage } from "@/pages/pricing";
 import { DashboardPage } from "@/pages/dashboard";
 import { CustomersList } from "@/pages/customers";
+import { CustomerView } from "@/pages/customers/view";
 import { NewCustomer } from "@/pages/customers/new";
 import { EditCustomer } from "@/pages/customers/edit";
+import { AnalyticsPage } from "@/pages/analytics";
 import { MachinesList } from "@/pages/machines";
 import { NewMachine } from "@/pages/machines/new";
 import { EditMachine } from "@/pages/machines/edit";
@@ -54,6 +56,9 @@ function Router() {
       <Route path="/customers/:id/edit">
         <AppRoute component={EditCustomer} />
       </Route>
+      <Route path="/customers/:id">
+        <AppRoute component={CustomerView} />
+      </Route>
       <Route path="/machines">
         <AppRoute component={MachinesList} />
       </Route>
@@ -62,6 +67,9 @@ function Router() {
       </Route>
       <Route path="/machines/:id/edit">
         <AppRoute component={EditMachine} />
+      </Route>
+      <Route path="/analytics">
+        <AppRoute component={AnalyticsPage} />
       </Route>
       <Route path="/settings">
         <AppRoute component={SettingsPage} />

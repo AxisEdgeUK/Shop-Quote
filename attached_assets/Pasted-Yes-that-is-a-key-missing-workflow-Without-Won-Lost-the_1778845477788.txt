@@ -1,0 +1,138 @@
+Yes, that is a key missing workflow. Without **Won / Lost**, the app cannot measure quote conversion or customer quality.
+
+Paste this into Replit:
+
+```text
+Add proper quote outcome tracking to SHOP Quote.
+
+Current issue:
+Quotes do not have a clear “Mark as Won” workflow.
+
+This is important because small machine shops need to know:
+- which quotes turned into orders
+- which customers are worth quoting
+- quote conversion rate
+- won value
+- lost value
+- why quotes are being lost
+
+REQUIREMENTS
+
+1. Add visible quote action buttons
+
+On each quote detail page and quote list row/card, show:
+
+- Mark as Sent
+- Mark as Won
+- Mark as Lost
+- Duplicate / Quote Similar Job
+- Download PDF
+
+The buttons should be clear and easy to use.
+
+2. Mark as Won workflow
+
+When user clicks “Mark as Won”, open a small modal asking:
+
+- Customer PO number, optional
+- Expected start date, optional
+- Expected delivery date, optional
+- Notes, optional
+
+Then update quote status to:
+Won
+
+Store:
+- won date
+- PO number
+- won notes
+- expected delivery date
+
+3. Mark as Lost workflow
+
+When user clicks “Mark as Lost”, open a modal asking lost reason:
+
+Dropdown:
+- Price too high
+- Lead time too long
+- No response
+- Competitor won
+- Customer changed design
+- Customer cancelled project
+- Not suitable for our shop
+- Other
+
+Also allow:
+- lost notes
+
+Then update quote status to:
+Lost
+
+Store:
+- lost date
+- lost reason
+- lost notes
+
+4. Dashboard updates
+
+Dashboard must show:
+- quotes won this month
+- won value this month
+- quotes lost this month
+- lost value this month
+- win rate percentage
+- average won quote value
+
+5. Quote analytics page or section
+
+Add simple analysis:
+- total quoted value
+- total won value
+- total lost value
+- win rate
+- top customers by won value
+- common lost reasons
+
+Keep it simple and premium.
+
+6. Customer page updates
+
+On each customer profile, show:
+- total quotes
+- won quotes
+- lost quotes
+- total quoted value
+- total won value
+- win rate
+
+This helps machine shops see which customers are worth quoting.
+
+7. Status design
+
+Use clear status badges:
+- Draft
+- Sent
+- Won
+- Lost
+- Expired
+
+Keep styling industrial and restrained.
+
+8. Business logic
+
+Once a quote is marked Won:
+- lock the original quote
+- allow “Create Revision” if edits are needed
+- allow “Quote Similar Job” for repeat work
+
+Once marked Lost:
+- keep quote searchable
+- allow duplicate / quote similar job later
+
+9. Mobile
+
+The Won/Lost buttons and modals must work properly on iPhone.
+
+Final instruction:
+This is not just a button. It is quote outcome tracking for small machine shops. Keep it simple, fast, and useful.
+```

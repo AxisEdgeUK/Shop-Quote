@@ -143,8 +143,8 @@ export function DashboardPage() {
         />
         <KpiCard
           label="Won This Month"
-          value={`${cur}${stats.wonValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
-          sub={`${stats.wonQuotes} order${stats.wonQuotes === 1 ? "" : "s"} won`}
+          value={`${cur}${stats.wonValueThisMonth.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          sub={`${stats.wonThisMonth} order${stats.wonThisMonth === 1 ? "" : "s"} · avg ${cur}${Math.round(stats.avgWonValue).toLocaleString()}`}
           accent
         />
         <KpiCard

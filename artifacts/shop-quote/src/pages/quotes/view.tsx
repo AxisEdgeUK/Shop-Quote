@@ -22,7 +22,11 @@ import {
   Share2,
   Eye,
   CopyPlus,
+  Trophy,
+  GitBranch,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { PrintLayout } from "@/components/quotes/print-layout";
 import { useQueryClient } from "@tanstack/react-query";
@@ -77,19 +81,60 @@ export function ViewQuote() {
   const [emailCopied, setEmailCopied] = useState(false);
   const [showLostDialog, setShowLostDialog] = useState(false);
   const [lostReason, setLostReason] = useState("");
+  const [lostNotes, setLostNotes] = useState("");
+  const [showWonDialog, setShowWonDialog] = useState(false);
+  const [wonPoNumber, setWonPoNumber] = useState("");
+  const [wonExpectedDelivery, setWonExpectedDelivery] = useState("");
+  const [wonNotesText, setWonNotesText] = useState("");
 
   const handlePrint = () => window.print();
 
   const handleMarkLost = () => {
     if (!quote) return;
+    const today = new Date().toISOString().split("T")[0];
     updateQuote.mutate(
-      { id: quote.id, data: { status: "Lost", lostReason } as any },
+      {
+        id: quote.id,
+        data: { status: "Lost", lostReason, lostNotes, lostDate: today } as any,
+      },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetQuoteQueryKey(id) });
           queryClient.invalidateQueries({ queryKey: getListQuotesQueryKey() });
           toast({ title: "Quote marked as Lost" });
           setShowLostDialog(false);
+          setLostReason("");
+          setLostNotes("");
+        },
+        onError: () =>
+          toast({ title: "Failed to update quote", variant: "destructive" }),
+      },
+    );
+  };
+
+  const handleMarkWon = () => {
+    if (!quote) return;
+    const today = new Date().toISOString().split("T")[0];
+    updateQuote.mutate(
+      {
+        id: quote.id,
+        data: {
+          status: "Won",
+          wonDate: today,
+          wonNotes: wonNotesText,
+          poNumber: wonPoNumber,
+          expectedDelivery: wonExpectedDelivery,
+        } as any,
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetQuoteQueryKey(id) });
+          queryClient.invalidateQueries({ queryKey: getListQuotesQueryKey() });
+          toast({ title: "Quote marked as Won" });
+          setShowWonDialog(false);
+          setWonPoNumber("");
+          setWonExpectedDelivery("");
+          setWonNotesText("");
         },
         onError: () =>
           toast({ title: "Failed to update quote", variant: "destructive" }),
@@ -201,6 +246,16 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
           {quote.status === "Draft" && (
             <Button variant="outline" size="sm" onClick={handleMarkSent}>
               <Lock className="w-3.5 h-3.5 mr-1.5" /> Mark Sent
+            </Button>
+          )}
+          {(quote.status === "Draft" || quote.status === "Sent") && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+              onClick={() => setShowWonDialog(true)}
+            >
+              <Trophy className="w-3.5 h-3.5 mr-1.5" /> Mark Won
             </Button>
           )}
           {(quote.status === "Draft" || quote.status === "Sent") && (
@@ -354,6 +409,15 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
             {(quote.status === "Draft" || quote.status === "Sent") && (
               <Button
                 variant="outline"
+                className="flex-1 h-11 text-sm text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+                onClick={() => setShowWonDialog(true)}
+              >
+                <Trophy className="w-4 h-4 mr-1" /> Won
+              </Button>
+            )}
+            {(quote.status === "Draft" || quote.status === "Sent") && (
+              <Button
+                variant="outline"
                 className="flex-1 h-11 text-sm text-red-600 border-red-200 hover:bg-red-50"
                 onClick={() => setShowLostDialog(true)}
               >
@@ -384,19 +448,31 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
             <DialogTitle>Mark Quote as Lost</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
-            <Label>Reason for losing this quote</Label>
-            <Select value={lostReason} onValueChange={setLostReason}>
-              <SelectTrigger className="h-11">
-                <SelectValue placeholder="Select a reason" />
-              </SelectTrigger>
-              <SelectContent>
-                {LOST_REASONS.map((r) => (
-                  <SelectItem key={r} value={r}>
-                    {r}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div>
+              <Label>Reason for losing this quote</Label>
+              <Select value={lostReason} onValueChange={setLostReason}>
+                <SelectTrigger className="h-11 mt-1.5">
+                  <SelectValue placeholder="Select a reason" />
+                </SelectTrigger>
+                <SelectContent>
+                  {LOST_REASONS.map((r) => (
+                    <SelectItem key={r} value={r}>
+                      {r}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Additional notes</Label>
+              <Textarea
+                className="mt-1.5"
+                placeholder="Any additional context about why this was lost..."
+                value={lostNotes}
+                onChange={(e) => setLostNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowLostDialog(false)}>
@@ -408,6 +484,59 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
               disabled={!lostReason || updateQuote.isPending}
             >
               Confirm Lost
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Won dialog */}
+      <Dialog open={showWonDialog} onOpenChange={setShowWonDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-emerald-500" /> Mark Quote as Won
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div>
+              <Label>PO Number</Label>
+              <Input
+                className="mt-1.5"
+                placeholder="e.g. PO-2024-0042"
+                value={wonPoNumber}
+                onChange={(e) => setWonPoNumber(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Expected Delivery</Label>
+              <Input
+                type="date"
+                className="mt-1.5"
+                value={wonExpectedDelivery}
+                onChange={(e) => setWonExpectedDelivery(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Notes</Label>
+              <Textarea
+                className="mt-1.5"
+                placeholder="Any notes about this order..."
+                value={wonNotesText}
+                onChange={(e) => setWonNotesText(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowWonDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              onClick={handleMarkWon}
+              disabled={updateQuote.isPending}
+            >
+              <Trophy className="w-4 h-4 mr-1.5" /> Confirm Won
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,5 +1,4 @@
 import { Router, type IRouter } from "express";
-import { sql, eq, and, lt } from "drizzle-orm";
 import { db, quotesTable, quoteLineItemsTable } from "@workspace/db";
 import { GetDashboardStatsResponse } from "@workspace/api-zod";
 
@@ -7,12 +6,18 @@ const router: IRouter = Router();
 
 router.get("/dashboard/stats", async (req, res): Promise<void> => {
   const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
+  const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const monthEnd = nextMonthDate.toISOString().split("T")[0];
 
   const quotes = await db
     .select({
       status: quotesTable.status,
       validUntil: quotesTable.validUntil,
       id: quotesTable.id,
+      wonDate: quotesTable.wonDate,
+      lostDate: quotesTable.lostDate,
     })
     .from(quotesTable);
 
@@ -39,6 +44,10 @@ router.get("/dashboard/stats", async (req, res): Promise<void> => {
   let totalQuotedValue = 0;
   let wonValue = 0;
   let followUpNeeded = 0;
+  let wonThisMonth = 0;
+  let lostThisMonth = 0;
+  let wonValueThisMonth = 0;
+  let lostValueThisMonth = 0;
 
   for (const quote of quotes) {
     totalQuotes++;
@@ -56,9 +65,25 @@ router.get("/dashboard/stats", async (req, res): Promise<void> => {
       case "Won":
         wonQuotes++;
         wonValue += value;
+        if (
+          quote.wonDate &&
+          quote.wonDate >= monthStart &&
+          quote.wonDate < monthEnd
+        ) {
+          wonThisMonth++;
+          wonValueThisMonth += value;
+        }
         break;
       case "Lost":
         lostQuotes++;
+        if (
+          quote.lostDate &&
+          quote.lostDate >= monthStart &&
+          quote.lostDate < monthEnd
+        ) {
+          lostThisMonth++;
+          lostValueThisMonth += value;
+        }
         break;
       case "Expired":
         expiredQuotes++;
@@ -68,6 +93,7 @@ router.get("/dashboard/stats", async (req, res): Promise<void> => {
 
   const sentAndWon = wonQuotes + lostQuotes;
   const conversionRate = sentAndWon > 0 ? (wonQuotes / sentAndWon) * 100 : 0;
+  const avgWonValue = wonQuotes > 0 ? wonValue / wonQuotes : 0;
 
   res.json(
     GetDashboardStatsResponse.parse({
@@ -81,6 +107,11 @@ router.get("/dashboard/stats", async (req, res): Promise<void> => {
       wonValue,
       conversionRate,
       followUpNeeded,
+      wonThisMonth,
+      lostThisMonth,
+      wonValueThisMonth,
+      lostValueThisMonth,
+      avgWonValue,
     }),
   );
 });
