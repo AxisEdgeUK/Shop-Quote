@@ -30,7 +30,7 @@ type PersistedMeta = {
 
 const BLUE = "#1D8FFF";
 const TOOLBAR_BG = "#161B22";
-const VIEWER_BG = "#0D1117";
+const VIEWER_BG = "#FFFFFF";
 const BORDER = "#30363D";
 const MUTED = "#8B949E";
 const FG = "#E6EDF3";
@@ -465,26 +465,26 @@ function DropZone({
   return (
     <div
       className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-6 transition-colors"
-      style={{ background: isDragOver ? "#10161E" : VIEWER_BG }}
+      style={{ background: isDragOver ? "#EEF5FF" : VIEWER_BG }}
     >
       <div
         className="w-20 h-20 rounded-2xl flex items-center justify-center transition-colors"
         style={{
-          background: "#131920",
-          border: `2px dashed ${isDragOver ? BLUE : BORDER}`,
+          background: isDragOver ? "#DDEEFF" : "#F4F6F8",
+          border: `2px dashed ${isDragOver ? BLUE : "#CBD5E0"}`,
         }}
       >
         <Upload
           className="w-8 h-8 transition-colors"
-          style={{ color: isDragOver ? BLUE : MUTED }}
+          style={{ color: isDragOver ? BLUE : "#94A3B8" }}
         />
       </div>
 
       <div className="text-center space-y-1.5">
-        <div className="text-sm font-semibold" style={{ color: FG }}>
+        <div className="text-sm font-semibold" style={{ color: "#1E293B" }}>
           Drop your drawing here
         </div>
-        <div className="text-xs" style={{ color: MUTED }}>
+        <div className="text-xs" style={{ color: "#64748B" }}>
           PDF, PNG, JPG, TIFF supported
         </div>
       </div>
@@ -499,7 +499,7 @@ function DropZone({
       </button>
 
       <div className="mt-2 max-w-[260px] text-center space-y-1">
-        <div className="text-xs" style={{ color: "#484F58" }}>
+        <div className="text-xs" style={{ color: "#94A3B8" }}>
           {showPersistHint
             ? "Drawing uploads are saved to this quote automatically."
             : "The drawing stays visible while you build the quote. No tab switching required."}
@@ -512,7 +512,7 @@ function DropZone({
             <span
               key={label}
               className="flex items-center gap-1 text-xs"
-              style={{ color: "#484F58" }}
+              style={{ color: "#94A3B8" }}
             >
               {icon} {label}
             </span>

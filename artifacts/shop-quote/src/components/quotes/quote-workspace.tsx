@@ -76,7 +76,7 @@ export function QuoteWorkspace({
             className="shrink-0 relative flex items-center justify-center"
             style={{
               width: 6,
-              background: "#0D1117",
+              background: "#E0E0E0",
               cursor: "col-resize",
               zIndex: 10,
             }}
