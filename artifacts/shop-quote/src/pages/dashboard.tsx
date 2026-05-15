@@ -16,6 +16,7 @@ import {
   AlertCircle,
   BarChart3,
   ChevronRight,
+  Zap,
 } from "lucide-react";
 
 function KpiCard({
@@ -342,28 +343,23 @@ export function DashboardPage() {
                 color: "hsl(var(--muted-foreground))",
               }}
             >
-              Quick Actions
+              Start Work
             </div>
             <QuickAction
-              href="/quotes/new?template=milling"
-              icon={<Plus className="w-4 h-4" />}
-              label="New Milling Quote"
+              href="/quotes/quick"
+              icon={<Zap className="w-4 h-4" />}
+              label="Quick Quote"
               primary
-            />
-            <QuickAction
-              href="/quotes/new?template=turning"
-              icon={<Plus className="w-4 h-4" />}
-              label="New Turning Quote"
             />
             <QuickAction
               href="/quotes/new"
               icon={<Plus className="w-4 h-4" />}
-              label="New Quote"
+              label="Full Quote"
             />
             <QuickAction
               href="/quotes"
               icon={<Copy className="w-4 h-4" />}
-              label="All Quotes"
+              label="Quote Similar Job"
             />
             <QuickAction
               href="/customers/new"

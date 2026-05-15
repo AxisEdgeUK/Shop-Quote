@@ -1,0 +1,279 @@
+```text
+The current SHOP Quote landing page direction is strong. Keep the overall visual identity, split-screen CNC video concept, premium industrial feel, and core layout.
+
+Do NOT redesign the landing page from scratch.
+
+Instead:
+refine, sharpen, simplify, and improve usability while keeping the current design direction.
+
+The goal is:
+premium German-engineered estimating software for small CNC shops.
+
+DO NOT turn this into:
+- generic SaaS
+- ERP software
+- AI marketing
+- cluttered industrial software
+
+PRIORITY 1: ADD QUICK QUOTE MODE
+
+Add a new option called:
+Quick Quote
+
+Purpose:
+Allow a small machine shop owner to generate a professional quote in under 90 seconds.
+
+Quick Quote asks only:
+- customer
+- part name
+- quantity
+- material
+- process
+- selected machine
+- setup hours
+- machining minutes per part
+- material cost
+- tooling allowance
+- margin percentage
+- lead time
+
+Then immediately calculate:
+- sell price
+- price per part
+- margin
+- lead time
+
+Allow:
+- save draft
+- generate PDF
+- convert to Full Quote
+
+This must feel:
+- fast
+- practical
+- frictionless
+
+PRIORITY 2: ADD BASIC / ADVANCED MODE
+
+The quote workflow is becoming too detailed for some users.
+
+Add:
+Basic Mode / Advanced Mode toggle.
+
+Default:
+Basic Mode
+
+Basic Mode shows only:
+- customer
+- part
+- quantity
+- material
+- machine
+- setup
+- runtime
+- material cost
+- tooling
+- margin
+- lead time
+
+Advanced Mode reveals:
+- programming
+- inspection
+- deburring
+- outside processing
+- packaging
+- delivery
+- risk
+- certifications
+- revision notes
+- internal notes
+- quantity breaks
+
+The goal is:
+reduce overwhelm for small shops.
+
+PRIORITY 3: ADD QUOTE SIMILAR JOB
+
+Improve repeat workflow.
+
+Add button:
+Quote Similar Job
+
+Purpose:
+allow fast repeat quoting.
+
+When selected:
+- duplicate existing quote
+- clear quote number
+- allow qty/material/revision edits
+- retain machining assumptions
+- save as new quote
+
+This should become one of the main workflows for repeat customers.
+
+PRIORITY 4: ADD PRESENTATION MODE
+
+Add:
+Presentation Mode
+
+This is a clean customer-facing quote preview.
+
+Hide:
+- margin
+- internal costs
+- hourly rates
+- internal notes
+
+Show:
+- logo
+- customer
+- quote number
+- drawing preview
+- quantity
+- pricing
+- lead time
+- payment terms
+- validity
+
+Presentation Mode should feel:
+- premium
+- minimal
+- engineering-focused
+- high-end
+
+PRIORITY 5: REDUCE TEXT SLIGHTLY
+
+The current landing page direction is good.
+
+Keep:
+- split CNC video concept
+- premium industrial design
+- dark engineered styling
+
+But reduce unnecessary wording.
+
+The site should feel:
+- confident
+- restrained
+- engineered
+- expensive
+
+Avoid:
+- long marketing paragraphs
+- repeated claims
+- startup wording
+- AI wording
+
+Keep messaging concise.
+
+PRIORITY 6: IMPROVE MACHINING LANGUAGE
+
+Use more real shop terminology.
+
+Use:
+- setup
+- runtime
+- repeat work
+- material
+- machine
+- fixture
+- first-off
+- deburring
+- inspection
+- revision
+
+Avoid:
+- transformation
+- optimisation platform
+- AI-enhanced
+- enterprise ecosystem
+- workflow revolution
+
+The software must feel like it was built by machinists.
+
+PRIORITY 7: ADD WORKFLOW MEMORY
+
+Remember user defaults:
+- last machine
+- last material
+- default margin
+- default lead time
+- last quote mode
+- preferred payment terms
+
+Prefill new quotes automatically.
+
+Reduce repetitive typing.
+
+PRIORITY 8: REFINEMENT OF UI
+
+Keep the existing design direction.
+
+Improve:
+- spacing
+- typography hierarchy
+- alignment
+- responsiveness
+- iPhone usability
+- dashboard clarity
+
+The app should feel:
+- more expensive
+- calmer
+- sharper
+- more engineered
+
+Reduce:
+- unnecessary cards
+- visual clutter
+- excessive badges/icons
+
+PRIORITY 9: SIMPLIFY DASHBOARD
+
+Dashboard should focus on action.
+
+Keep:
+- Open Quotes
+- Quotes needing follow-up
+- Won this month
+- Average margin
+- Recent quotes
+
+Add large quick actions:
+- Quick Quote
+- Full Quote
+- Quote Similar Job
+- Add Customer
+
+Do not overload dashboard with analytics.
+
+PRIORITY 10: DO NOT ADD YET
+
+Do not add:
+- tooling integrations
+- feeds and speeds
+- AI quote generation
+- CAM features
+- ERP modules
+- machine scheduling
+- automatic drawing analysis
+
+We are still focused on:
+simple, premium, practical estimating workflow.
+
+FINAL INSTRUCTION
+
+Do not radically redesign the app.
+
+Refine it into:
+a cleaner, faster, more premium estimating companion for small CNC machine shops.
+
+The software should feel:
+- practical
+- trustworthy
+- industrial
+- premium
+- easy to use
+- fast
+- built for real workshops
+```

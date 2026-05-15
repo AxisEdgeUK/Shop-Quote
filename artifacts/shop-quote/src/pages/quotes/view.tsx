@@ -20,6 +20,8 @@ import {
   Check,
   Lock,
   Share2,
+  Eye,
+  CopyPlus,
 } from "lucide-react";
 import { format } from "date-fns";
 import { PrintLayout } from "@/components/quotes/print-layout";
@@ -236,6 +238,18 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
               </>
             )}
           </Button>
+          <Link href={`/quotes/new?from=${quote.id}`}>
+            <Button variant="outline" size="sm">
+              <CopyPlus className="w-3.5 h-3.5 mr-1.5" />
+              Quote Similar
+            </Button>
+          </Link>
+          <Link href={`/quotes/${quote.id}/present`}>
+            <Button variant="outline" size="sm">
+              <Eye className="w-3.5 h-3.5 mr-1.5" />
+              Presentation
+            </Button>
+          </Link>
           <Link href={`/quotes/${quote.id}/edit`}>
             <Button variant="outline" size="sm">
               <Edit className="w-4 h-4 mr-1.5" />
@@ -300,6 +314,18 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
             <FileDown className="w-5 h-5" /> Generate PDF
           </Button>
           {/* Secondary row */}
+          <div className="flex gap-2">
+            <Link href={`/quotes/new?from=${quote.id}`} className="flex-1">
+              <Button variant="outline" className="w-full h-11 gap-1.5 text-sm">
+                <CopyPlus className="w-4 h-4" /> Quote Similar
+              </Button>
+            </Link>
+            <Link href={`/quotes/${quote.id}/present`} className="flex-1">
+              <Button variant="outline" className="w-full h-11 gap-1.5 text-sm">
+                <Eye className="w-4 h-4" /> Presentation
+              </Button>
+            </Link>
+          </div>
           <div className="flex gap-2">
             <Button
               variant="outline"

@@ -20,6 +20,8 @@ import { QuotesList } from "@/pages/quotes";
 import { NewQuote } from "@/pages/quotes/new";
 import { EditQuote } from "@/pages/quotes/edit";
 import { ViewQuote } from "@/pages/quotes/view";
+import { QuickQuote } from "@/pages/quotes/quick";
+import { PresentQuote } from "@/pages/quotes/present";
 
 const queryClient = new QueryClient();
 
@@ -67,11 +69,17 @@ function Router() {
       <Route path="/quotes">
         <AppRoute component={QuotesList} />
       </Route>
+      <Route path="/quotes/quick">
+        <AppRoute component={QuickQuote} />
+      </Route>
       <Route path="/quotes/new">
         <AppRoute component={NewQuote} />
       </Route>
       <Route path="/quotes/:id/edit">
         <AppRoute component={EditQuote} />
+      </Route>
+      <Route path="/quotes/:id/present">
+        <AppRoute component={PresentQuote} />
       </Route>
       <Route path="/quotes/:id">
         <AppRoute component={ViewQuote} />

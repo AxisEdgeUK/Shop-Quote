@@ -336,6 +336,7 @@ interface QuoteWizardProps {
   onSubmit: (values: QuoteFormValues) => void;
   isSubmitting?: boolean;
   savedQuoteId?: number;
+  initialTemplate?: string;
 }
 
 /* ── Component ───────────────────────────────────────────────── */
@@ -347,6 +348,22 @@ export function QuoteWizard({
 }: QuoteWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [templateApplied, setTemplateApplied] = useState(false);
+  const [quoteMode, setQuoteMode] = useState<"basic" | "advanced">(() => {
+    try {
+      return (
+        (localStorage.getItem("sq_quoteMode") as "basic" | "advanced") ||
+        "basic"
+      );
+    } catch {
+      return "basic";
+    }
+  });
+  const handleQuoteMode = (m: "basic" | "advanced") => {
+    setQuoteMode(m);
+    try {
+      localStorage.setItem("sq_quoteMode", m);
+    } catch {}
+  };
   const { data: customers, isLoading: isLoadingCustomers } = useListCustomers();
   const { data: machines, isLoading: isLoadingMachines } = useListMachines();
   const { data: settings, isLoading: isLoadingSettings } = useGetSettings();
@@ -1399,12 +1416,49 @@ export function QuoteWizard({
           {/* ── STEP 3: ASSUMPTIONS ─────────────────────────────────── */}
           {currentStep === 2 && (
             <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span
+                  className="text-xs"
+                  style={{ color: "hsl(var(--muted-foreground))" }}
+                >
+                  {quoteMode === "basic"
+                    ? "Essential fields only"
+                    : "All fields shown"}
+                </span>
+                <div
+                  className="flex gap-0.5 rounded-md border p-0.5"
+                  style={{ background: "hsl(var(--muted))" }}
+                >
+                  {(["basic", "advanced"] as const).map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      className="px-3 py-1 rounded text-xs font-medium transition-all capitalize"
+                      style={
+                        quoteMode === m
+                          ? {
+                              background: "hsl(var(--background))",
+                              color: "hsl(var(--foreground))",
+                              boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
+                            }
+                          : { color: "hsl(var(--muted-foreground))" }
+                      }
+                      onClick={() => handleQuoteMode(m)}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <PartTabs />
 
               {/* Hidden cost prompts */}
-              <CostCheckPanel
-                item={form.watch(`lineItems.${activeLineItemIndex}`)}
-              />
+              {quoteMode === "advanced" && (
+                <CostCheckPanel
+                  item={form.watch(`lineItems.${activeLineItemIndex}`)}
+                />
+              )}
 
               <Card>
                 <CardHeader>
@@ -1436,40 +1490,44 @@ export function QuoteWizard({
                           </FormItem>
                         )}
                       />
-                      <FormField
-                        control={form.control}
-                        name={`lineItems.${activeLineItemIndex}.programmingHours`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Programming (hours)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.25"
-                                min="0"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`lineItems.${activeLineItemIndex}.inspectionHours`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Inspection (hours)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.25"
-                                min="0"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
+                      {quoteMode === "advanced" && (
+                        <FormField
+                          control={form.control}
+                          name={`lineItems.${activeLineItemIndex}.programmingHours`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Programming (hours)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.25"
+                                  min="0"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                      {quoteMode === "advanced" && (
+                        <FormField
+                          control={form.control}
+                          name={`lineItems.${activeLineItemIndex}.inspectionHours`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Inspection (hours)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.25"
+                                  min="0"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      )}
                     </div>
                     <div className="space-y-4">
                       <h3 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
@@ -1492,23 +1550,25 @@ export function QuoteWizard({
                           </FormItem>
                         )}
                       />
-                      <FormField
-                        control={form.control}
-                        name={`lineItems.${activeLineItemIndex}.deburringMinutesPerPart`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Deburring (mins)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="1"
-                                min="0"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
+                      {quoteMode === "advanced" && (
+                        <FormField
+                          control={form.control}
+                          name={`lineItems.${activeLineItemIndex}.deburringMinutesPerPart`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Deburring (mins)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="1"
+                                  min="0"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      )}
                     </div>
                     <div className="space-y-4">
                       <h3 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
@@ -1531,23 +1591,25 @@ export function QuoteWizard({
                           </FormItem>
                         )}
                       />
-                      <FormField
-                        control={form.control}
-                        name={`lineItems.${activeLineItemIndex}.materialWastagePercentage`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Wastage (%)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="1"
-                                min="0"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
+                      {quoteMode === "advanced" && (
+                        <FormField
+                          control={form.control}
+                          name={`lineItems.${activeLineItemIndex}.materialWastagePercentage`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Wastage (%)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="1"
+                                  min="0"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      )}
                       <FormField
                         control={form.control}
                         name={`lineItems.${activeLineItemIndex}.toolingAllowance`}
@@ -1565,57 +1627,63 @@ export function QuoteWizard({
                           </FormItem>
                         )}
                       />
-                      <FormField
-                        control={form.control}
-                        name={`lineItems.${activeLineItemIndex}.outsideProcessing`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Outside processing ({cur})</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`lineItems.${activeLineItemIndex}.packaging`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Packaging ({cur})</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`lineItems.${activeLineItemIndex}.delivery`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Delivery ({cur})</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
+                      {quoteMode === "advanced" && (
+                        <FormField
+                          control={form.control}
+                          name={`lineItems.${activeLineItemIndex}.outsideProcessing`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Outside processing ({cur})</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                      {quoteMode === "advanced" && (
+                        <FormField
+                          control={form.control}
+                          name={`lineItems.${activeLineItemIndex}.packaging`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Packaging ({cur})</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                      {quoteMode === "advanced" && (
+                        <FormField
+                          control={form.control}
+                          name={`lineItems.${activeLineItemIndex}.delivery`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Delivery ({cur})</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -1627,18 +1695,25 @@ export function QuoteWizard({
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <FormField
-                      control={form.control}
-                      name={`lineItems.${activeLineItemIndex}.riskPercentage`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Risk allowance (%)</FormLabel>
-                          <FormControl>
-                            <Input type="number" step="1" min="0" {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                    {quoteMode === "advanced" && (
+                      <FormField
+                        control={form.control}
+                        name={`lineItems.${activeLineItemIndex}.riskPercentage`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Risk allowance (%)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="1"
+                                min="0"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    )}
                     <FormField
                       control={form.control}
                       name={`lineItems.${activeLineItemIndex}.profitMarginPercentage`}
