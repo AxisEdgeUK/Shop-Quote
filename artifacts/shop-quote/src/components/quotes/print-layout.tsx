@@ -517,7 +517,7 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
                   style={{ color: "#374151" }}
                 >
                   {priceBreakQtys.length > 0
-                    ? "—"
+                    ? "-"
                     : `${cur}${(item.pricePerPart || 0).toFixed(2)}`}
                 </td>
                 <td
@@ -551,7 +551,7 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
                       className="py-2 px-3 text-center align-middle text-xs"
                       style={{ color: "#d1d5db" }}
                     >
-                      —
+                      -
                     </td>
                     <td className="py-2 px-3 align-middle">
                       <div className="font-medium" style={{ color: "#1f2937" }}>
@@ -562,7 +562,7 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
                       className="py-2 px-3 text-right align-middle font-mono text-sm"
                       style={{ color: "#6b7280" }}
                     >
-                      —
+                      -
                     </td>
                     <td
                       className="py-2 px-3 text-right align-middle font-mono font-bold text-sm"

@@ -547,7 +547,7 @@ export function LandingPage() {
               {
                 icon: <SpeedIcon />,
                 title: "Quantity Price Breaks",
-                body: "Automatically calculate pricing for 5, 10, 25, 50 off — showing true volume economics.",
+                body: "Automatically calculate pricing for 5, 10, 25, and 50 off. Shows true volume economics.",
               },
             ].map((f, i) => (
               <div
@@ -632,7 +632,7 @@ export function LandingPage() {
                   fontSize: "0.9rem",
                 }}
               >
-                Every calculation is transparent — setup, machining, material,
+                Every calculation is transparent: setup, machining, material,
                 risk, and your margin are shown clearly before you commit to a
                 price.
               </p>
@@ -835,7 +835,7 @@ function CostBreakdownPanel() {
           marginBottom: 24,
         }}
       >
-        COST BREAKDOWN — ALUMINIUM BRACKET x 50
+        COST BREAKDOWN: ALUMINIUM BRACKET x 50
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {bars.map((b, i) => (

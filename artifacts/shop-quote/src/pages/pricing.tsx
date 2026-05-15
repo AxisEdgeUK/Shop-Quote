@@ -406,7 +406,7 @@ export function PricingPage() {
               },
               {
                 q: "Can I cancel?",
-                a: "Monthly plan cancels anytime. Lifetime is a one-off purchase — no subscriptions, no surprises.",
+                a: "Monthly plan cancels anytime. Lifetime is a one-off purchase. No subscriptions, no surprises.",
               },
             ].map(({ q, a }) => (
               <div

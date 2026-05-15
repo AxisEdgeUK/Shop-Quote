@@ -502,7 +502,7 @@ function DropZone({
         <div className="text-xs" style={{ color: "#484F58" }}>
           {showPersistHint
             ? "Drawing uploads are saved to this quote automatically."
-            : "The drawing stays visible while you build the quote — no tab switching required."}
+            : "The drawing stays visible while you build the quote. No tab switching required."}
         </div>
         <div className="flex items-center justify-center gap-3 mt-3 flex-wrap">
           {[

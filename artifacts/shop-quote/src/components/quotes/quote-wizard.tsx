@@ -162,7 +162,7 @@ function healthLabel(
       bg: "bg-amber-50",
       border: "border-amber-200",
       label: "Caution",
-      tip: "Margin is thin — double-check assumptions.",
+      tip: "Margin is thin. Double-check assumptions.",
     };
   return {
     color: "text-red-700",
@@ -205,7 +205,7 @@ const COST_CHECKS = [
   {
     field: "inspectionHours" as const,
     label: "Inspection time",
-    note: "Don't absorb this — log it.",
+    note: "Don't absorb this. Log it.",
   },
   {
     field: "materialWastagePercentage" as const,
@@ -215,7 +215,7 @@ const COST_CHECKS = [
   {
     field: "packaging" as const,
     label: "Packaging",
-    note: "Boxes, foam, tape — someone pays.",
+    note: "Boxes, foam, tape. Someone pays.",
   },
   {
     field: "delivery" as const,
@@ -225,7 +225,7 @@ const COST_CHECKS = [
   {
     field: "toolingAllowance" as const,
     label: "Tooling wear",
-    note: "Inserts, end mills, drills — all cost money.",
+    note: "Inserts, end mills, drills. All cost money.",
   },
   {
     field: "outsideProcessing" as const,
@@ -259,7 +259,7 @@ function CostCheckPanel({ item }: { item: any }) {
             className="text-xs text-amber-700 bg-amber-100/60 rounded px-2 py-1.5"
           >
             <span className="font-semibold">{c.label}</span>
-            <span className="text-amber-600"> — {c.note}</span>
+            <span className="text-amber-600">: {c.note}</span>
           </div>
         ))}
       </div>
@@ -281,7 +281,7 @@ function TemplatePicker({
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-primary" />
           <CardTitle className="text-base">
-            Quick Start — Apply a Template
+            Quick Start: Apply a Template
           </CardTitle>
         </div>
         <CardDescription>
@@ -673,7 +673,7 @@ export function QuoteWizard({
               {templateApplied && (
                 <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-2.5">
                   <Check className="w-4 h-4 shrink-0" />
-                  Template defaults applied — you can still edit everything in
+                  Template defaults applied. You can still edit everything in
                   step 3.
                   <button
                     type="button"
@@ -1047,8 +1047,8 @@ export function QuoteWizard({
                       </p>
                     ) : (
                       <p className="text-xs text-muted-foreground">
-                        No price breaks selected — quote will show a single
-                        price per line item.
+                        No price breaks selected. Quote will show a single price
+                        per line item.
                       </p>
                     );
                   })()}
@@ -1337,7 +1337,7 @@ export function QuoteWizard({
                             </div>
                             <div className="text-xs text-muted-foreground">
                               {field.value
-                                ? "Internal use only — not printed"
+                                ? "Internal use only. Not printed."
                                 : "Customer will see this line"}
                             </div>
                           </div>
@@ -1410,14 +1410,14 @@ export function QuoteWizard({
                 <CardHeader>
                   <CardTitle>Machining Assumptions</CardTitle>
                   <CardDescription>
-                    Time and effort estimates — adjust from template if needed
+                    Time and effort estimates (adjust from template if needed)
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-4">
                       <h3 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
-                        Time — total job
+                        Time (total job)
                       </h3>
                       <FormField
                         control={form.control}
@@ -1473,7 +1473,7 @@ export function QuoteWizard({
                     </div>
                     <div className="space-y-4">
                       <h3 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
-                        Time — per part
+                        Time (per part)
                       </h3>
                       <FormField
                         control={form.control}
@@ -2028,8 +2028,8 @@ export function QuoteWizard({
                         </div>
                         {!completedCustomer.email && (
                           <p className="text-xs text-amber-500">
-                            No email address on file for this customer — add one
-                            in Customers to auto-fill To: field.
+                            No email address on file for this customer. Add one
+                            in Customers to auto-fill the To: field.
                           </p>
                         )}
                         <p className="text-xs text-muted-foreground">

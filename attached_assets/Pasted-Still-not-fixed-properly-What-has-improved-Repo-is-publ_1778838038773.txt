@@ -1,0 +1,71 @@
+Still not fixed properly.
+
+What has improved:
+
+* Repo is public and updated.
+* Landing page exists and is readable.
+* Quote/PDF structure is still present.
+* The app is still a credible MVP skeleton.
+
+What is still wrong:
+
+1. **Code formatting is still poor**
+   Files are still compressed into long single-line sections. That means Replit has not actually run proper formatting. ([GitHub][1])
+
+2. **Drawing upload is still not persistent**
+   It still uses `URL.createObjectURL(file)`, so drawings disappear after the browser session. ([GitHub][2])
+
+3. **Price breaks still use default company rates**
+   `print-layout.tsx` still uses `settings.defaultHourlyRate` and `settings.defaultSetupRate`, not the selected machine rate. ([GitHub][1])
+
+4. **Repeated landing copy still exists**
+   “No hidden fees. No per-user charges…” is still repeated. ([GitHub][3])
+
+5. **Long dash punctuation still exists**
+   There are still visible long dashes in landing/PDF copy. ([GitHub][3])
+
+Paste this into Replit exactly:
+
+```text
+The previous fixes were not completed. Do not add features. Fix only these confirmed issues.
+
+1. Run Prettier properly across the entire codebase.
+Files must not remain compressed into long single-line TSX blocks.
+
+2. Replace DrawingViewer local object URL storage.
+Current problem:
+URL.createObjectURL(file) only works temporarily in the browser.
+
+Implement persistent upload storage so uploaded drawings remain attached to saved quotes after refresh/logout.
+
+3. Fix quantity price break calculations in print-layout.tsx.
+Current problem:
+It uses settings.defaultHourlyRate and settings.defaultSetupRate.
+
+Required:
+For each quote line item, use the selected machine's hourlyRate and setupRate.
+Only fall back to company defaults if no selected machine exists.
+
+4. Remove repeated pricing copy on landing page.
+Keep only one version of:
+No hidden fees. No per-user charges. No ERP complexity.
+
+5. Remove all long dashes and double hyphens from visible copy.
+Search for:
+—
+--
+Replace with normal punctuation.
+
+6. After fixing, provide evidence:
+- list files changed
+- confirm DrawingViewer no longer relies only on URL.createObjectURL
+- confirm print-layout price breaks use selected machine rates
+- confirm landing repeated copy removed
+- confirm no visible long dashes or double hyphens remain
+```
+
+Replit is saying it has fixed things, but the code says otherwise.
+
+[1]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/src/components/quotes/print-layout.tsx "raw.githubusercontent.com"
+[2]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/src/components/quotes/drawing-viewer.tsx "raw.githubusercontent.com"
+[3]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/src/pages/landing.tsx "raw.githubusercontent.com"
