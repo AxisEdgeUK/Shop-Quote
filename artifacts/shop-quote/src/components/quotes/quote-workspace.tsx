@@ -89,9 +89,9 @@ export function QuoteWorkspace({
           {/* Right — quote builder */}
           <div
             className="flex-1 overflow-y-auto h-full"
-            style={{ background: "hsl(var(--background))" }}
+            style={{ background: "#F5F7FA" }}
           >
-            <div className="p-5 xl:p-7 max-w-3xl">{children}</div>
+            <div className="p-6 xl:p-8 max-w-3xl">{children}</div>
           </div>
         </div>
       </div>
@@ -131,7 +131,7 @@ export function QuoteWorkspace({
           {mobileTab === "drawing" ? (
             <DrawingViewer quoteId={quoteId} />
           ) : (
-            <div className="h-full overflow-y-auto">
+            <div className="h-full overflow-y-auto" style={{ background: "#F5F7FA" }}>
               <div className="p-4 pb-28">{children}</div>
             </div>
           )}

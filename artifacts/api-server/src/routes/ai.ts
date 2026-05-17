@@ -9,23 +9,60 @@ const openai = new OpenAI({
   apiKey: process.env["AI_INTEGRATIONS_OPENAI_API_KEY"],
 });
 
+/* ── Material shorthand → full name mapping ─────────────────────
+   Common workshop shorthands recognised by UK/EU machine shops. */
+const MATERIAL_MAP: Record<string, string> = {
+  HE30: "Aluminium 6082-T6",
+  "6082": "Aluminium 6082-T6",
+  "6061": "Aluminium 6061-T6",
+  "7075": "Aluminium 7075-T6",
+  "2024": "Aluminium 2024-T3",
+  EN1A: "EN1A Free-Cutting Mild Steel",
+  EN3: "EN3 Mild Steel",
+  EN8: "EN8 Medium Carbon Steel",
+  EN24: "EN24T Alloy Steel",
+  EN24T: "EN24T Alloy Steel",
+  EN36: "EN36 Case-Hardening Steel",
+  "316": "Stainless Steel 316",
+  "316L": "Stainless Steel 316L",
+  "304": "Stainless Steel 304",
+  "303": "Stainless Steel 303",
+  "17-4PH": "Stainless Steel 17-4PH",
+  "174PH": "Stainless Steel 17-4PH",
+  S275: "S275 Structural Steel",
+  S355: "S355 Structural Steel",
+};
+
+function mapMaterial(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const normalized = raw.trim();
+  const key = normalized.toUpperCase().replace(/[-\s]/g, "");
+  for (const [k, v] of Object.entries(MATERIAL_MAP)) {
+    if (k.toUpperCase().replace(/[-\s]/g, "") === key) return v;
+  }
+  return normalized;
+}
+
 const IMAGE_PROMPT = `You are analyzing an engineering drawing for a CNC machine shop.
 
 Extract key quoting information from this drawing and return ONLY a valid JSON object.
 
 Return a JSON object with these fields (only include fields you can detect with confidence):
 {
-  "material": "string (e.g. Aluminium 6082-T6, Stainless Steel 316, EN8)",
+  "material": "string (e.g. Aluminium 6082-T6, Stainless Steel 316, EN8, HE30)",
+  "materialConfidence": "low" | "medium" | "high",
   "quantity": number,
   "drawingNumber": "string",
   "revision": "string (e.g. A, B, 01, Rev2)",
-  "tolerances": ["array of specific tight tolerance notes found, e.g. 0.01mm, H7, ±0.005"],
+  "tolerances": ["array of specific tight tolerance notes found, e.g. ±0.01, H7, ±0.005, Ra 1.6"],
   "coatings": ["array of coating or finish requirements, e.g. Anodise black, Zinc plate, Hard chrome"],
   "inspectionNotes": ["array of inspection or quality requirements, e.g. 100% inspection, CMM report, FAIR"]
 }
 
 Rules:
 - Only include fields you can clearly identify from the drawing
+- For materialConfidence: use "high" if the material is clearly stated, "medium" if reasonably inferred, "low" if uncertain or guessed
+- Recognise common workshop shorthand: HE30=Aluminium 6082-T6, EN8=medium carbon steel, 316=stainless steel 316, etc.
 - Do not guess or invent information
 - If the drawing is unreadable or has no detectable text, return { "unreadable": true }
 - Return ONLY valid JSON, no markdown, no explanation`;
@@ -86,14 +123,26 @@ router.post("/ai/scan-drawing", async (req, res) => {
       return;
     }
 
+    const conf = parsed.materialConfidence as
+      | "low"
+      | "medium"
+      | "high"
+      | undefined;
+    const validConf =
+      conf === "low" || conf === "medium" || conf === "high" ? conf : undefined;
+
     res.json({
-      material: parsed.material,
-      quantity: typeof parsed.quantity === "number" ? parsed.quantity : undefined,
+      material: mapMaterial(parsed.material),
+      materialConfidence: validConf,
+      quantity:
+        typeof parsed.quantity === "number" ? parsed.quantity : undefined,
       drawingNumber: parsed.drawingNumber,
       revision: parsed.revision,
       tolerances: Array.isArray(parsed.tolerances) ? parsed.tolerances : [],
       coatings: Array.isArray(parsed.coatings) ? parsed.coatings : [],
-      inspectionNotes: Array.isArray(parsed.inspectionNotes) ? parsed.inspectionNotes : [],
+      inspectionNotes: Array.isArray(parsed.inspectionNotes)
+        ? parsed.inspectionNotes
+        : [],
       unreadable: parsed.unreadable === true,
     });
   } catch (err) {

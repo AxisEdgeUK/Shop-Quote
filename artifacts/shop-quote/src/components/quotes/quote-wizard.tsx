@@ -341,6 +341,30 @@ type SuggestionItem = {
   numericValue?: number;
 };
 
+const CONFIDENCE_LABELS: Record<
+  "low" | "medium" | "high",
+  { label: string; bg: string; color: string; border: string }
+> = {
+  low: {
+    label: "Low confidence",
+    bg: "rgba(245,158,11,0.08)",
+    color: "#92400E",
+    border: "rgba(245,158,11,0.25)",
+  },
+  medium: {
+    label: "Medium confidence",
+    bg: "rgba(29,143,255,0.08)",
+    color: "#1D4ED8",
+    border: "rgba(29,143,255,0.2)",
+  },
+  high: {
+    label: "High confidence",
+    bg: "rgba(34,197,94,0.08)",
+    color: "#166534",
+    border: "rgba(34,197,94,0.2)",
+  },
+};
+
 function buildSuggestions(
   scan: DrawingScanResult,
   idx: number,
@@ -398,8 +422,10 @@ function ScanAssistPanel({
   onDismiss: () => void;
 }) {
   const suggestions = buildSuggestions(scan, activeIndex);
-  const [statuses, setStatuses] = useState<Record<number, "pending" | "accepted" | "ignored">>(
-    () => Object.fromEntries(suggestions.map((_, i) => [i, "pending" as const])),
+  const [statuses, setStatuses] = useState<
+    Record<number, "pending" | "accepted" | "ignored">
+  >(() =>
+    Object.fromEntries(suggestions.map((_, i) => [i, "pending" as const])),
   );
 
   if (scan.unreadable) {
@@ -408,7 +434,10 @@ function ScanAssistPanel({
         className="rounded border px-4 py-3 flex items-start gap-2.5"
         style={{ borderColor: "#E2E8F0", background: "#F8FAFC" }}
       >
-        <ScanLine className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "#94A3B8" }} />
+        <ScanLine
+          className="w-4 h-4 mt-0.5 shrink-0"
+          style={{ color: "#94A3B8" }}
+        />
         <div className="flex-1 min-w-0">
           <span className="text-xs font-semibold" style={{ color: "#475569" }}>
             Drawing Scan Assist
@@ -424,9 +453,15 @@ function ScanAssistPanel({
     );
   }
 
-  if (suggestions.length === 0) return null;
+  const lowConfidenceOnly =
+    scan.materialConfidence === "low" && suggestions.length === 0;
 
-  const allActioned = Object.values(statuses).every((s) => s !== "pending");
+  if (suggestions.length === 0 && !lowConfidenceOnly) return null;
+
+  const pendingIndices = Object.entries(statuses)
+    .filter(([, s]) => s === "pending")
+    .map(([i]) => Number(i));
+  const allActioned = pendingIndices.length === 0;
 
   const accept = (i: number, item: SuggestionItem) => {
     onApply(item.fieldPath, item.numericValue ?? item.displayValue);
@@ -434,6 +469,17 @@ function ScanAssistPanel({
   };
   const ignore = (i: number) =>
     setStatuses((p) => ({ ...p, [i]: "ignored" }));
+  const applyAll = () => {
+    const next = { ...statuses };
+    pendingIndices.forEach((i) => {
+      const item = suggestions[i];
+      if (item) {
+        onApply(item.fieldPath, item.numericValue ?? item.displayValue);
+        next[i] = "accepted";
+      }
+    });
+    setStatuses(next);
+  };
 
   return (
     <div
@@ -445,7 +491,10 @@ function ScanAssistPanel({
         className="flex items-center gap-2 px-4 py-2.5"
         style={{ borderBottom: "1px solid #F1F5F9" }}
       >
-        <ScanLine className="w-3.5 h-3.5 shrink-0" style={{ color: "#1D8FFF" }} />
+        <ScanLine
+          className="w-3.5 h-3.5 shrink-0"
+          style={{ color: "#1D8FFF" }}
+        />
         <span className="text-xs font-semibold" style={{ color: "#334155" }}>
           Drawing Scan Assist
         </span>
@@ -460,6 +509,20 @@ function ScanAssistPanel({
           Suggestions only
         </span>
         <div className="ml-auto flex items-center gap-2">
+          {pendingIndices.length > 1 && (
+            <button
+              type="button"
+              onClick={applyAll}
+              className="text-xs font-semibold px-2.5 py-0.5 rounded transition-colors"
+              style={{
+                background: "rgba(29,143,255,0.1)",
+                color: "#1D8FFF",
+                border: "1px solid rgba(29,143,255,0.22)",
+              }}
+            >
+              Apply all
+            </button>
+          )}
           {allActioned && (
             <button
               type="button"
@@ -470,83 +533,174 @@ function ScanAssistPanel({
               Dismiss
             </button>
           )}
-          <button type="button" onClick={onDismiss} style={{ color: "#CBD5E1" }}>
+          <button
+            type="button"
+            onClick={onDismiss}
+            style={{ color: "#CBD5E1" }}
+          >
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Suggestion rows */}
-      <div>
-        {suggestions.map((item, i) => {
-          const status = statuses[i] ?? "pending";
-          return (
-            <div
-              key={i}
-              className="flex items-center gap-3 px-4 py-2"
-              style={{
-                borderBottom: i < suggestions.length - 1 ? "1px solid #F1F5F9" : undefined,
-                opacity: status !== "pending" ? 0.45 : 1,
-              }}
-            >
-              <span
-                className="text-xs shrink-0 w-40"
-                style={{ color: "#64748B" }}
-              >
-                {item.label}
-              </span>
-              <span
-                className="text-xs font-medium flex-1 min-w-0 truncate font-mono"
-                style={{ color: "#1E293B" }}
-              >
-                {item.displayValue}
-              </span>
-              {status === "accepted" ? (
-                <span className="text-xs flex items-center gap-1" style={{ color: "#22C55E" }}>
-                  <Check className="w-3 h-3" /> Applied
-                </span>
-              ) : status === "ignored" ? (
-                <span className="text-xs" style={{ color: "#94A3B8" }}>Ignored</span>
-              ) : (
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => accept(i, item)}
-                    className="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold transition-colors"
-                    style={{
-                      background: "rgba(34,197,94,0.08)",
-                      color: "#16A34A",
-                      border: "1px solid rgba(34,197,94,0.2)",
-                    }}
-                  >
-                    <Check className="w-3 h-3" />
-                    Accept
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => ignore(i)}
-                    className="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold transition-colors"
-                    style={{
-                      background: "rgba(148,163,184,0.08)",
-                      color: "#64748B",
-                      border: "1px solid rgba(148,163,184,0.2)",
-                    }}
-                  >
-                    Ignore
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+      {/* Low confidence material warning */}
+      {scan.materialConfidence === "low" && (
+        <div
+          className="flex items-start gap-2 px-4 py-2.5"
+          style={{
+            background: "rgba(245,158,11,0.05)",
+            borderBottom: "1px solid rgba(245,158,11,0.14)",
+          }}
+        >
+          <AlertTriangle
+            className="w-3.5 h-3.5 mt-0.5 shrink-0"
+            style={{ color: "#D97706" }}
+          />
+          <span className="text-xs" style={{ color: "#92400E" }}>
+            Material not confidently detected. Please review manually.
+          </span>
+        </div>
+      )}
 
-      {/* Footer safety note */}
+      {/* Suggestion rows */}
+      {suggestions.length > 0 && (
+        <div>
+          {suggestions.map((item, i) => {
+            const status = statuses[i] ?? "pending";
+            const conf =
+              item.label === "Suggested material" && scan.materialConfidence
+                ? CONFIDENCE_LABELS[scan.materialConfidence]
+                : null;
+            return (
+              <div
+                key={i}
+                className="flex items-center gap-3 px-4 py-2"
+                style={{
+                  borderBottom:
+                    i < suggestions.length - 1
+                      ? "1px solid #F1F5F9"
+                      : undefined,
+                  opacity: status !== "pending" ? 0.4 : 1,
+                  transition: "opacity 0.15s",
+                }}
+              >
+                <span
+                  className="text-xs shrink-0 w-36"
+                  style={{ color: "#64748B" }}
+                >
+                  {item.label}
+                </span>
+                <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-hidden">
+                  <span
+                    className="text-xs font-medium truncate font-mono"
+                    style={{ color: "#1E293B" }}
+                  >
+                    {item.displayValue}
+                  </span>
+                  {conf && (
+                    <span
+                      className="text-xs px-1.5 py-px rounded shrink-0"
+                      style={{
+                        background: conf.bg,
+                        color: conf.color,
+                        border: `1px solid ${conf.border}`,
+                      }}
+                    >
+                      {conf.label}
+                    </span>
+                  )}
+                </div>
+                {status === "accepted" ? (
+                  <span
+                    className="text-xs flex items-center gap-1 shrink-0"
+                    style={{ color: "#22C55E" }}
+                  >
+                    <Check className="w-3 h-3" /> Applied
+                  </span>
+                ) : status === "ignored" ? (
+                  <span
+                    className="text-xs shrink-0"
+                    style={{ color: "#94A3B8" }}
+                  >
+                    Ignored
+                  </span>
+                ) : (
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => accept(i, item)}
+                      className="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold transition-colors"
+                      style={{
+                        background: "rgba(34,197,94,0.08)",
+                        color: "#16A34A",
+                        border: "1px solid rgba(34,197,94,0.2)",
+                      }}
+                    >
+                      <Check className="w-3 h-3" />
+                      Accept
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => ignore(i)}
+                      className="px-2 py-0.5 rounded text-xs font-semibold transition-colors"
+                      style={{
+                        background: "rgba(148,163,184,0.08)",
+                        color: "#64748B",
+                        border: "1px solid rgba(148,163,184,0.2)",
+                      }}
+                    >
+                      Ignore
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Tight tolerance summary — shown when multiple tolerances detected */}
+      {scan.tolerances.length > 1 && (
+        <div
+          className="px-4 py-3"
+          style={{
+            borderTop: "1px solid #F1F5F9",
+            background: "#FAFBFC",
+          }}
+        >
+          <p
+            className="text-xs font-semibold mb-2"
+            style={{ color: "#475569" }}
+          >
+            Possible tight tolerances detected
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {scan.tolerances.map((t, i) => (
+              <span
+                key={i}
+                className="text-xs font-mono px-2 py-0.5 rounded"
+                style={{
+                  background: "rgba(29,143,255,0.06)",
+                  color: "#334155",
+                  border: "1px solid rgba(29,143,255,0.12)",
+                }}
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Safety note */}
       <div
         className="flex items-center gap-2 px-4 py-2"
         style={{ borderTop: "1px solid #F1F5F9", background: "#FAFBFC" }}
       >
-        <AlertTriangle className="w-3 h-3 shrink-0" style={{ color: "#F59E0B" }} />
+        <AlertTriangle
+          className="w-3 h-3 shrink-0"
+          style={{ color: "#F59E0B" }}
+        />
         <span className="text-xs" style={{ color: "#64748B" }}>
           Always check the drawing before sending a quote.
         </span>
@@ -874,9 +1028,19 @@ export function QuoteWizard({
     ) : null;
 
   return (
-    <div className="space-y-6">
-      {/* Step indicator */}
-      <div className="flex items-center gap-1 text-sm text-muted-foreground flex-wrap">
+    <div>
+      {/* Step indicator — sticky at top of scroll panel */}
+      <div
+        className="flex items-center gap-1 text-sm text-muted-foreground flex-wrap sticky top-0 z-10 py-4 mb-2"
+        style={{
+          background: "#F5F7FA",
+          borderBottom: "1px solid rgba(0,0,0,0.06)",
+          marginLeft: "-1.5rem",
+          marginRight: "-1.5rem",
+          paddingLeft: "1.5rem",
+          paddingRight: "1.5rem",
+        }}
+      >
         {STEPS.map((step, index) => (
           <div key={step} className="flex items-center gap-1">
             <div
@@ -905,7 +1069,7 @@ export function QuoteWizard({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleFinalSubmit)}
-          className="space-y-4"
+          className="space-y-5"
         >
           {/* ── STEP 1: QUOTE INFO ──────────────────────────────────── */}
           {currentStep === 0 && (
@@ -2373,7 +2537,17 @@ export function QuoteWizard({
 
           {/* Navigation */}
           {currentStep < 4 && (
-            <div className="flex justify-between pt-2">
+            <div
+              className="flex justify-between sticky bottom-0 py-3 mt-2"
+              style={{
+                background: "#F5F7FA",
+                borderTop: "1px solid rgba(0,0,0,0.06)",
+                marginLeft: "-1.5rem",
+                marginRight: "-1.5rem",
+                paddingLeft: "1.5rem",
+                paddingRight: "1.5rem",
+              }}
+            >
               <Button
                 type="button"
                 variant="outline"

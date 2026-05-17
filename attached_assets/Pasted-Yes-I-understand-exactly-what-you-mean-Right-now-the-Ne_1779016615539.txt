@@ -1,0 +1,185 @@
+Yes, I understand exactly what you mean.
+
+Right now the New Quote page likely feels like:
+
+* a webpage inside a webpage,
+* with inner scrolling panels,
+* nested scroll areas,
+* awkward movement,
+* sections that feel disconnected.
+
+You want it to feel:
+
+> like one integrated engineering workspace.
+
+Meaning:
+
+* smooth full-page movement,
+* not multiple scroll containers fighting each other,
+* the drawing and quote panel feeling locked together,
+* more like CAD/CAM software,
+* less like a SaaS dashboard.
+
+That is the correct instinct.
+
+Nested scroll containers are one of the fastest ways to make industrial software feel:
+
+* clunky,
+* cheap,
+* web-app-like.
+
+You want:
+
+## one primary workspace flow.
+
+Very good UX observation.
+
+Paste this into Replit:
+
+```text
+Refine the SHOP Quote estimating workspace and Drawing Scan Assist system.
+
+PRIORITY 1: FIX THE NEW QUOTE SCROLLING EXPERIENCE
+
+Current issue:
+The New Quote page feels like a webpage inside a webpage.
+
+There are nested scroll areas and internal scrolling containers that make the app feel disconnected and less premium.
+
+Goal:
+The estimating workspace should feel like one integrated engineering environment.
+
+Requirements:
+
+1. Remove awkward nested scrolling where possible.
+
+2. Avoid multiple competing scroll containers.
+
+3. The drawing workspace and quote workspace should feel visually connected.
+
+4. The app should scroll naturally and smoothly like:
+- CAD/CAM software
+- industrial control software
+- high-end engineering applications
+
+5. Keep:
+- sticky quote summary
+- sticky actions where useful
+
+But avoid:
+- boxed-in scroll windows
+- double scrollbars
+- disconnected panel movement
+
+6. The estimating workspace should feel:
+- smooth
+- integrated
+- premium
+- engineered
+- calm
+
+7. Improve spacing and alignment while doing this.
+
+8. Ensure the experience remains strong on:
+- desktop
+- iPad
+- iPhone
+
+PRIORITY 2: IMPROVE DRAWING SCAN ASSIST
+
+Keep the feature simple and restrained.
+
+Do not overcomplicate.
+
+Add:
+
+1. Apply All Suggestions button
+
+Allow user to accept all detected suggestions at once.
+
+This should populate:
+- material
+- quantity
+- revision
+- drawing number
+- notes
+
+2. Tight tolerance summary
+
+Add a small simple summary panel:
+
+Possible tight tolerances detected:
+- ±0.01
+- ±0.02
+- Ra 1.6
+
+Keep it minimal.
+
+3. Material not found state
+
+If material confidence is low:
+Show:
+“Material not confidently detected. Please review manually.”
+
+This is important for trust.
+
+4. Improve confidence wording
+
+Use:
+- Low confidence
+- Medium confidence
+- High confidence
+
+Never imply certainty.
+
+5. Add common material mapping support
+
+Start recognising common workshop material shorthand:
+- HE30
+- 6082
+- 7075
+- EN1A
+- EN8
+- EN24T
+- 316
+- 304
+- 17-4PH
+- S275
+
+Map shorthand to standard material suggestions where possible.
+
+6. Keep highlighting subtle
+
+Use only:
+- one highlight colour
+- restrained overlays
+- minimal visual noise
+
+Do not use:
+- multiple colours
+- flashing highlights
+- aggressive AI visuals
+
+7. Preserve manual control
+
+The machinist must always remain in control.
+
+The scanner is:
+assistive only.
+
+Never:
+automatic quoting.
+
+FINAL DESIGN GOAL
+
+The entire quoting workspace should now feel:
+- smoother
+- calmer
+- more integrated
+- more premium
+- more like engineering software
+- less like a generic web dashboard
+
+Do not add new major features.
+Focus on refinement, trust, and workflow quality.
+```

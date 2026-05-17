@@ -2,6 +2,7 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 
 export type DrawingScanResult = {
   material?: string;
+  materialConfidence?: "low" | "medium" | "high";
   quantity?: number;
   drawingNumber?: string;
   revision?: string;
