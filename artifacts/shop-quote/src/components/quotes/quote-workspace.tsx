@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { Link } from "wouter";
 import { ArrowLeft, FileText, PenLine } from "lucide-react";
 import { DrawingViewer } from "./drawing-viewer";
+import { ScanContextProvider } from "@/contexts/scan-context";
 
 interface QuoteWorkspaceProps {
   title: string;
@@ -49,7 +50,7 @@ export function QuoteWorkspace({
   }, []);
 
   return (
-    <>
+    <ScanContextProvider>
       {/* ── DESKTOP ─── split-screen workspace ──
            Main has md:pt-0 (no top padding on desktop), p-8 on sides/bottom.
            Remove horizontal + bottom padding only. */}
@@ -136,7 +137,7 @@ export function QuoteWorkspace({
           )}
         </div>
       </div>
-    </>
+    </ScanContextProvider>
   );
 }
 

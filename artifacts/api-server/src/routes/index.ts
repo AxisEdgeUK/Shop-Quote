@@ -6,6 +6,7 @@ import quotesRouter from "./quotes";
 import settingsRouter from "./settings";
 import dashboardRouter from "./dashboard";
 import storageRouter from "./storage";
+import aiRouter from "./ai";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(machinesRouter);
 router.use(quotesRouter);
 router.use(settingsRouter);
 router.use(storageRouter);
+router.use(aiRouter);
 
 export default router;

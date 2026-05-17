@@ -1,0 +1,123 @@
+```text
+Add a simple optional Drawing Scan Assist feature to SHOP Quote.
+
+Keep this feature minimal, practical, and premium.
+
+Do not overcomplicate it.
+
+Purpose:
+Help a machine shop owner quickly identify important quoting information on a single drawing PDF.
+
+This is an optional assistive feature only.
+
+Do not present this as:
+- AI quoting
+- automatic estimating
+- automatic engineering analysis
+
+FEATURE NAME:
+Drawing Scan Assist
+
+WORKFLOW:
+Inside the drawing viewer, add a button:
+Scan Drawing
+
+When clicked, attempt to identify:
+- material
+- quantity
+- drawing number
+- revision
+- tight tolerances
+- coatings / finishes
+- inspection notes
+
+IMPORTANT:
+All detected information must be treated as suggestions only.
+
+Use wording:
+- Suggested material
+- Suggested quantity
+- Possible tight tolerance
+- Possible coating/finish
+
+Never use:
+- confirmed
+- guaranteed
+- automatic quote
+
+HIGHLIGHTING:
+Keep highlighting extremely simple.
+
+Use ONE subtle highlight colour only across the drawing.
+
+Do not use multiple colours.
+
+Highlight:
+- tolerances
+- material
+- coatings
+- finishes
+- inspection notes
+
+The goal is simply:
+help the estimator visually spot important areas faster.
+
+SIDE PANEL:
+Add a small clean side panel showing:
+- suggested material
+- suggested quantity
+- drawing number
+- revision
+- flagged tolerance notes
+- flagged coating/finish notes
+
+Each suggestion must have:
+- Accept
+- Edit
+- Ignore
+
+When accepted:
+populate the relevant quote fields automatically.
+
+MANUAL CONTROL:
+The user must always remain in control.
+
+Allow manual editing of:
+- material
+- quantity
+- revision
+- notes
+- finish/coating
+
+SAFETY NOTE:
+Add a small note:
+“Always check the drawing before sending a quote.”
+
+SCOPE LIMITS:
+Do not add:
+- automatic pricing
+- cycle time estimation
+- STEP analysis
+- geometry extraction
+- drawing pack automation
+- CAM functionality
+
+If scanned/image PDFs cannot be read properly, show:
+“Unable to detect drawing text. Please review manually.”
+
+DESIGN:
+Keep the feature:
+- simple
+- industrial
+- premium
+- restrained
+
+Avoid:
+- flashy AI styling
+- colourful overlays
+- excessive animations
+- complex engineering UI
+
+FINAL GOAL:
+Speed up drawing review slightly while keeping the estimator fully in control.
+```

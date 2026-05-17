@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
+import { useScanContext, type DrawingScanResult } from "@/contexts/scan-context";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -44,6 +45,8 @@ import {
   Save,
   AlertTriangle,
   Zap,
+  ScanLine,
+  X,
 } from "lucide-react";
 import { Link } from "wouter";
 import { QUOTE_TEMPLATES, QuoteTemplate } from "./quote-templates";
@@ -330,6 +333,228 @@ function TemplatePicker({
   );
 }
 
+/* ── Drawing Scan Assist panel ───────────────────────────────── */
+type SuggestionItem = {
+  label: string;
+  displayValue: string;
+  fieldPath: string;
+  numericValue?: number;
+};
+
+function buildSuggestions(
+  scan: DrawingScanResult,
+  idx: number,
+): SuggestionItem[] {
+  const items: SuggestionItem[] = [];
+  if (scan.material)
+    items.push({
+      label: "Suggested material",
+      displayValue: scan.material,
+      fieldPath: `lineItems.${idx}.material`,
+    });
+  if (scan.drawingNumber)
+    items.push({
+      label: "Drawing number",
+      displayValue: scan.drawingNumber,
+      fieldPath: `lineItems.${idx}.drawingNumber`,
+    });
+  if (scan.revision)
+    items.push({
+      label: "Revision",
+      displayValue: scan.revision,
+      fieldPath: `lineItems.${idx}.revision`,
+    });
+  if (scan.quantity != null)
+    items.push({
+      label: "Suggested quantity",
+      displayValue: String(scan.quantity),
+      fieldPath: `lineItems.${idx}.quantity`,
+      numericValue: scan.quantity,
+    });
+  if (scan.tolerances.length > 0)
+    items.push({
+      label: "Possible tight tolerance",
+      displayValue: scan.tolerances[0],
+      fieldPath: `lineItems.${idx}.toleranceClass`,
+    });
+  if (scan.coatings.length > 0)
+    items.push({
+      label: "Possible coating / finish",
+      displayValue: scan.coatings.join("; "),
+      fieldPath: `lineItems.${idx}.surfaceFinish`,
+    });
+  return items;
+}
+
+function ScanAssistPanel({
+  scan,
+  activeIndex,
+  onApply,
+  onDismiss,
+}: {
+  scan: DrawingScanResult;
+  activeIndex: number;
+  onApply: (path: string, value: string | number) => void;
+  onDismiss: () => void;
+}) {
+  const suggestions = buildSuggestions(scan, activeIndex);
+  const [statuses, setStatuses] = useState<Record<number, "pending" | "accepted" | "ignored">>(
+    () => Object.fromEntries(suggestions.map((_, i) => [i, "pending" as const])),
+  );
+
+  if (scan.unreadable) {
+    return (
+      <div
+        className="rounded border px-4 py-3 flex items-start gap-2.5"
+        style={{ borderColor: "#E2E8F0", background: "#F8FAFC" }}
+      >
+        <ScanLine className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "#94A3B8" }} />
+        <div className="flex-1 min-w-0">
+          <span className="text-xs font-semibold" style={{ color: "#475569" }}>
+            Drawing Scan Assist
+          </span>
+          <p className="text-xs mt-0.5" style={{ color: "#64748B" }}>
+            Unable to detect drawing text. Please review manually.
+          </p>
+        </div>
+        <button type="button" onClick={onDismiss} style={{ color: "#CBD5E1" }}>
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  }
+
+  if (suggestions.length === 0) return null;
+
+  const allActioned = Object.values(statuses).every((s) => s !== "pending");
+
+  const accept = (i: number, item: SuggestionItem) => {
+    onApply(item.fieldPath, item.numericValue ?? item.displayValue);
+    setStatuses((p) => ({ ...p, [i]: "accepted" }));
+  };
+  const ignore = (i: number) =>
+    setStatuses((p) => ({ ...p, [i]: "ignored" }));
+
+  return (
+    <div
+      className="rounded border overflow-hidden"
+      style={{ borderColor: "#E2E8F0", background: "#F8FAFC" }}
+    >
+      {/* Header */}
+      <div
+        className="flex items-center gap-2 px-4 py-2.5"
+        style={{ borderBottom: "1px solid #F1F5F9" }}
+      >
+        <ScanLine className="w-3.5 h-3.5 shrink-0" style={{ color: "#1D8FFF" }} />
+        <span className="text-xs font-semibold" style={{ color: "#334155" }}>
+          Drawing Scan Assist
+        </span>
+        <span
+          className="text-xs px-1.5 py-0.5 rounded font-medium"
+          style={{
+            background: "rgba(29,143,255,0.08)",
+            color: "#1D8FFF",
+            border: "1px solid rgba(29,143,255,0.15)",
+          }}
+        >
+          Suggestions only
+        </span>
+        <div className="ml-auto flex items-center gap-2">
+          {allActioned && (
+            <button
+              type="button"
+              onClick={onDismiss}
+              className="text-xs font-medium"
+              style={{ color: "#1D8FFF" }}
+            >
+              Dismiss
+            </button>
+          )}
+          <button type="button" onClick={onDismiss} style={{ color: "#CBD5E1" }}>
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Suggestion rows */}
+      <div>
+        {suggestions.map((item, i) => {
+          const status = statuses[i] ?? "pending";
+          return (
+            <div
+              key={i}
+              className="flex items-center gap-3 px-4 py-2"
+              style={{
+                borderBottom: i < suggestions.length - 1 ? "1px solid #F1F5F9" : undefined,
+                opacity: status !== "pending" ? 0.45 : 1,
+              }}
+            >
+              <span
+                className="text-xs shrink-0 w-40"
+                style={{ color: "#64748B" }}
+              >
+                {item.label}
+              </span>
+              <span
+                className="text-xs font-medium flex-1 min-w-0 truncate font-mono"
+                style={{ color: "#1E293B" }}
+              >
+                {item.displayValue}
+              </span>
+              {status === "accepted" ? (
+                <span className="text-xs flex items-center gap-1" style={{ color: "#22C55E" }}>
+                  <Check className="w-3 h-3" /> Applied
+                </span>
+              ) : status === "ignored" ? (
+                <span className="text-xs" style={{ color: "#94A3B8" }}>Ignored</span>
+              ) : (
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => accept(i, item)}
+                    className="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold transition-colors"
+                    style={{
+                      background: "rgba(34,197,94,0.08)",
+                      color: "#16A34A",
+                      border: "1px solid rgba(34,197,94,0.2)",
+                    }}
+                  >
+                    <Check className="w-3 h-3" />
+                    Accept
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => ignore(i)}
+                    className="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold transition-colors"
+                    style={{
+                      background: "rgba(148,163,184,0.08)",
+                      color: "#64748B",
+                      border: "1px solid rgba(148,163,184,0.2)",
+                    }}
+                  >
+                    Ignore
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Footer safety note */}
+      <div
+        className="flex items-center gap-2 px-4 py-2"
+        style={{ borderTop: "1px solid #F1F5F9", background: "#FAFBFC" }}
+      >
+        <AlertTriangle className="w-3 h-3 shrink-0" style={{ color: "#F59E0B" }} />
+        <span className="text-xs" style={{ color: "#64748B" }}>
+          Always check the drawing before sending a quote.
+        </span>
+      </div>
+    </div>
+  );
+}
+
 /* ── Props ───────────────────────────────────────────────────── */
 interface QuoteWizardProps {
   initialValues?: Partial<QuoteFormValues>;
@@ -346,6 +571,8 @@ export function QuoteWizard({
   isSubmitting,
   savedQuoteId,
 }: QuoteWizardProps) {
+  const { scanResult } = useScanContext();
+  const [scanDismissed, setScanDismissed] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [templateApplied, setTemplateApplied] = useState(false);
   const [quoteMode, setQuoteMode] = useState<"basic" | "advanced">(() => {
@@ -1084,6 +1311,14 @@ export function QuoteWizard({
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {scanResult && !scanDismissed && (
+                  <ScanAssistPanel
+                    scan={scanResult}
+                    activeIndex={activeLineItemIndex}
+                    onApply={(path, value) => form.setValue(path as any, value, { shouldDirty: true })}
+                    onDismiss={() => setScanDismissed(true)}
+                  />
+                )}
                 <PartTabs />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField

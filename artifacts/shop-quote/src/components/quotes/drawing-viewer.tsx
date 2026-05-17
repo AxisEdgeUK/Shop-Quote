@@ -11,7 +11,9 @@ import {
   Check,
   CloudOff,
   Loader,
+  ScanLine,
 } from "lucide-react";
+import { useScanContext } from "@/contexts/scan-context";
 
 type DrawingFile = {
   file?: File;
@@ -66,6 +68,36 @@ function objectServeUrl(objectPath: string) {
   return "/api" + objectPath.replace(/^\/objects/, "/storage/objects");
 }
 
+const MAX_SCAN_BYTES = 10 * 1024 * 1024; // 10 MB
+
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve(result.split(",")[1]);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function urlToBase64(url: string): Promise<{ base64: string; mimeType: string }> {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error("Failed to fetch drawing");
+  const blob = await resp.blob();
+  const mimeType = blob.type || "application/octet-stream";
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve({ base64: result.split(",")[1], mimeType });
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 export function DrawingViewer({ quoteId }: { quoteId?: number }) {
   const [drawing, setDrawing] = useState<DrawingFile | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -76,6 +108,8 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
   const [uploadState, setUploadState] = useState<
     "idle" | "uploading" | "saved" | "error"
   >("idle");
+  const [scanState, setScanState] = useState<"idle" | "scanning" | "error">("idle");
+  const { setScanResult } = useScanContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastTouchDist = useRef<number | null>(null);
@@ -239,6 +273,43 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
     }
   };
 
+  const handleScan = useCallback(async () => {
+    if (!drawing || scanState === "scanning") return;
+    setScanState("scanning");
+    setScanResult(null);
+    try {
+      let base64: string;
+      let mimeType: string;
+
+      if (drawing.file) {
+        if (drawing.file.size > MAX_SCAN_BYTES) {
+          setScanState("error");
+          setTimeout(() => setScanState("idle"), 3000);
+          return;
+        }
+        mimeType = drawing.file.type || (drawing.type === "pdf" ? "application/pdf" : "image/png");
+        base64 = await fileToBase64(drawing.file);
+      } else {
+        const fetched = await urlToBase64(drawing.url);
+        base64 = fetched.base64;
+        mimeType = fetched.mimeType || (drawing.type === "pdf" ? "application/pdf" : "image/png");
+      }
+
+      const resp = await fetch("/api/ai/scan-drawing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageData: base64, mimeType }),
+      });
+      if (!resp.ok) throw new Error("Scan failed");
+      const result = await resp.json();
+      setScanResult(result);
+      setScanState("idle");
+    } catch {
+      setScanState("error");
+      setTimeout(() => setScanState("idle"), 3000);
+    }
+  }, [drawing, scanState, setScanResult]);
+
   const clearDrawing = async () => {
     if (drawing?.file) URL.revokeObjectURL(drawing.url);
     if (drawing?.persistedId && quoteId) {
@@ -246,6 +317,7 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
         method: "DELETE",
       });
     }
+    setScanResult(null);
     setDrawing(null);
   };
 
@@ -354,6 +426,41 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
                 danger
               />
             </>
+          )}
+          {drawing && (
+            <button
+              type="button"
+              onClick={handleScan}
+              disabled={scanState === "scanning"}
+              title="Scan drawing for quoting information"
+              className="flex items-center gap-1 ml-1 px-2.5 py-1 rounded text-xs font-semibold transition-all disabled:opacity-60"
+              style={{
+                background:
+                  scanState === "error"
+                    ? "rgba(239,68,68,0.12)"
+                    : "rgba(29,143,255,0.08)",
+                color: scanState === "error" ? "#f87171" : BLUE,
+                border: `1px solid ${scanState === "error" ? "rgba(239,68,68,0.3)" : "rgba(29,143,255,0.22)"}`,
+                minHeight: 26,
+              }}
+            >
+              {scanState === "scanning" ? (
+                <>
+                  <Loader className="w-3 h-3 animate-spin" />
+                  Scanning…
+                </>
+              ) : scanState === "error" ? (
+                <>
+                  <X className="w-3 h-3" />
+                  Scan failed
+                </>
+              ) : (
+                <>
+                  <ScanLine className="w-3 h-3" />
+                  Scan Drawing
+                </>
+              )}
+            </button>
           )}
           <button
             type="button"
