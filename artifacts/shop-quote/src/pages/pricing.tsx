@@ -228,7 +228,7 @@ export function PricingPage() {
                 </span>
               </div>
               <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 36 }}>
-                per month, cancel anytime
+                per month, minimum 12 months
               </div>
               <div
                 style={{

@@ -720,7 +720,7 @@ export function LandingPage() {
             <PricingCard
               label="MONTHLY"
               price="£92.50"
-              period="per month, cancel anytime"
+              period="per month, minimum 12 months"
               features={[
                 "Unlimited quotes",
                 "Unlimited customers",
