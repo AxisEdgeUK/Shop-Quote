@@ -1029,16 +1029,14 @@ export function QuoteWizard({
 
   return (
     <div>
-      {/* Step indicator — sticky at top of scroll panel */}
+      {/* Step indicator — sticky:
+           Desktop: sticks just below the 44px workspace header (top-[44px])
+           Mobile:  sticks to top of the overflow-y-auto scroll container (top-0) */}
       <div
-        className="flex items-center gap-1 text-sm text-muted-foreground flex-wrap sticky top-0 z-10 py-4 mb-2"
+        className="flex items-center gap-1 text-sm text-muted-foreground flex-wrap sticky top-0 md:top-[44px] z-10 py-3 mb-4 -mx-6 px-6 xl:-mx-8 xl:px-8"
         style={{
           background: "#F5F7FA",
           borderBottom: "1px solid rgba(0,0,0,0.06)",
-          marginLeft: "-1.5rem",
-          marginRight: "-1.5rem",
-          paddingLeft: "1.5rem",
-          paddingRight: "1.5rem",
         }}
       >
         {STEPS.map((step, index) => (
@@ -2538,14 +2536,10 @@ export function QuoteWizard({
           {/* Navigation */}
           {currentStep < 4 && (
             <div
-              className="flex justify-between sticky bottom-0 py-3 mt-2"
+              className="flex justify-between sticky bottom-0 py-3 mt-4 -mx-6 px-6 xl:-mx-8 xl:px-8"
               style={{
                 background: "#F5F7FA",
                 borderTop: "1px solid rgba(0,0,0,0.06)",
-                marginLeft: "-1.5rem",
-                marginRight: "-1.5rem",
-                paddingLeft: "1.5rem",
-                paddingRight: "1.5rem",
               }}
             >
               <Button

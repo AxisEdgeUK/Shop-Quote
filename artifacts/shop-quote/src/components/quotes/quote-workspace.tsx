@@ -51,31 +51,36 @@ export function QuoteWorkspace({
 
   return (
     <ScanContextProvider>
-      {/* ── DESKTOP ─── split-screen workspace ──
-           Main has md:pt-0 (no top padding on desktop), p-8 on sides/bottom.
-           Remove horizontal + bottom padding only. */}
+      {/* ── DESKTOP ─── sticky-drawing, single-page-scroll workspace ──
+           The page (body) is the ONE scroll context.
+           The drawing panel is sticky — it stays glued to the viewport
+           as the user scrolls the form. No nested scroll containers. */}
       <div className="hidden md:block -mx-8 -mb-8">
-        {/* Header bar */}
-        <WorkspaceHeader title={title} backHref={backHref} />
+        {/* Header — sticky at top of viewport */}
+        <div className="sticky top-0 z-20">
+          <WorkspaceHeader title={title} backHref={backHref} />
+        </div>
 
-        {/* Split panes — height = viewport minus header (44px) */}
-        <div
-          ref={containerRef}
-          className="flex overflow-hidden"
-          style={{ height: "calc(100vh - 44px)" }}
-        >
-          {/* Left — drawing */}
+        {/* Two-column layout — items-start so sticky children work */}
+        <div ref={containerRef} className="flex items-start">
+          {/* Left — drawing: sticky, always in view */}
           <div
-            className="shrink-0 overflow-hidden h-full"
-            style={{ width: `${splitPct}%` }}
+            className="shrink-0 sticky overflow-hidden"
+            style={{
+              top: 44,
+              height: "calc(100vh - 44px)",
+              width: `${splitPct}%`,
+            }}
           >
             <DrawingViewer quoteId={quoteId} />
           </div>
 
-          {/* Divider */}
+          {/* Divider — sticky, matches drawing height */}
           <div
-            className="shrink-0 relative flex items-center justify-center"
+            className="shrink-0 relative flex items-center justify-center sticky"
             style={{
+              top: 44,
+              height: "calc(100vh - 44px)",
               width: 6,
               background: "#E0E0E0",
               cursor: "col-resize",
@@ -86,17 +91,21 @@ export function QuoteWorkspace({
             <DividerHandle />
           </div>
 
-          {/* Right — quote builder */}
+          {/* Right — quote builder: natural page flow, NO overflow container.
+               min-height ensures drawing is never orphaned on short steps. */}
           <div
-            className="flex-1 overflow-y-auto h-full"
-            style={{ background: "#F5F7FA" }}
+            className="flex-1"
+            style={{
+              background: "#F5F7FA",
+              minHeight: "calc(100vh - 44px)",
+            }}
           >
-            <div className="p-6 xl:p-8 max-w-3xl">{children}</div>
+            <div className="p-6 xl:p-8 max-w-3xl pb-20">{children}</div>
           </div>
         </div>
       </div>
 
-      {/* ── MOBILE ─── tab workspace ── */}
+      {/* ── MOBILE ─── tab workspace (scroll container is intentional here) ── */}
       <div
         className="flex md:hidden flex-col -mx-4 -mt-4 -mb-4"
         style={{ height: "calc(100svh - 3.5rem)" }}
@@ -109,7 +118,7 @@ export function QuoteWorkspace({
           className="flex shrink-0"
           style={{
             background: "hsl(var(--card))",
-            borderBottom: "1px solid hsl(var(--card-border))",
+            borderBottom: "1px solid hsl(var(--border))",
           }}
         >
           <MobileTab
@@ -131,7 +140,10 @@ export function QuoteWorkspace({
           {mobileTab === "drawing" ? (
             <DrawingViewer quoteId={quoteId} />
           ) : (
-            <div className="h-full overflow-y-auto" style={{ background: "#F5F7FA" }}>
+            <div
+              className="h-full overflow-y-auto"
+              style={{ background: "#F5F7FA" }}
+            >
               <div className="p-4 pb-28">{children}</div>
             </div>
           )}

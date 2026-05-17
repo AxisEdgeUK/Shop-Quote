@@ -1,0 +1,141 @@
+Yes, your instinct is correct.
+
+Right now it likely still feels like:
+
+* a web form inside a container,
+* with internal scrolling sections,
+* instead of one unified estimating environment.
+
+You do NOT want:
+
+* scrollable cards,
+* scrollable panels inside panels,
+* independent form windows,
+* nested overflow containers.
+
+That makes it feel:
+
+* cheap,
+* SaaS-like,
+* disconnected,
+* browser-based.
+
+You want:
+
+# one continuous engineering workspace.
+
+Meaning:
+
+* the page itself scrolls naturally,
+* the drawing area and quote area feel physically connected,
+* sections flow together,
+* sticky elements are subtle,
+* it feels closer to:
+
+  * Fusion 360 side panels,
+  * Siemens interfaces,
+  * DMG control layouts,
+  * desktop engineering software.
+
+The problem is probably:
+
+```css
+overflow-y: auto
+height: 100%
+max-height
+```
+
+inside quote panels/cards.
+
+You likely want:
+
+* only ONE primary scroll context,
+* not multiple nested scroll areas.
+
+Paste this into Replit:
+
+```text
+Fix the New Quote workspace so it feels like one integrated engineering environment instead of a webpage with internal scrolling panels.
+
+Current issue:
+The quote workspace still feels like:
+- panels inside panels
+- scroll areas inside cards
+- nested web app containers
+
+This makes the experience feel:
+- disconnected
+- SaaS-like
+- clunky
+- less premium
+
+GOAL:
+The New Quote experience should feel like:
+- a unified engineering workspace
+- CAD/CAM style workflow
+- industrial desktop software
+- one integrated estimating environment
+
+IMPORTANT:
+Avoid:
+- nested scrollbars
+- independently scrolling cards
+- scrollable form boxes
+- boxed-in panel scrolling
+- multiple competing overflow containers
+
+REQUIRED CHANGES
+
+1. Use ONE primary page scroll where possible.
+
+2. The drawing viewer and quote builder should feel visually integrated and connected.
+
+3. Remove unnecessary:
+- overflow-y-auto
+- max-height scroll regions
+- inner panel scroll areas
+
+4. The quote builder should flow naturally down the page instead of feeling trapped inside a container.
+
+5. Keep important actions sticky where useful:
+- quote summary
+- save buttons
+- generate quote
+
+But keep sticky behaviour subtle and premium.
+
+6. The workspace should feel:
+- smooth
+- calm
+- integrated
+- engineered
+- desktop-like
+
+7. Improve transitions and movement:
+- smoother layout changes
+- calmer panel behaviour
+- cleaner spacing
+
+8. Reduce visible borders and box separation slightly.
+The app should feel more unified and less card-heavy.
+
+9. Ensure the layout still works properly on:
+- desktop
+- iPad
+- iPhone
+
+10. The final feeling should be:
+“working inside professional engineering software”
+NOT:
+“filling out forms on a website”
+
+IMPORTANT:
+Do not redesign the app.
+Refine the workspace behaviour and layout integration only.
+```
+
+This is now the right level of refinement. You are correctly moving into:
+
+## feel and workflow quality
+
+instead of feature accumulation.
