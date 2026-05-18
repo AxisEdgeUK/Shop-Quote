@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, settingsTable } from "@workspace/db";
+import { db, settingsTable, customersTable, machinesTable, quotesTable, quoteLineItemsTable, quoteDrawingsTable } from "@workspace/db";
 import {
   GetSettingsResponse,
   UpdateSettingsBody,
@@ -91,6 +91,60 @@ router.patch("/settings", async (req, res): Promise<void> => {
     .where(eq(settingsTable.id, existing.id))
     .returning();
   res.json(UpdateSettingsResponse.parse(parseSettings(settings)));
+});
+
+router.post("/settings/demo-reset", async (req, res): Promise<void> => {
+  try {
+    await db.delete(quoteDrawingsTable);
+    await db.delete(quoteLineItemsTable);
+    await db.delete(quotesTable);
+    await db.delete(customersTable);
+    await db.delete(machinesTable);
+
+    await db.insert(machinesTable).values([
+      {
+        name: "3-Axis VMC (Milling)",
+        machineType: "Milling",
+        axisCount: 3,
+        hourlyRate: "65.00",
+        setupRate: "45.00",
+        active: true,
+      },
+      {
+        name: "CNC Turning Centre",
+        machineType: "Turning",
+        axisCount: 2,
+        hourlyRate: "55.00",
+        setupRate: "35.00",
+        active: true,
+      },
+      {
+        name: "5-Axis VMC",
+        machineType: "Milling",
+        axisCount: 5,
+        hourlyRate: "95.00",
+        setupRate: "65.00",
+        active: false,
+      },
+    ]);
+
+    await db.insert(customersTable).values([
+      {
+        companyName: "Demo Engineering Ltd",
+        contactName: "Demo Contact",
+        email: "demo@example.com",
+        phone: "01234 567890",
+        address: "1 Demo Street, Demo Town, DE1 1DE",
+        notes: "Beta test customer",
+      },
+    ]);
+
+    req.log.info("demo data reset completed");
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error({ err }, "demo reset failed");
+    res.status(500).json({ error: "Reset failed" });
+  }
 });
 
 export default router;

@@ -1,0 +1,91 @@
+I checked the latest GitHub repo. The app is now good enough for **controlled real-world testing**, but I would not send it cold to machine shops yet.
+
+Key findings:
+
+* The repo is live and public with 37 commits. ([GitHub][1])
+* The drawing viewer now has upload, persistent metadata, and a **Scan Drawing** button. ([GitHub][2])
+* The backend still includes `/api/ai/scan-drawing`, GPT vision logic, and material mapping, so the scan feature has **not actually been removed from code**. ([GitHub][3])
+* `replit.md` still says drawing files are “client-side object URLs only,” which now conflicts with the newer upload code. That documentation needs cleaning. ([GitHub][4])
+
+Give Replit this final pre-test prompt:
+
+```text
+Prepare SHOP Quote for real machine shop beta testing.
+
+Do not add new features.
+
+1. Remove or hide Drawing Scan Assist completely if it is not ready for testing.
+Current code still includes:
+- Scan Drawing button
+- /api/ai/scan-drawing
+- GPT vision scan logic
+
+For beta testing, either:
+A. fully remove it from the visible UI
+or
+B. place it behind a hidden “Experimental” toggle in Settings.
+
+Default must be OFF.
+
+2. Clean documentation.
+Update replit.md so it accurately reflects the current build.
+Remove outdated notes saying drawing files are client-side object URLs only if persistent upload is now active.
+
+3. Add Beta Testing Mode.
+Add a simple banner or footer note:
+“Beta version for workflow testing. Check all figures before sending live quotes.”
+
+Keep it subtle and professional.
+
+4. Add feedback button.
+Add a small button:
+“Send feedback”
+
+This should open a simple form with:
+- What worked well?
+- What felt slow?
+- What was confusing?
+- Did the quote feel accurate?
+- Would you use this again?
+- Would you pay £999 lifetime or £92.50/month?
+- Notes
+
+Store feedback in the database or make it copyable/exportable.
+
+5. Add test data reset.
+Add a button in settings:
+“Reset demo data”
+
+This is only for beta/demo use.
+
+6. Add final quote safety warning.
+On customer PDF generation, show a small internal confirmation:
+“Have you checked material, quantity, tolerances, lead time, and margin?”
+
+7. Add version label.
+Show small version text:
+SHOP Quote Beta v0.1
+
+8. Run final checks:
+- Quick Quote works
+- Full Quote works
+- PDF generates
+- Quote can be marked Won
+- Quote can be marked Lost
+- Quote Similar Job works
+- iPhone layout works
+- Drawing upload works
+- Customer logo appears on quote
+- Bank details appear only if enabled
+- Internal costs are hidden from customer PDF
+
+Final instruction:
+Do not add features. Make the product stable, clear, and ready for real-world testing.
+```
+
+Then test it yourself with 10 jobs before sending it out. If those pass, show it to 3 to 5 machine shops as a **workflow test**, not a product launch.
+
+[1]: https://github.com/AxisEdgeUK/Shop-Quote "GitHub - AxisEdgeUK/Shop-Quote: CNC Quoting Aid for SME · GitHub"
+[2]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/src/components/quotes/drawing-viewer.tsx "raw.githubusercontent.com"
+[3]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/api-server/src/routes/ai.ts "raw.githubusercontent.com"
+[4]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/replit.md "raw.githubusercontent.com"

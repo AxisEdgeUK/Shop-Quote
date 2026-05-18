@@ -69,6 +69,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main content */}
       <main className="md:ml-64 pt-14 md:pt-0 p-4 md:p-8 print:ml-0 print:p-0">
+        <div
+          className="mb-5 px-3 py-2 rounded text-xs text-center print:hidden"
+          style={{
+            background: "rgba(29,143,255,0.05)",
+            color: "#64748B",
+            border: "1px solid rgba(29,143,255,0.1)",
+          }}
+        >
+          Beta version — for workflow testing only. Always check all figures before sending live quotes.
+        </div>
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>
     </div>

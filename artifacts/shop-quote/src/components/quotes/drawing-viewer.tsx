@@ -458,45 +458,6 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
               />
             </>
           )}
-          {drawing && drawing.type !== "pdf" && (
-            <button
-              type="button"
-              onClick={handleScan}
-              disabled={scanState === "scanning"}
-              title={
-                scanState === "error" && scanError
-                  ? scanError
-                  : "Scan drawing for quoting information"
-              }
-              className="flex items-center gap-1 ml-1 px-2.5 py-1 rounded text-xs font-semibold transition-all disabled:opacity-60"
-              style={{
-                background:
-                  scanState === "error"
-                    ? "rgba(239,68,68,0.12)"
-                    : "rgba(29,143,255,0.08)",
-                color: scanState === "error" ? "#f87171" : BLUE,
-                border: `1px solid ${scanState === "error" ? "rgba(239,68,68,0.3)" : "rgba(29,143,255,0.22)"}`,
-                minHeight: 26,
-              }}
-            >
-              {scanState === "scanning" ? (
-                <>
-                  <Loader className="w-3 h-3 animate-spin" />
-                  Scanning…
-                </>
-              ) : scanState === "error" ? (
-                <>
-                  <X className="w-3 h-3" />
-                  Scan failed — retry
-                </>
-              ) : (
-                <>
-                  <ScanLine className="w-3 h-3" />
-                  Scan Drawing
-                </>
-              )}
-            </button>
-          )}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}

@@ -1605,14 +1605,6 @@ export function QuoteWizard({
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {scanResult && !scanDismissed && (
-                  <ScanAssistPanel
-                    scan={scanResult}
-                    activeIndex={activeLineItemIndex}
-                    onApply={(path, value) => form.setValue(path as any, value, { shouldDirty: true })}
-                    onDismiss={() => setScanDismissed(true)}
-                  />
-                )}
                 <PartTabs />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField

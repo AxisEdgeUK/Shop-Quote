@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard,
@@ -7,8 +8,10 @@ import {
   Settings as SettingsIcon,
   BarChart3,
   X,
+  MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FeedbackDialog } from "@/components/feedback-dialog";
 
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -91,6 +94,7 @@ export { ShopQuoteLogo };
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {
   const [location] = useLocation();
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   return (
     <div
@@ -184,10 +188,33 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         className="px-5 py-4"
         style={{ borderTop: "1px solid hsl(var(--sidebar-border))" }}
       >
-        <div className="text-xs" style={{ color: "hsl(220 5% 32%)" }}>
-          CNC Quoting Software
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-xs" style={{ color: "hsl(220 5% 32%)" }}>
+            CNC Quoting Software
+          </div>
+          <span
+            className="text-xs px-1.5 py-0.5 rounded font-semibold"
+            style={{
+              background: "rgba(29,143,255,0.08)",
+              color: "#1D8FFF",
+              border: "1px solid rgba(29,143,255,0.2)",
+            }}
+          >
+            Beta v0.1
+          </span>
         </div>
+        <button
+          type="button"
+          onClick={() => setFeedbackOpen(true)}
+          className="flex items-center gap-1.5 text-xs font-medium transition-opacity hover:opacity-80 w-full"
+          style={{ color: "hsl(220 5% 48%)" }}
+        >
+          <MessageSquare className="w-3.5 h-3.5" />
+          Send feedback
+        </button>
       </div>
+
+      <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </div>
   );
 }

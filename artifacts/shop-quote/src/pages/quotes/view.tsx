@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PrintConfirmDialog } from "@/components/print-confirm-dialog";
 import {
   useGetQuote,
   useGetCustomer,
@@ -87,7 +88,9 @@ export function ViewQuote() {
   const [wonExpectedDelivery, setWonExpectedDelivery] = useState("");
   const [wonNotesText, setWonNotesText] = useState("");
 
-  const handlePrint = () => window.print();
+  const [showPrintConfirm, setShowPrintConfirm] = useState(false);
+  const handlePrint = () => setShowPrintConfirm(true);
+  const handleConfirmedPrint = () => { setShowPrintConfirm(false); window.print(); };
 
   const handleMarkLost = () => {
     if (!quote) return;
@@ -541,6 +544,12 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <PrintConfirmDialog
+        open={showPrintConfirm}
+        onConfirm={handleConfirmedPrint}
+        onCancel={() => setShowPrintConfirm(false)}
+      />
     </div>
   );
 }

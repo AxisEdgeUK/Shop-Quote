@@ -1,6 +1,6 @@
 # SHOP Quote
 
-A full-stack CNC shop quoting MVP for small machine shops — create, calculate, and deliver professional PDF-ready quotes with an accurate cost engine.
+A full-stack CNC shop quoting MVP for small machine shops — create, calculate, and deliver professional PDF-ready quotes with an accurate cost engine. Currently in **Beta v0.1** for controlled real-world testing.
 
 ## Run & Operate
 
@@ -25,7 +25,7 @@ A full-stack CNC shop quoting MVP for small machine shops — create, calculate,
 ## Where things live
 
 - `lib/api-spec/openapi.yaml` — OpenAPI source of truth (do NOT change `info.title: Api`)
-- `lib/db/src/schema/` — Drizzle schema files (`settings.ts`, `customers.ts`, `machines.ts`, `quotes.ts`)
+- `lib/db/src/schema/` — Drizzle schema files (`settings.ts`, `customers.ts`, `machines.ts`, `quotes.ts`, `feedback.ts`)
 - `lib/api-client-react/src/generated/` — generated hooks and Zod schemas (don't edit manually)
 - `artifacts/api-server/src/routes/` — Express route handlers
 - `artifacts/shop-quote/src/pages/` — React pages (dashboard, quotes, customers, machines, settings, landing, pricing)
@@ -37,11 +37,11 @@ A full-stack CNC shop quoting MVP for small machine shops — create, calculate,
 - `QuoteWorkspace` wraps the New/Edit quote pages — dark header bar + draggable split pane (drawing left, quote wizard right)
 - Desktop layout: `-mx-8 -mb-8` breaks out of AppLayout's horizontal/bottom padding; header is `height: 44px`; split pane uses `calc(100vh - 44px)`. Do NOT use `-mt-8` — AppLayout has `md:pt-0` (no top padding on desktop).
 - Mobile layout: `-mx-4 -mt-4 -mb-4` + `height: calc(100svh - 3.5rem)` (accounts for 56px mobile top bar); shows Drawing/Quote tab switcher.
-- `DrawingViewer` — dark engineering viewer (PDF via native browser `<iframe>`, images with CSS transform zoom+pan). Files are client-side object URLs only (no server upload). Supports drag-to-upload, wheel zoom, touch pinch-zoom.
+- `DrawingViewer` — dark engineering viewer (PDF via native browser `<iframe>`, images with CSS transform zoom+pan). Files are **uploaded to object storage** and persisted to the `quote_drawings` table (linked to a quote by `quoteId`). Supports drag-to-upload, wheel zoom, touch pinch-zoom.
 
 ## Architecture decisions
 
-- **Contract-first API**: OpenAPI spec → Orval codegen → React Query hooks. Never write hooks manually.
+- **Contract-first API**: OpenAPI spec → Orval codegen → React Query hooks. Never write hooks manually. Exception: small internal-only features (e.g. beta feedback submission) may use direct fetch if they don't belong in the public API spec.
 - **Flat Wouter routing**: All routes declared in a flat `<Switch>` in `App.tsx`. Do NOT use `/:rest*` with inline children — this breaks nested Switch path matching in Wouter v3.
 - **Margin not markup**: Cost engine uses `sell_price = cost / (1 - margin%)`. Correct formula validated.
 - **Numeric DB fields**: PostgreSQL `numeric` type returns strings in JS — always `parseFloat()` in route handlers before responding.
@@ -53,8 +53,17 @@ A full-stack CNC shop quoting MVP for small machine shops — create, calculate,
 - **Quotes**: Full 5-step wizard (Customer → Part Details → Assumptions → Review → Complete), list view with actions, detail/print view (PDF-ready), edit existing quotes
 - **Customers**: CRUD — list, create, edit, delete
 - **Machines**: CRUD — list, create, edit, delete with hourly/setup rates and active toggle
-- **Settings**: Company details, quoting defaults (hourly rate, setup rate, margin %, VAT, quote validity)
+- **Settings**: Company details, quoting defaults (hourly rate, setup rate, margin %, VAT, quote validity), beta demo-reset
 - **Landing & Pricing**: Public-facing pages
+
+## Beta Features (v0.1)
+
+- **Beta banner**: Shown at the top of every page in the app (hidden on print) — "Beta version — for workflow testing only."
+- **Version label**: "Beta v0.1" badge in the sidebar footer
+- **Send feedback**: Button in the sidebar footer opens a 7-question form. Responses stored in the `feedback` DB table. API: `GET/POST /api/feedback`.
+- **Reset demo data**: Button at the bottom of the Settings page. Wipes all quotes, customers, and machines then seeds clean demo records (3 machines, 1 customer). API: `POST /api/settings/demo-reset`.
+- **Print safety checklist**: Before `window.print()` is called on the View Quote or Presentation pages, a dialog prompts the user to tick off 5 items (material, quantity, tolerances, lead time, margin). PDF only generates once all are ticked.
+- **Drawing Scan Assist**: Hidden from UI in Beta v0.1. Backend route `/api/ai/scan-drawing` (GPT-4o vision) is preserved in code but the scan button is not shown to users. Re-enable by restoring the button in `drawing-viewer.tsx` and `ScanAssistPanel` render in `quote-wizard.tsx`.
 
 ## Gotchas
 
@@ -64,6 +73,7 @@ A full-stack CNC shop quoting MVP for small machine shops — create, calculate,
 - Wouter v3 `/:rest*` with inline children breaks nested Switch routing — keep routing flat
 - The API server base path is `/api` — all routes must be prefixed
 - `calcLineItem` applies discount AFTER margin: `sellPrice = (costBeforeMargin / (1 - margin)) * (1 - discount%)`. The wizard preview and the server-side stored value both use this formula — keep them in sync if you change one.
+- Drawing files are persisted via object storage — `drawing.file` is only set for newly-uploaded (not-yet-saved) files; `drawing.url` is always set (blob URL for new, object storage URL for persisted).
 
 ## Pointers
 
