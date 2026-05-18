@@ -91,11 +91,6 @@ router.post("/ai/scan-drawing", async (req, res) => {
   const empty = { tolerances: [], coatings: [], inspectionNotes: [] };
 
   try {
-    if (mimeType === "application/pdf") {
-      res.json({ ...empty, unreadable: true });
-      return;
-    }
-
     const buffer = Buffer.from(imageData, "base64");
     const base64 = buffer.toString("base64");
     const imageUrl = `data:${mimeType};base64,${base64}`;

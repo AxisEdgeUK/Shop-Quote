@@ -14,6 +14,12 @@ import {
   ScanLine,
 } from "lucide-react";
 import { useScanContext } from "@/contexts/scan-context";
+import * as pdfjsLib from "pdfjs-dist";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url,
+).toString();
 
 type DrawingFile = {
   file?: File;
@@ -96,6 +102,21 @@ async function urlToBase64(url: string): Promise<{ base64: string; mimeType: str
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });
+}
+
+/** Render page 1 of a PDF to a PNG and return base64. Uses pdfjs-dist in the browser. */
+async function pdfToImageBase64(pdfBytes: ArrayBuffer, scale = 2.5): Promise<string> {
+  const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
+  const pdf = await loadingTask.promise;
+  const page = await pdf.getPage(1);
+  const viewport = page.getViewport({ scale });
+  const canvas = document.createElement("canvas");
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas 2D context unavailable");
+  await page.render({ canvasContext: ctx, canvas, viewport }).promise;
+  return canvas.toDataURL("image/png").split(",")[1];
 }
 
 export function DrawingViewer({ quoteId }: { quoteId?: number }) {
@@ -281,18 +302,37 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
       let base64: string;
       let mimeType: string;
 
-      if (drawing.file) {
-        if (drawing.file.size > MAX_SCAN_BYTES) {
-          setScanState("error");
-          setTimeout(() => setScanState("idle"), 3000);
-          return;
+      if (drawing.type === "pdf") {
+        // Render page 1 of the PDF to a PNG image client-side, then send that
+        let pdfBytes: ArrayBuffer;
+        if (drawing.file) {
+          if (drawing.file.size > MAX_SCAN_BYTES) {
+            setScanState("error");
+            setTimeout(() => setScanState("idle"), 3000);
+            return;
+          }
+          pdfBytes = await drawing.file.arrayBuffer();
+        } else {
+          const resp = await fetch(drawing.url);
+          if (!resp.ok) throw new Error("Failed to fetch drawing");
+          pdfBytes = await resp.arrayBuffer();
         }
-        mimeType = drawing.file.type || (drawing.type === "pdf" ? "application/pdf" : "image/png");
-        base64 = await fileToBase64(drawing.file);
+        base64 = await pdfToImageBase64(pdfBytes);
+        mimeType = "image/png";
       } else {
-        const fetched = await urlToBase64(drawing.url);
-        base64 = fetched.base64;
-        mimeType = fetched.mimeType || (drawing.type === "pdf" ? "application/pdf" : "image/png");
+        if (drawing.file) {
+          if (drawing.file.size > MAX_SCAN_BYTES) {
+            setScanState("error");
+            setTimeout(() => setScanState("idle"), 3000);
+            return;
+          }
+          base64 = await fileToBase64(drawing.file);
+          mimeType = drawing.file.type || "image/png";
+        } else {
+          const fetched = await urlToBase64(drawing.url);
+          base64 = fetched.base64;
+          mimeType = fetched.mimeType || "image/png";
+        }
       }
 
       const resp = await fetch("/api/ai/scan-drawing", {
@@ -447,7 +487,7 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
               {scanState === "scanning" ? (
                 <>
                   <Loader className="w-3 h-3 animate-spin" />
-                  Scanning…
+                  {drawing?.type === "pdf" ? "Scanning PDF drawing…" : "Scanning…"}
                 </>
               ) : scanState === "error" ? (
                 <>

@@ -1,0 +1,49 @@
+Checked. It **is now linked to the AxisEdgeUK/Shop-Quote repo**, and the scanner code is present.
+
+Important finding: the frontend has a **Scan Drawing** button and sends the file to `/api/ai/scan-drawing`. The quote wizard also has a **Drawing Scan Assist** panel with suggestions and “Apply all.” ([GitHub][1])
+
+But the reason your **PDF scan did nothing** is clear: the backend currently returns `unreadable: true` immediately when the uploaded file is a PDF. So the AI scan only really works for image files, not PDFs. ([GitHub][2])
+
+Give Replit this:
+
+```text
+Fix Drawing Scan Assist so it works with PDF drawings.
+
+Current issue:
+The frontend has Scan Drawing, but the backend returns unreadable immediately when mimeType is application/pdf.
+
+This means uploaded PDF drawings cannot actually be scanned.
+
+Required fix:
+When a PDF is uploaded and Scan Drawing is clicked, convert the first page of the PDF into a high-resolution image, then send that image to the GPT vision scan endpoint.
+
+Requirements:
+1. Do not return unreadable automatically for application/pdf.
+2. Render page 1 of the PDF to an image.
+3. Use a high enough resolution for title block text and tolerances to be readable.
+4. Send that rendered image to the existing scan logic.
+5. If PDF rendering fails, then show:
+“Unable to detect drawing text. Please review manually.”
+6. Keep the feature assistive only.
+7. Keep one subtle highlight colour only.
+8. Keep suggestions connected to the quote fields:
+- material
+- quantity
+- drawing number
+- revision
+- tolerance notes
+- coating / finish notes
+
+Also add a clear loading state:
+“Scanning PDF drawing…”
+
+After fixing, confirm:
+- PDF drawings no longer return unreadable by default
+- image drawings still scan
+- accepted suggestions populate the quote form
+```
+
+This is the key fix. The feature exists, but **PDF scanning is currently blocked at backend level**.
+
+[1]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/src/components/quotes/drawing-viewer.tsx "raw.githubusercontent.com"
+[2]: https://github.com/AxisEdgeUK/Shop-Quote/blob/main/artifacts/api-server/src/routes/ai.ts "Shop-Quote/artifacts/api-server/src/routes/ai.ts at main · AxisEdgeUK/Shop-Quote · GitHub"
