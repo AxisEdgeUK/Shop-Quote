@@ -303,14 +303,10 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
       let mimeType: string;
 
       if (drawing.type === "pdf") {
-        // Render page 1 of the PDF to a PNG image client-side, then send that
+        // Render page 1 of the PDF to a PNG image client-side, then send that.
+        // Do NOT check raw PDF size — large PDFs render to a manageable PNG.
         let pdfBytes: ArrayBuffer;
         if (drawing.file) {
-          if (drawing.file.size > MAX_SCAN_BYTES) {
-            setScanState("error");
-            setTimeout(() => setScanState("idle"), 3000);
-            return;
-          }
           pdfBytes = await drawing.file.arrayBuffer();
         } else {
           const resp = await fetch(drawing.url);
