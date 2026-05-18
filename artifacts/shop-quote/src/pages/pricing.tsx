@@ -280,22 +280,6 @@ export function PricingPage() {
             </div>
 
             {/* Lifetime column: context note + card */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <div>
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: "#6b7280",
-                    letterSpacing: "0.01em",
-                    lineHeight: 1.6,
-                    margin: 0,
-                    fontWeight: 400,
-                  }}
-                >
-                  Equivalent to approximately £2.74 per day over one year.
-                </p>
-              </div>
-
             {/* Lifetime */}
             <div
               style={{
@@ -305,6 +289,18 @@ export function PricingPage() {
                 boxShadow: `0 4px 24px rgba(29,143,255,0.12)`,
               }}
             >
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "#9ca3af",
+                  letterSpacing: "0.01em",
+                  lineHeight: 1.5,
+                  margin: "0 0 20px",
+                  fontWeight: 400,
+                }}
+              >
+                Equivalent to approximately £2.74 per day over one year.
+              </p>
               <div
                 style={{
                   fontSize: 9,
@@ -389,7 +385,6 @@ export function PricingPage() {
                   BUY LIFETIME ACCESS
                 </button>
               </Link>
-            </div>
             </div>
           </div>
 

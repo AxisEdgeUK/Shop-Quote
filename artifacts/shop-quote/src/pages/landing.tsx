@@ -731,36 +731,21 @@ export function LandingPage() {
               cta="Start Monthly"
               href="/dashboard"
             />
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <div>
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: "#6b7280",
-                    letterSpacing: "0.01em",
-                    lineHeight: 1.6,
-                    margin: 0,
-                    fontWeight: 400,
-                  }}
-                >
-                  Equivalent to approximately £2.74 per day over one year.
-                </p>
-              </div>
-              <PricingCard
-                label="FOUNDER LIFETIME"
-                price="£999"
-                period="one-off payment, yours forever"
-                features={[
-                  "All monthly features",
-                  "Pay once, use forever",
-                  "Priority support",
-                  "All future updates",
-                ]}
-                cta="Buy Lifetime Access"
-                href="/dashboard"
-                featured
-              />
-            </div>
+            <PricingCard
+              label="FOUNDER LIFETIME"
+              price="£999"
+              period="one-off payment, yours forever"
+              contextNote="Equivalent to approximately £2.74 per day over one year."
+              features={[
+                "All monthly features",
+                "Pay once, use forever",
+                "Priority support",
+                "All future updates",
+              ]}
+              cta="Buy Lifetime Access"
+              href="/dashboard"
+              featured
+            />
           </div>
         </div>
       </section>
@@ -951,6 +936,7 @@ function PricingCard({
   cta,
   href,
   featured,
+  contextNote,
 }: {
   label: string;
   price: string;
@@ -959,6 +945,7 @@ function PricingCard({
   cta: string;
   href: string;
   featured?: boolean;
+  contextNote?: string;
 }) {
   return (
     <div
@@ -972,6 +959,20 @@ function PricingCard({
           : "0 1px 8px rgba(0,0,0,0.04)",
       }}
     >
+      {contextNote && (
+        <p
+          style={{
+            fontSize: 11,
+            color: "#9ca3af",
+            letterSpacing: "0.01em",
+            lineHeight: 1.5,
+            margin: "0 0 20px",
+            fontWeight: 400,
+          }}
+        >
+          {contextNote}
+        </p>
+      )}
       {featured && (
         <div
           style={{
