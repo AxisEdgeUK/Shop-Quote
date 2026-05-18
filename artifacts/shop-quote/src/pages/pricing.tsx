@@ -279,40 +279,34 @@ export function PricingPage() {
               </Link>
             </div>
 
-            {/* Lifetime context note */}
-            <div
-              style={{
-                paddingTop: 8,
-                paddingBottom: 2,
-                borderTop: "1px solid #e5e7eb",
-                marginTop: 4,
-              }}
-            >
-              <p
-                style={{
-                  fontSize: 12,
-                  color: "#6b7280",
-                  letterSpacing: "0.01em",
-                  lineHeight: 1.6,
-                  margin: 0,
-                  fontWeight: 400,
-                }}
-              >
-                Equivalent to approximately £2.74 per day over one year.
-              </p>
-              <p
-                style={{
-                  fontSize: 11,
-                  color: "#9ca3af",
-                  letterSpacing: "0.01em",
-                  lineHeight: 1.6,
-                  margin: "4px 0 0",
-                  fontWeight: 400,
-                }}
-              >
-                Less than the cost of one machine hour in many shops.
-              </p>
-            </div>
+            {/* Lifetime column: context note + card */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#6b7280",
+                    letterSpacing: "0.01em",
+                    lineHeight: 1.6,
+                    margin: 0,
+                    fontWeight: 400,
+                  }}
+                >
+                  Equivalent to approximately £2.74 per day over one year.
+                </p>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "#9ca3af",
+                    letterSpacing: "0.01em",
+                    lineHeight: 1.6,
+                    margin: "3px 0 0",
+                    fontWeight: 400,
+                  }}
+                >
+                  Less than the cost of one machine hour in many shops.
+                </p>
+              </div>
 
             {/* Lifetime */}
             <div
@@ -407,6 +401,7 @@ export function PricingPage() {
                   BUY LIFETIME ACCESS
                 </button>
               </Link>
+            </div>
             </div>
           </div>
 
