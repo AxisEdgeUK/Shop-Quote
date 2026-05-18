@@ -745,18 +745,6 @@ export function LandingPage() {
                 >
                   Equivalent to approximately £2.74 per day over one year.
                 </p>
-                <p
-                  style={{
-                    fontSize: 11,
-                    color: "#9ca3af",
-                    letterSpacing: "0.01em",
-                    lineHeight: 1.6,
-                    margin: "3px 0 0",
-                    fontWeight: 400,
-                  }}
-                >
-                  Less than the cost of one machine hour in many shops.
-                </p>
               </div>
               <PricingCard
                 label="FOUNDER LIFETIME"
