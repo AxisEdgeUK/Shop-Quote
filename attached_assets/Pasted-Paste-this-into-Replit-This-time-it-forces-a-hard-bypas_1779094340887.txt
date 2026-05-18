@@ -1,0 +1,99 @@
+Paste this into Replit. This time it forces a **hard bypass** rather than another vague “fix”.
+
+```text
+The scan still says failed even after previous fixes. Stop patching around the same broken route.
+
+I want a working fallback now.
+
+Task:
+Create a new completely separate scan route and connect the Scan Drawing button to it temporarily.
+
+Do not delete the old route yet.
+
+New route:
+Create:
+
+/api/ai/scan-drawing-simple
+
+This route must accept JSON only:
+
+{
+  "imageBase64": "data:image/jpeg;base64,..."
+}
+
+Frontend:
+1. When a user uploads a JPG or PNG, convert it to base64 in the browser.
+2. When a user uploads a PDF, use pdfjs-dist in the browser to render page 1 to a canvas.
+3. Convert that canvas to JPEG base64.
+4. Show the rendered image preview before scan.
+5. Send the base64 image to /api/ai/scan-drawing-simple.
+6. Display the returned result.
+
+Backend:
+1. Do not use multipart upload.
+2. Do not use file parsing.
+3. Do not use PDF parsing.
+4. Only receive base64 image JSON.
+5. Send that image directly to OpenAI vision.
+6. Return plain JSON.
+
+Use model:
+gpt-4o-mini
+
+Prompt:
+You are analysing an engineering drawing for CNC machining quotation. Extract the visible manufacturing and quoting information. Focus on material, drawing number, revision, quantity, tolerances, dimensions, surface finish, heat treatment, thread details, notes, and missing information. Do not guess. If something is unclear, write "not visible".
+
+Return only valid JSON in this exact shape:
+
+{
+  "partName": "",
+  "drawingNumber": "",
+  "revision": "",
+  "material": "",
+  "quantity": "",
+  "finish": "",
+  "heatTreatment": "",
+  "criticalDimensions": [],
+  "tolerances": [],
+  "threads": [],
+  "surfaceFinish": "",
+  "notes": [],
+  "missingInfo": [],
+  "quoteRisk": "low",
+  "summary": ""
+}
+
+Error handling:
+If it fails, show the real error on screen, not just “scan failed”.
+
+Show:
+- API route called
+- HTTP status code
+- response body
+- OpenAI error message if available
+
+Acceptance test:
+1. Upload a JPG drawing.
+2. Confirm image preview appears.
+3. Click Scan Drawing.
+4. Confirm /api/ai/scan-drawing-simple is called.
+5. Confirm OpenAI returns JSON.
+6. Confirm result appears in ScanAssistPanel.
+7. Then test PDF upload.
+8. Confirm PDF page 1 preview appears.
+9. Confirm the same simple route is called.
+10. Confirm result appears.
+
+Important:
+Do not claim it is fixed unless the browser console and Replit logs show:
+- base64 image created
+- /api/ai/scan-drawing-simple called
+- OpenAI response received
+- JSON rendered on screen
+
+If OpenAI fails because of missing API key, show:
+“OpenAI API key missing or invalid”
+instead of “scan failed”.
+```
+
+This avoids the likely broken multipart/PDF upload chain entirely.

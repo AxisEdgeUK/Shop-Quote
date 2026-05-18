@@ -120,7 +120,7 @@ router.post("/ai/scan-drawing", async (req, res) => {
     req.log.info("scan-drawing: sending to AI vision");
 
     const response = await openai.chat.completions.create({
-      model: "gpt-5.4",
+      model: "gpt-4o",
       max_completion_tokens: 1024,
       messages: [
         {

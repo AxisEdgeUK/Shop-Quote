@@ -130,6 +130,7 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
     "idle" | "uploading" | "saved" | "error"
   >("idle");
   const [scanState, setScanState] = useState<"idle" | "scanning" | "error">("idle");
+  const [scanError, setScanError] = useState<string | null>(null);
   const { setScanResult } = useScanContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -297,30 +298,33 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
   const handleScan = useCallback(async () => {
     if (!drawing || scanState === "scanning") return;
     setScanState("scanning");
+    setScanError(null);
     setScanResult(null);
     try {
       let base64: string;
       let mimeType: string;
 
+      console.log("[ScanAssist] Starting scan, type:", drawing.type);
+
       if (drawing.type === "pdf") {
-        // Render page 1 of the PDF to a PNG image client-side, then send that.
-        // Do NOT check raw PDF size — large PDFs render to a manageable PNG.
         let pdfBytes: ArrayBuffer;
         if (drawing.file) {
           pdfBytes = await drawing.file.arrayBuffer();
         } else {
           const resp = await fetch(drawing.url);
-          if (!resp.ok) throw new Error("Failed to fetch drawing");
+          if (!resp.ok) throw new Error("Failed to fetch PDF from storage");
           pdfBytes = await resp.arrayBuffer();
         }
+        console.log("[ScanAssist] PDF loaded, rendering page 1 to PNG…");
         base64 = await pdfToImageBase64(pdfBytes);
         mimeType = "image/png";
+        console.log("[ScanAssist] PDF rendered. PNG base64 length:", base64.length);
       } else {
         if (drawing.file) {
           if (drawing.file.size > MAX_SCAN_BYTES) {
-            setScanState("error");
-            setTimeout(() => setScanState("idle"), 3000);
-            return;
+            throw new Error(
+              `Image too large (${(drawing.file.size / 1024 / 1024).toFixed(1)} MB). Please upload an image under 10 MB.`,
+            );
           }
           base64 = await fileToBase64(drawing.file);
           mimeType = drawing.file.type || "image/png";
@@ -329,20 +333,42 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
           base64 = fetched.base64;
           mimeType = fetched.mimeType || "image/png";
         }
+        console.log("[ScanAssist] Image loaded. mimeType:", mimeType, "base64 length:", base64.length);
       }
 
+      console.log("[ScanAssist] Sending to /api/ai/scan-drawing…");
       const resp = await fetch("/api/ai/scan-drawing", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageData: base64, mimeType }),
       });
-      if (!resp.ok) throw new Error("Scan failed");
-      const result = await resp.json();
-      setScanResult(result);
+
+      console.log("[ScanAssist] Response status:", resp.status);
+
+      if (!resp.ok) {
+        const body = await resp.text();
+        console.error("[ScanAssist] API error body:", body);
+        let msg = `Scan failed — HTTP ${resp.status}`;
+        try {
+          const parsed = JSON.parse(body) as { error?: string };
+          if (parsed.error) msg = parsed.error;
+        } catch { /* raw text */ }
+        throw new Error(msg);
+      }
+
+      const result = await resp.json() as Record<string, unknown>;
+      console.log("[ScanAssist] Result:", result);
+      setScanResult(result as Parameters<typeof setScanResult>[0]);
       setScanState("idle");
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Scan failed";
+      console.error("[ScanAssist] Error:", msg);
+      setScanError(msg);
       setScanState("error");
-      setTimeout(() => setScanState("idle"), 3000);
+      setTimeout(() => {
+        setScanState("idle");
+        setScanError(null);
+      }, 10_000);
     }
   }, [drawing, scanState, setScanResult]);
 
@@ -468,7 +494,11 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
               type="button"
               onClick={handleScan}
               disabled={scanState === "scanning"}
-              title="Scan drawing for quoting information"
+              title={
+                scanState === "error" && scanError
+                  ? scanError
+                  : "Scan drawing for quoting information"
+              }
               className="flex items-center gap-1 ml-1 px-2.5 py-1 rounded text-xs font-semibold transition-all disabled:opacity-60"
               style={{
                 background:
@@ -488,7 +518,7 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
               ) : scanState === "error" ? (
                 <>
                   <X className="w-3 h-3" />
-                  Scan failed
+                  Scan failed — retry
                 </>
               ) : (
                 <>
@@ -521,6 +551,28 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
           }}
         />
       </div>
+
+      {/* Scan error banner */}
+      {scanState === "error" && scanError && (
+        <div
+          className="flex items-start gap-2 px-3 py-2 text-xs"
+          style={{
+            background: "rgba(239,68,68,0.07)",
+            borderBottom: "1px solid rgba(239,68,68,0.2)",
+            color: "#b91c1c",
+          }}
+        >
+          <X className="w-3 h-3 mt-0.5 shrink-0" />
+          <span className="flex-1">{scanError}</span>
+          <button
+            type="button"
+            onClick={() => { setScanState("idle"); setScanError(null); }}
+            className="ml-1 shrink-0 opacity-60 hover:opacity-100"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
 
       {/* Viewer */}
       <div
