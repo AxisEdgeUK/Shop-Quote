@@ -1,0 +1,129 @@
+I checked the repo. The scanner has **not actually been implemented** yet.
+
+Current issue:
+
+* The drawing viewer only uploads/displays a PDF or image.
+* It still uses `URL.createObjectURL(file)`, meaning it is local display only.
+* There is no real **Scan Drawing** button, no extraction logic, no tolerance/material detection, and no side panel to accept suggestions. ([GitHub][1])
+* The quote wizard has normal part/material fields, but no scan-assist link into those fields. ([GitHub][2])
+
+Paste this into Replit:
+
+```text
+The Drawing Scan Assist feature has not actually been implemented.
+
+Current issue:
+The drawing viewer only uploads and displays PDFs/images. It does not scan the drawing, detect material, detect tolerances, or populate quote fields.
+
+Add a simple optional Drawing Scan Assist feature.
+
+Keep it minimal.
+
+1. Add a button inside the drawing viewer:
+Scan Drawing
+
+2. When clicked, extract readable text from the uploaded PDF.
+
+For MVP:
+- Support text-based PDFs first
+- If scanned/image PDF cannot be read, show:
+“Unable to detect drawing text. Please review manually.”
+
+3. Search extracted text for likely:
+- material
+- quantity
+- drawing number
+- revision
+- tight tolerances
+- coatings / finishes
+- inspection notes
+
+4. Show a small side panel called:
+Drawing Scan Assist
+
+Panel must show:
+- Suggested material
+- Suggested quantity
+- Suggested drawing number
+- Suggested revision
+- Possible tight tolerances
+- Possible coating / finish notes
+- Confidence: Low / Medium / High
+
+5. Add buttons for each suggestion:
+- Accept
+- Edit
+- Ignore
+
+6. Add:
+Apply All Suggestions
+
+When accepted, populate the quote fields:
+- material
+- quantity
+- drawing number
+- revision
+- notes / finish notes
+
+7. Highlight detected text on the drawing using ONE subtle highlight colour only.
+
+Do not use multiple colours.
+
+8. Add material recognition for common workshop terms:
+- HE30
+- 6082
+- 7075
+- EN1A
+- EN8
+- EN24T
+- 304
+- 316
+- 17-4PH
+- S275
+- mild steel
+- stainless steel
+- aluminium
+- brass
+- plastic
+
+9. Add tolerance detection for:
+- ±0.01
+- ±0.02
+- ±0.05
+- H7
+- h7
+- Ra 1.6
+- Ra 3.2
+- surface finish
+- critical tolerance wording
+
+10. Do not build:
+- automatic pricing
+- cycle time calculation
+- STEP analysis
+- geometry extraction
+- drawing pack automation
+
+11. This must remain assistive only.
+
+Use wording:
+- Suggested
+- Possible
+- Please check manually
+
+Never use:
+- Confirmed
+- Guaranteed
+- Automatically quoted
+
+12. Make sure the scanner connects to the quote form.
+Accepted suggestions must actually update the active quote line item.
+
+Final instruction:
+This feature should speed up manual drawing review, not replace the machinist.
+```
+
+Key point: tell Replit to **connect the scan output to the active quote line item**. Otherwise it will build a panel that looks clever but does nothing useful.
+
+[1]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/src/components/quotes/drawing-viewer.tsx "raw.githubusercontent.com"
+[2]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/src/components/quotes/quote-wizard.tsx "raw.githubusercontent.com"
