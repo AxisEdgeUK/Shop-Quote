@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { PrintConfirmDialog } from "@/components/print-confirm-dialog";
 import {
   useGetQuote,
   useGetCustomer,
@@ -88,9 +87,7 @@ export function ViewQuote() {
   const [wonExpectedDelivery, setWonExpectedDelivery] = useState("");
   const [wonNotesText, setWonNotesText] = useState("");
 
-  const [showPrintConfirm, setShowPrintConfirm] = useState(false);
-  const handlePrint = () => setShowPrintConfirm(true);
-  const handleConfirmedPrint = () => { setShowPrintConfirm(false); window.print(); };
+  const handlePrint = () => window.print();
 
   const handleMarkLost = () => {
     if (!quote) return;
@@ -193,6 +190,17 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
     setTimeout(() => setEmailCopied(false), 2500);
   };
 
+  const handleEmail = () => {
+    if (!quote || !customer) return;
+    window.print();
+    const subject = encodeURIComponent(`Quotation ${quote.quoteNumber} for ${customer.companyName}`);
+    const body = encodeURIComponent(buildEmailBody());
+    setTimeout(() => {
+      window.location.href = `mailto:${customer.email}?subject=${subject}&body=${body}`;
+    }, 500);
+    toast({ title: "Save the PDF first", description: "Once saved, attach it to the email that opens." });
+  };
+
   const handleShare = async () => {
     const text = buildEmailBody();
     if (navigator.share) {
@@ -272,16 +280,9 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
             </Button>
           )}
           {customer.email && (
-            <a
-              href={`mailto:${customer.email}?subject=${encodeURIComponent(`Quotation ${quote.quoteNumber} for ${customer.companyName}`)}&body=${encodeURIComponent(buildEmailBody())}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border text-sm font-medium transition-colors hover:bg-muted"
-              style={{
-                borderColor: "hsl(var(--border))",
-                color: "hsl(var(--foreground))",
-              }}
-            >
-              <Mail className="w-3.5 h-3.5" /> Send Email
-            </a>
+            <Button variant="outline" size="sm" onClick={handleEmail}>
+              <Mail className="w-3.5 h-3.5 mr-1.5" /> Send Email
+            </Button>
           )}
           <Button variant="outline" size="sm" onClick={handleCopyEmail}>
             {emailCopied ? (
@@ -428,17 +429,13 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
               </Button>
             )}
             {customer.email && (
-              <a
-                href={`mailto:${customer.email}?subject=${encodeURIComponent(`Quotation ${quote.quoteNumber} for ${customer.companyName}`)}&body=${encodeURIComponent(buildEmailBody())}`}
-                className="flex-1"
+              <Button
+                variant="outline"
+                className="flex-1 h-11 gap-1.5 text-sm"
+                onClick={handleEmail}
               >
-                <Button
-                  variant="outline"
-                  className="w-full h-11 gap-1.5 text-sm"
-                >
-                  <Mail className="w-4 h-4" /> Email
-                </Button>
-              </a>
+                <Mail className="w-4 h-4" /> Email
+              </Button>
             )}
           </div>
         </div>
@@ -545,11 +542,6 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
         </DialogContent>
       </Dialog>
 
-      <PrintConfirmDialog
-        open={showPrintConfirm}
-        onConfirm={handleConfirmedPrint}
-        onCancel={() => setShowPrintConfirm(false)}
-      />
     </div>
   );
 }

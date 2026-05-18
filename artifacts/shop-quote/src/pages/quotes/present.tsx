@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   useGetQuote,
   useGetCustomer,
@@ -10,7 +9,6 @@ import { useParams, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, FileDown, Eye } from "lucide-react";
-import { PrintConfirmDialog } from "@/components/print-confirm-dialog";
 
 const CUR = "£";
 
@@ -32,9 +30,7 @@ export function PresentQuote() {
   );
   const { data: settings, isLoading: isLoadingSettings } = useGetSettings();
 
-  const [showPrintConfirm, setShowPrintConfirm] = useState(false);
-  const handlePrint = () => setShowPrintConfirm(true);
-  const handleConfirmedPrint = () => { setShowPrintConfirm(false); window.print(); };
+  const handlePrint = () => window.print();
 
   if (isLoadingQuote || isLoadingCustomer || isLoadingSettings) {
     return <Skeleton className="h-[800px] w-full max-w-4xl mx-auto" />;
@@ -419,11 +415,6 @@ export function PresentQuote() {
         </div>
       </div>
 
-      <PrintConfirmDialog
-        open={showPrintConfirm}
-        onConfirm={handleConfirmedPrint}
-        onCancel={() => setShowPrintConfirm(false)}
-      />
     </div>
   );
 }

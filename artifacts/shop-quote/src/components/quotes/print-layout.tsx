@@ -108,10 +108,10 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
 
   return (
     <div
-      className="bg-white text-black font-sans w-full max-w-[816px] mx-auto"
+      className="bg-white text-black font-sans w-full max-w-[816px] mx-auto print:max-w-none"
       style={{ borderTop: "4px solid #1D8FFF" }}
     >
-      <div className="p-12 print:p-10">
+      <div className="p-12 print:p-0">
         {/* ── HEADER ── */}
         <div
           className="flex justify-between items-start mb-8 pb-6"

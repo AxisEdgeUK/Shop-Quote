@@ -166,6 +166,11 @@
 }
 
 /* Print — always white-on-white for the PDF document */
+@page {
+  size: A4 portrait;
+  margin: 12mm;
+}
+
 @media print {
   :root {
     --background: 0 0% 100%;
