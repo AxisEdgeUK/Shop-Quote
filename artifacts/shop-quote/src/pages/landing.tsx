@@ -731,20 +731,48 @@ export function LandingPage() {
               cta="Start Monthly"
               href="/dashboard"
             />
-            <PricingCard
-              label="FOUNDER LIFETIME"
-              price="£999"
-              period="one-off payment, yours forever"
-              features={[
-                "All monthly features",
-                "Pay once, use forever",
-                "Priority support",
-                "All future updates",
-              ]}
-              cta="Buy Lifetime Access"
-              href="/dashboard"
-              featured
-            />
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#6b7280",
+                    letterSpacing: "0.01em",
+                    lineHeight: 1.6,
+                    margin: 0,
+                    fontWeight: 400,
+                  }}
+                >
+                  Equivalent to approximately £2.74 per day over one year.
+                </p>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "#9ca3af",
+                    letterSpacing: "0.01em",
+                    lineHeight: 1.6,
+                    margin: "3px 0 0",
+                    fontWeight: 400,
+                  }}
+                >
+                  Less than the cost of one machine hour in many shops.
+                </p>
+              </div>
+              <PricingCard
+                label="FOUNDER LIFETIME"
+                price="£999"
+                period="one-off payment, yours forever"
+                features={[
+                  "All monthly features",
+                  "Pay once, use forever",
+                  "Priority support",
+                  "All future updates",
+                ]}
+                cta="Buy Lifetime Access"
+                href="/dashboard"
+                featured
+              />
+            </div>
           </div>
         </div>
       </section>
