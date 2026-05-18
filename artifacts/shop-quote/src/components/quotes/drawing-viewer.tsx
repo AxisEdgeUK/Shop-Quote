@@ -14,12 +14,6 @@ import {
   ScanLine,
 } from "lucide-react";
 import { useScanContext } from "@/contexts/scan-context";
-import * as pdfjsLib from "pdfjs-dist";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url,
-).toString();
 
 type DrawingFile = {
   file?: File;
@@ -104,20 +98,6 @@ async function urlToBase64(url: string): Promise<{ base64: string; mimeType: str
   });
 }
 
-/** Render page 1 of a PDF to a PNG and return base64. Uses pdfjs-dist in the browser. */
-async function pdfToImageBase64(pdfBytes: ArrayBuffer, scale = 2.5): Promise<string> {
-  const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
-  const pdf = await loadingTask.promise;
-  const page = await pdf.getPage(1);
-  const viewport = page.getViewport({ scale });
-  const canvas = document.createElement("canvas");
-  canvas.width = viewport.width;
-  canvas.height = viewport.height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas 2D context unavailable");
-  await page.render({ canvasContext: ctx, canvas, viewport }).promise;
-  return canvas.toDataURL("image/png").split(",")[1];
-}
 
 export function DrawingViewer({ quoteId }: { quoteId?: number }) {
   const [drawing, setDrawing] = useState<DrawingFile | null>(null);
@@ -307,18 +287,7 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
       console.log("[ScanAssist] Starting scan, type:", drawing.type);
 
       if (drawing.type === "pdf") {
-        let pdfBytes: ArrayBuffer;
-        if (drawing.file) {
-          pdfBytes = await drawing.file.arrayBuffer();
-        } else {
-          const resp = await fetch(drawing.url);
-          if (!resp.ok) throw new Error("Failed to fetch PDF from storage");
-          pdfBytes = await resp.arrayBuffer();
-        }
-        console.log("[ScanAssist] PDF loaded, rendering page 1 to PNG…");
-        base64 = await pdfToImageBase64(pdfBytes);
-        mimeType = "image/png";
-        console.log("[ScanAssist] PDF rendered. PNG base64 length:", base64.length);
+        throw new Error("PDF scanning is not supported. Please upload a JPG or PNG screenshot of the drawing instead.");
       } else {
         if (drawing.file) {
           if (drawing.file.size > MAX_SCAN_BYTES) {
@@ -489,7 +458,7 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
               />
             </>
           )}
-          {drawing && (
+          {drawing && drawing.type !== "pdf" && (
             <button
               type="button"
               onClick={handleScan}
@@ -513,7 +482,7 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
               {scanState === "scanning" ? (
                 <>
                   <Loader className="w-3 h-3 animate-spin" />
-                  {drawing?.type === "pdf" ? "Scanning PDF drawing…" : "Scanning…"}
+                  Scanning…
                 </>
               ) : scanState === "error" ? (
                 <>
