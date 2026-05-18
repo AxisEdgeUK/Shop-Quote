@@ -43,27 +43,36 @@ function mapMaterial(raw: string | undefined): string | undefined {
   return normalized;
 }
 
-const IMAGE_PROMPT = `You are analyzing an engineering drawing for a CNC machine shop.
+const IMAGE_PROMPT = `You are analysing an engineering drawing for CNC machining quotation.
 
-Extract key quoting information from this drawing and return ONLY a valid JSON object.
+Extract all visible manufacturing and quoting information. If anything is unclear, use "not visible" rather than guessing.
 
-Return a JSON object with these fields (only include fields you can detect with confidence):
+Return ONLY a valid JSON object with these fields (only include fields you can detect):
 {
+  "partName": "string — part name or description from title block",
   "material": "string (e.g. Aluminium 6082-T6, Stainless Steel 316, EN8, HE30)",
   "materialConfidence": "low" | "medium" | "high",
   "quantity": number,
   "drawingNumber": "string",
   "revision": "string (e.g. A, B, 01, Rev2)",
-  "tolerances": ["array of specific tight tolerance notes found, e.g. ±0.01, H7, ±0.005, Ra 1.6"],
-  "coatings": ["array of coating or finish requirements, e.g. Anodise black, Zinc plate, Hard chrome"],
-  "inspectionNotes": ["array of inspection or quality requirements, e.g. 100% inspection, CMM report, FAIR"]
+  "finish": "string — surface treatment or coating (e.g. Anodise black, Zinc plate, Passivate)",
+  "heatTreatment": "string — heat treatment requirement if stated (e.g. Harden and temper, Case harden)",
+  "criticalDimensions": ["array of critical dimensions or diameter/length callouts"],
+  "tolerances": ["array of tight tolerance notes, e.g. ±0.01, H7, h6, ±0.005, Ra 1.6"],
+  "threads": ["array of thread callouts, e.g. M8x1.25, 1/4-20 UNC, G1/4"],
+  "surfaceFinish": "string — Ra value or finish grade if stated (e.g. Ra 1.6, Ra 3.2, N7)",
+  "inspectionNotes": ["array of inspection or quality requirements, e.g. 100% inspection, CMM report, FAIR"],
+  "missingInfo": ["array of information needed to quote that is NOT visible on the drawing"],
+  "quoteRisk": "low" | "medium" | "high",
+  "summary": "one sentence describing what this part is and any notable quoting considerations"
 }
 
 Rules:
-- Only include fields you can clearly identify from the drawing
-- For materialConfidence: use "high" if the material is clearly stated, "medium" if reasonably inferred, "low" if uncertain or guessed
-- Recognise common workshop shorthand: HE30=Aluminium 6082-T6, EN8=medium carbon steel, 316=stainless steel 316, etc.
-- Do not guess or invent information
+- Only include fields you can clearly identify
+- For materialConfidence: "high" if clearly stated, "medium" if reasonably inferred, "low" if uncertain
+- For quoteRisk: "high" if tight tolerances, unusual material, or missing info; "medium" if some uncertainty; "low" if straightforward
+- Recognise workshop shorthand: HE30=Aluminium 6082-T6, EN8=medium carbon steel, 316=stainless steel 316
+- Do not invent information — if not visible, omit the field or add to missingInfo
 - If the drawing is unreadable or has no detectable text, return { "unreadable": true }
 - Return ONLY valid JSON, no markdown, no explanation`;
 
@@ -88,12 +97,27 @@ router.post("/ai/scan-drawing", async (req, res) => {
     return;
   }
 
-  const empty = { tolerances: [], coatings: [], inspectionNotes: [] };
+  const empty = {
+    tolerances: [],
+    coatings: [],
+    threads: [],
+    criticalDimensions: [],
+    inspectionNotes: [],
+    missingInfo: [],
+  };
 
   try {
     const buffer = Buffer.from(imageData, "base64");
+
+    req.log.info(
+      { mimeType, sizeBytes: buffer.length },
+      "scan-drawing: file received",
+    );
+
     const base64 = buffer.toString("base64");
     const imageUrl = `data:${mimeType};base64,${base64}`;
+
+    req.log.info("scan-drawing: sending to AI vision");
 
     const response = await openai.chat.completions.create({
       model: "gpt-5.4",
@@ -112,8 +136,17 @@ router.post("/ai/scan-drawing", async (req, res) => {
       ],
     });
 
+    req.log.info("scan-drawing: AI response received");
+
     const parsed = parseResult(response.choices[0]?.message?.content ?? "");
     if (!parsed) {
+      req.log.warn("scan-drawing: failed to parse AI response");
+      res.json({ ...empty, unreadable: true });
+      return;
+    }
+
+    if (parsed.unreadable) {
+      req.log.info("scan-drawing: drawing unreadable");
       res.json({ ...empty, unreadable: true });
       return;
     }
@@ -126,20 +159,46 @@ router.post("/ai/scan-drawing", async (req, res) => {
     const validConf =
       conf === "low" || conf === "medium" || conf === "high" ? conf : undefined;
 
-    res.json({
+    const risk = parsed.quoteRisk as "low" | "medium" | "high" | undefined;
+    const validRisk =
+      risk === "low" || risk === "medium" || risk === "high" ? risk : undefined;
+
+    const result = {
+      partName: parsed.partName || undefined,
       material: mapMaterial(parsed.material),
       materialConfidence: validConf,
       quantity:
         typeof parsed.quantity === "number" ? parsed.quantity : undefined,
-      drawingNumber: parsed.drawingNumber,
-      revision: parsed.revision,
+      drawingNumber: parsed.drawingNumber || undefined,
+      revision: parsed.revision || undefined,
+      finish: parsed.finish || undefined,
+      heatTreatment: parsed.heatTreatment || undefined,
       tolerances: Array.isArray(parsed.tolerances) ? parsed.tolerances : [],
       coatings: Array.isArray(parsed.coatings) ? parsed.coatings : [],
+      threads: Array.isArray(parsed.threads) ? parsed.threads : [],
+      criticalDimensions: Array.isArray(parsed.criticalDimensions)
+        ? parsed.criticalDimensions
+        : [],
       inspectionNotes: Array.isArray(parsed.inspectionNotes)
         ? parsed.inspectionNotes
         : [],
-      unreadable: parsed.unreadable === true,
-    });
+      missingInfo: Array.isArray(parsed.missingInfo) ? parsed.missingInfo : [],
+      quoteRisk: validRisk,
+      summary: parsed.summary || undefined,
+    };
+
+    req.log.info(
+      {
+        hasPartName: !!result.partName,
+        hasMaterial: !!result.material,
+        toleranceCount: result.tolerances.length,
+        missingInfoCount: result.missingInfo.length,
+        quoteRisk: result.quoteRisk,
+      },
+      "scan-drawing: completed",
+    );
+
+    res.json(result);
   } catch (err) {
     logger.error({ err }, "scan-drawing failed");
     res.status(500).json({ error: "Scan failed. Please try again." });

@@ -1,0 +1,92 @@
+Use this prompt in Replit:
+
+```text
+I want to keep using the current GitHub repo and fix the existing PDF drawing scan feature. Do not rebuild the whole app or create a new repo.
+
+Current problem:
+When I upload a drawing PDF, the scan fails. I need a practical workaround so the app can still read engineering drawing PDFs and highlight/extract the key information we discussed.
+
+Goal:
+Make PDF scanning reliable by converting the uploaded PDF into image pages first, then send those page images to the existing AI drawing scan route. If PDF conversion fails, add a fallback that lets the user manually upload a screenshot/JPG/PNG of the drawing instead.
+
+Required behaviour:
+1. Keep the current UI and repo structure as much as possible.
+2. Find the existing drawing/PDF upload route.
+3. Add logging at each stage:
+   - file received
+   - file type
+   - file size
+   - PDF conversion started
+   - number of pages converted
+   - AI scan started
+   - AI scan completed
+   - error details if anything fails
+4. For PDF uploads:
+   - Convert the first page of the PDF into a high-resolution PNG or JPEG.
+   - If possible, support multiple pages, but first page working is the priority.
+   - Use a reliable package that works in Replit and deployment.
+   - Avoid packages that require unavailable native binaries unless you confirm they work.
+5. Send the converted image to the existing AI scan process instead of sending the raw PDF.
+6. Add a fallback message in the UI:
+   “PDF scan failed. Please upload a screenshot, JPG or PNG of the drawing instead.”
+7. Add image upload support if not already present.
+8. Do not break existing image scanning.
+9. Do not change unrelated parts of the app.
+
+The AI should extract and highlight these engineering drawing details:
+- Part name
+- Material
+- Quantity
+- Finish or treatment
+- Tolerances
+- Critical dimensions
+- Diameter and length
+- Thread details
+- Surface finish
+- Heat treatment
+- Notes section
+- Revision
+- Drawing number
+- Any missing information needed to quote the job
+
+Workaround priority:
+If PDF parsing is difficult, implement the simplest reliable workaround:
+- Convert PDF page to image in the browser before upload, using pdf.js
+- Then send the image file to the existing scan endpoint
+- Keep the backend unchanged as much as possible
+
+Suggested frontend approach:
+Use pdfjs-dist in the upload component:
+- Load the PDF file in the browser
+- Render page 1 to a canvas at 2x or 3x scale
+- Convert canvas to JPEG/PNG blob
+- Send that image blob to the existing scan route
+
+Suggested AI prompt for the scan:
+“You are analysing an engineering drawing for CNC machining quotation. Extract all visible manufacturing and quoting information. Focus on material, quantity, tolerances, dimensions, surface finish, heat treatment, threads, drawing notes, revision and missing quoting information. If anything is unclear, say ‘not visible’ rather than guessing.”
+
+Output format:
+Return structured JSON with:
+{
+  "partName": "",
+  "drawingNumber": "",
+  "revision": "",
+  "material": "",
+  "quantity": "",
+  "finish": "",
+  "heatTreatment": "",
+  "criticalDimensions": [],
+  "tolerances": [],
+  "threads": [],
+  "surfaceFinish": "",
+  "notes": [],
+  "missingInfo": [],
+  "quoteRisk": "low / medium / high",
+  "summary": ""
+}
+
+Also show the extracted results clearly on screen after the scan.
+
+Important:
+Make the smallest safe changes possible. First fix the upload/scan failure. Then improve the extracted fields display.
+```

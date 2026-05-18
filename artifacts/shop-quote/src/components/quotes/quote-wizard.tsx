@@ -401,10 +401,11 @@ function buildSuggestions(
       displayValue: scan.tolerances[0],
       fieldPath: `lineItems.${idx}.toleranceClass`,
     });
-  if (scan.coatings.length > 0)
+  const finishValue = scan.finish || (scan.coatings.length > 0 ? scan.coatings.join("; ") : undefined);
+  if (finishValue)
     items.push({
-      label: "Possible coating / finish",
-      displayValue: scan.coatings.join("; "),
+      label: "Possible finish / coating",
+      displayValue: finishValue,
       fieldPath: `lineItems.${idx}.surfaceFinish`,
     });
   return items;
@@ -444,6 +445,9 @@ function ScanAssistPanel({
           </span>
           <p className="text-xs mt-0.5" style={{ color: "#64748B" }}>
             Unable to detect drawing text. Please review manually.
+          </p>
+          <p className="text-xs mt-1" style={{ color: "#94A3B8" }}>
+            If you uploaded a PDF, try uploading a screenshot, JPG, or PNG of the drawing instead.
           </p>
         </div>
         <button type="button" onClick={onDismiss} style={{ color: "#CBD5E1" }}>
@@ -688,6 +692,134 @@ function ScanAssistPanel({
                 {t}
               </span>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Summary + quote risk */}
+      {(scan.summary || scan.quoteRisk) && (
+        <div
+          className="px-4 py-3 flex items-start gap-3"
+          style={{ borderTop: "1px solid #F1F5F9", background: "#FAFBFC" }}
+        >
+          {scan.quoteRisk && (
+            <span
+              className="text-xs px-2 py-0.5 rounded font-semibold shrink-0"
+              style={{
+                background:
+                  scan.quoteRisk === "high"
+                    ? "rgba(239,68,68,0.08)"
+                    : scan.quoteRisk === "medium"
+                      ? "rgba(245,158,11,0.08)"
+                      : "rgba(34,197,94,0.08)",
+                color:
+                  scan.quoteRisk === "high"
+                    ? "#B91C1C"
+                    : scan.quoteRisk === "medium"
+                      ? "#92400E"
+                      : "#166534",
+                border: `1px solid ${
+                  scan.quoteRisk === "high"
+                    ? "rgba(239,68,68,0.2)"
+                    : scan.quoteRisk === "medium"
+                      ? "rgba(245,158,11,0.2)"
+                      : "rgba(34,197,94,0.2)"
+                }`,
+              }}
+            >
+              {scan.quoteRisk.charAt(0).toUpperCase() + scan.quoteRisk.slice(1)} risk
+            </span>
+          )}
+          {scan.summary && (
+            <p className="text-xs" style={{ color: "#475569" }}>
+              {scan.summary}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Missing info warning */}
+      {scan.missingInfo && scan.missingInfo.length > 0 && (
+        <div
+          className="px-4 py-3"
+          style={{
+            borderTop: "1px solid #F1F5F9",
+            background: "rgba(245,158,11,0.03)",
+          }}
+        >
+          <p
+            className="text-xs font-semibold mb-1.5 flex items-center gap-1.5"
+            style={{ color: "#92400E" }}
+          >
+            <AlertTriangle className="w-3 h-3" />
+            Possible missing information
+          </p>
+          <ul className="flex flex-col gap-1">
+            {scan.missingInfo.map((item, i) => (
+              <li key={i} className="text-xs" style={{ color: "#78350F" }}>
+                · {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Read-only info: threads, heat treatment, critical dims */}
+      {(scan.threads?.length > 0 ||
+        scan.heatTreatment ||
+        scan.criticalDimensions?.length > 0 ||
+        scan.partName) && (
+        <div
+          className="px-4 py-3"
+          style={{ borderTop: "1px solid #F1F5F9", background: "#FAFBFC" }}
+        >
+          <p
+            className="text-xs font-semibold mb-2"
+            style={{ color: "#475569" }}
+          >
+            Additional drawing information
+          </p>
+          <div className="flex flex-col gap-1.5">
+            {scan.partName && (
+              <div className="flex gap-2">
+                <span className="text-xs w-32 shrink-0" style={{ color: "#94A3B8" }}>
+                  Part name
+                </span>
+                <span className="text-xs font-mono" style={{ color: "#334155" }}>
+                  {scan.partName}
+                </span>
+              </div>
+            )}
+            {scan.heatTreatment && (
+              <div className="flex gap-2">
+                <span className="text-xs w-32 shrink-0" style={{ color: "#94A3B8" }}>
+                  Heat treatment
+                </span>
+                <span className="text-xs font-mono" style={{ color: "#334155" }}>
+                  {scan.heatTreatment}
+                </span>
+              </div>
+            )}
+            {scan.threads && scan.threads.length > 0 && (
+              <div className="flex gap-2">
+                <span className="text-xs w-32 shrink-0" style={{ color: "#94A3B8" }}>
+                  Threads
+                </span>
+                <span className="text-xs font-mono" style={{ color: "#334155" }}>
+                  {scan.threads.join(", ")}
+                </span>
+              </div>
+            )}
+            {scan.criticalDimensions && scan.criticalDimensions.length > 0 && (
+              <div className="flex gap-2">
+                <span className="text-xs w-32 shrink-0" style={{ color: "#94A3B8" }}>
+                  Critical dims
+                </span>
+                <span className="text-xs font-mono" style={{ color: "#334155" }}>
+                  {scan.criticalDimensions.join(", ")}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       )}
