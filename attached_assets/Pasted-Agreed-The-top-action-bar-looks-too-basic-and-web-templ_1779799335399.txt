@@ -1,0 +1,209 @@
+Agreed. The top action bar looks too basic and web-template-like. It needs to feel like a premium engineering command bar.
+
+Paste this into Replit:
+
+```text
+Improve the quote detail page and customer quote workflow.
+
+Do not add unrelated features. Fix the following practical quote issues.
+
+1. Quantity price breaks need custom manual fields
+
+Current issue:
+Quantity price breaks are too rigid.
+
+Add custom editable quantity break rows.
+
+User must be able to:
+- add custom quantity
+- enter custom price each
+- enter custom total price
+- override calculated price
+- delete a price break row
+- reorder rows if needed
+
+Each row should allow:
+- Qty
+- Price Each
+- Total
+- Notes optional
+
+Add a toggle per row:
+- Auto calculated
+- Manual override
+
+If manual override is enabled, do not recalculate that row unless user chooses “recalculate”.
+
+This is important because real machine shops often manually adjust quantity prices.
+
+2. Tolerance class needs sizes in brackets on quote
+
+Current issue:
+Tolerance class is too vague.
+
+On quote line items and PDFs, show tolerance class with bracketed explanation.
+
+Use:
+
+Loose (general workshop tolerance)
+Standard (±0.10mm typical)
+Tight (±0.05mm or better)
+Critical (±0.01mm / fit-critical)
+
+Allow these defaults to be edited in Settings later.
+
+Display on:
+- internal quote review
+- customer quote preview
+- PDF quote if tolerance is included
+
+3. Send Email must attach the PDF
+
+Current issue:
+Send Email should not just create/copy an email.
+
+When user clicks Send Email:
+- generate latest PDF automatically
+- attach the PDF to the email
+- use customer email address
+- use quote number in subject line
+- include a professional email body
+
+Email subject:
+Quote QT-[number] - [Customer Name]
+
+Email body:
+Please find attached our quotation for [part name / quote reference].
+
+This quotation is valid until [validity date].
+
+Lead time: [lead time]
+
+Please let us know if you would like to proceed.
+
+Kind regards,
+[Company Name]
+
+If direct email sending is not technically available yet:
+- create a “Download PDF + Copy Email” workflow
+- clearly explain:
+“PDF generated. Email text copied. Attach the downloaded PDF before sending.”
+
+But preferred workflow:
+Send Email should attach the generated PDF.
+
+4. Redesign quote detail action bar
+
+Current issue:
+The buttons at the top look too basic and generic.
+
+Redesign into a premium engineering command bar.
+
+Current buttons:
+- Mark Sent
+- Mark Won
+- Mark Lost
+- Send Email
+- Copy Email
+- Quote Similar
+- Presentation
+- Edit
+- Generate PDF
+
+Make this feel more professional.
+
+Suggested layout:
+
+LEFT:
+Quote title and status
+
+PRIMARY ACTION AREA:
+- Generate PDF
+- Send Email
+- Presentation
+
+SECONDARY ACTIONS:
+- Edit
+- Quote Similar
+- Copy Email
+
+STATUS ACTIONS:
+Use a dropdown called:
+Update Status
+
+Inside dropdown:
+- Mark Sent
+- Mark Won
+- Mark Lost
+
+This reduces clutter and makes the page feel cleaner.
+
+5. Button styling
+
+Use premium industrial style:
+- fewer visible buttons
+- stronger hierarchy
+- cleaner spacing
+- subtle borders
+- restrained accent colour
+- no cheap-looking default button styling
+
+Primary button:
+Generate PDF
+
+Secondary button:
+Send Email
+
+Subtle button:
+Presentation
+
+Dropdown:
+More Actions
+
+Status:
+Use status badge next to quote number.
+
+6. Mobile behaviour
+
+On iPhone:
+- action bar should not wrap awkwardly
+- use sticky bottom action bar
+- show primary actions only:
+  - Generate PDF
+  - Send Email
+  - More
+
+Inside More:
+- Edit
+- Quote Similar
+- Mark Sent
+- Mark Won
+- Mark Lost
+- Presentation
+- Copy Email
+
+7. Professional visual feel
+
+The quote detail page should feel like:
+- premium estimating software
+- engineering workflow tool
+- not a basic admin dashboard
+
+Avoid:
+- too many square buttons in a row
+- default browser-like UI
+- clutter
+- cheap SaaS action bars
+
+8. Final checks
+
+After completing, confirm:
+- custom quantity break rows work
+- manual price override works
+- tolerance class shows bracketed size guidance
+- Send Email attaches or clearly pairs with PDF
+- action bar is redesigned
+- mobile action bar works properly
+```
+
+The biggest priorities are **manual quantity break overrides** and the **top command bar redesign**. Those will make it feel far more like real quoting software.

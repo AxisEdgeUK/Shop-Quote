@@ -1,6 +1,35 @@
 import { format } from "date-fns";
 import { Quote, Customer, Settings } from "@workspace/api-client-react";
 
+type PriceBreakRow = {
+  qty: number;
+  manual: boolean;
+  priceEach?: number;
+  total?: number;
+  notes?: string;
+};
+
+const TOLERANCE_LABELS: Record<string, string> = {
+  Loose: "Loose (general workshop)",
+  Standard: "Standard (±0.10mm typical)",
+  Tight: "Tight (±0.05mm or better)",
+  Critical: "Critical (±0.01mm / fit-critical)",
+};
+
+function parsePriceBreakRows(raw: string | undefined): PriceBreakRow[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) return [];
+    if (typeof parsed[0] === "number") {
+      return (parsed as number[]).map((qty) => ({ qty, manual: false }));
+    }
+    return parsed as PriceBreakRow[];
+  } catch {
+    return [];
+  }
+}
+
 interface PrintLayoutProps {
   quote: Quote;
   customer: Customer;
@@ -94,14 +123,7 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
     }
   };
 
-  const priceBreakQtys: number[] = (() => {
-    if (!quote.priceBreakQtys) return [];
-    try {
-      return JSON.parse(quote.priceBreakQtys);
-    } catch {
-      return [];
-    }
-  })();
+  const priceBreakRows = parsePriceBreakRows(quote.priceBreakQtys);
 
   const defaultHourlyRate = settings.defaultHourlyRate || 65;
   const defaultSetupRate = settings.defaultSetupRate || 65;
@@ -416,12 +438,12 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
                       item.toleranceClass !== "Standard" && (
                         <span>
                           <span style={{ color: "#9ca3af" }}>Tolerance:</span>{" "}
-                          {item.toleranceClass}
+                          {TOLERANCE_LABELS[item.toleranceClass] ?? item.toleranceClass}
                         </span>
                       )}
                   </div>
 
-                  {priceBreakQtys.length > 0 && (
+                  {priceBreakRows.length > 0 && (
                     <div className="mt-3">
                       <div
                         className="font-semibold uppercase tracking-wider mb-1"
@@ -439,74 +461,59 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
                       >
                         <thead>
                           <tr style={{ background: "#f9fafb" }}>
-                            <th
-                              className="px-3 py-1 text-left font-semibold"
-                              style={{ color: "#6b7280" }}
-                            >
-                              Qty
-                            </th>
-                            <th
-                              className="px-3 py-1 text-right font-semibold"
-                              style={{ color: "#6b7280" }}
-                            >
-                              Unit Price
-                            </th>
-                            <th
-                              className="px-3 py-1 text-right font-semibold"
-                              style={{ color: "#6b7280" }}
-                            >
-                              Total
-                            </th>
+                            <th className="px-3 py-1 text-left font-semibold" style={{ color: "#6b7280" }}>Qty</th>
+                            <th className="px-3 py-1 text-right font-semibold" style={{ color: "#6b7280" }}>Unit Price</th>
+                            <th className="px-3 py-1 text-right font-semibold" style={{ color: "#6b7280" }}>Total</th>
                           </tr>
                         </thead>
                         <tbody>
-                          <tr
-                            className="font-semibold"
-                            style={{
-                              background: "#f3f4f6",
-                              borderBottom: "1px solid #e5e7eb",
-                            }}
-                          >
+                          <tr className="font-semibold" style={{ background: "#f3f4f6", borderBottom: "1px solid #e5e7eb" }}>
                             <td className="px-3 py-1 font-mono">
                               {item.quantity}{" "}
-                              <span
-                                style={{ color: "#9ca3af", fontWeight: 400 }}
-                              >
-                                (quoted)
-                              </span>
+                              <span style={{ color: "#9ca3af", fontWeight: 400 }}>(quoted)</span>
                             </td>
                             <td className="px-3 py-1 text-right font-mono">
-                              {cur}
-                              {(item.pricePerPart || 0).toFixed(2)}
+                              {cur}{(item.pricePerPart || 0).toFixed(2)}
                             </td>
                             <td className="px-3 py-1 text-right font-mono">
-                              {cur}
-                              {(item.sellPrice || 0).toFixed(2)}
+                              {cur}{(item.sellPrice || 0).toFixed(2)}
                             </td>
                           </tr>
-                          {calcPriceBreaks(
-                            item,
-                            priceBreakQtys.filter((q) => q !== item.quantity),
-                            defaultHourlyRate,
-                            defaultSetupRate,
-                            (item as any).machineHourlyRate ||
-                              defaultHourlyRate,
-                          ).map(({ qty, total, perPart }) => (
-                            <tr
-                              key={qty}
-                              style={{ borderBottom: "1px solid #f3f4f6" }}
-                            >
-                              <td className="px-3 py-1 font-mono">{qty}</td>
-                              <td className="px-3 py-1 text-right font-mono">
-                                {cur}
-                                {perPart.toFixed(2)}
-                              </td>
-                              <td className="px-3 py-1 text-right font-mono">
-                                {cur}
-                                {total.toFixed(2)}
-                              </td>
-                            </tr>
-                          ))}
+                          {priceBreakRows
+                            .filter((row) => row.qty !== item.quantity)
+                            .map((row) => {
+                              let perPart: number;
+                              let total: number;
+                              if (row.manual && row.priceEach != null) {
+                                perPart = row.priceEach;
+                                total = row.total ?? row.priceEach * row.qty;
+                              } else {
+                                const [calc] = calcPriceBreaks(
+                                  item,
+                                  [row.qty],
+                                  defaultHourlyRate,
+                                  defaultSetupRate,
+                                  (item as any).machineHourlyRate || defaultHourlyRate,
+                                );
+                                perPart = calc.perPart;
+                                total = calc.total;
+                              }
+                              return (
+                                <tr key={row.qty} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                                  <td className="px-3 py-1 font-mono">
+                                    {row.qty}
+                                    {row.manual && (
+                                      <span style={{ color: "#9ca3af", fontWeight: 400, fontSize: 9, marginLeft: 4 }}>manual</span>
+                                    )}
+                                    {row.notes && (
+                                      <span style={{ color: "#9ca3af", fontWeight: 400, fontSize: 9, marginLeft: 4 }}>· {row.notes}</span>
+                                    )}
+                                  </td>
+                                  <td className="px-3 py-1 text-right font-mono">{cur}{perPart.toFixed(2)}</td>
+                                  <td className="px-3 py-1 text-right font-mono">{cur}{total.toFixed(2)}</td>
+                                </tr>
+                              );
+                            })}
                         </tbody>
                       </table>
                     </div>
@@ -516,7 +523,7 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
                   className="py-4 px-3 text-right align-top font-mono text-sm"
                   style={{ color: "#374151" }}
                 >
-                  {priceBreakQtys.length > 0
+                  {priceBreakRows.length > 0
                     ? "-"
                     : `${cur}${(item.pricePerPart || 0).toFixed(2)}`}
                 </td>

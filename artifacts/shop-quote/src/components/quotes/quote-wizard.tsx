@@ -109,6 +109,28 @@ const quoteSchema = z.object({
 
 export type QuoteFormValues = z.infer<typeof quoteSchema>;
 
+/* ── Price Break Rows ─────────────────────────────────────────── */
+export type PriceBreakRow = {
+  qty: number;
+  manual: boolean;
+  priceEach?: number;
+  total?: number;
+  notes?: string;
+};
+
+function parsePriceBreakRows(raw: string): PriceBreakRow[] {
+  try {
+    const parsed = JSON.parse(raw || "[]");
+    if (!Array.isArray(parsed) || parsed.length === 0) return [];
+    if (typeof parsed[0] === "number") {
+      return (parsed as number[]).map((qty) => ({ qty, manual: false }));
+    }
+    return parsed as PriceBreakRow[];
+  } catch {
+    return [];
+  }
+}
+
 /* ── Constants ───────────────────────────────────────────────── */
 const PAYMENT_TERM_PRESETS = [
   "Pro forma",
@@ -939,6 +961,7 @@ export function QuoteWizard({
     name: "lineItems",
   });
   const [activeLineItemIndex, setActiveLineItemIndex] = useState(0);
+  const [customQtyInput, setCustomQtyInput] = useState("");
 
   // Set defaults from settings once loaded
   useEffect(() => {
@@ -1531,63 +1554,194 @@ export function QuoteWizard({
                 <CardHeader>
                   <CardTitle>Quantity Price Breaks</CardTitle>
                   <CardDescription>
-                    Show alternative pricing for different order quantities on
-                    the PDF. Select the quantities to include.
+                    Add alternative pricing for different order quantities. Toggle Manual to override calculated prices.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex flex-wrap gap-2">
+                <CardContent className="space-y-4">
+                  {/* Quick-add chips */}
+                  <div className="flex flex-wrap gap-1.5 items-center">
                     {[5, 10, 25, 50, 100, 250, 500].map((qty) => {
-                      const current: number[] = (() => {
-                        try {
-                          return JSON.parse(
-                            form.watch("priceBreakQtys") || "[]",
-                          );
-                        } catch {
-                          return [];
-                        }
-                      })();
-                      const active = current.includes(qty);
+                      const rows = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                      const exists = rows.some((r) => r.qty === qty);
                       return (
                         <button
                           key={qty}
                           type="button"
-                          className={`px-3 py-1.5 rounded border text-sm font-mono transition-colors ${active ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
+                          className={`px-2.5 py-1 rounded border text-xs font-mono transition-colors ${exists ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
                           onClick={() => {
-                            const next = active
-                              ? current.filter((q) => q !== qty)
-                              : [...current, qty].sort((a, b) => a - b);
-                            form.setValue(
-                              "priceBreakQtys",
-                              JSON.stringify(next),
-                            );
+                            const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                            const next = exists
+                              ? current.filter((r) => r.qty !== qty)
+                              : [...current, { qty, manual: false }].sort((a, b) => a.qty - b.qty);
+                            form.setValue("priceBreakQtys", JSON.stringify(next));
                           }}
                         >
-                          {qty} off
+                          {qty}
                         </button>
                       );
                     })}
+                    <div className="flex items-center gap-1">
+                      <Input
+                        placeholder="Custom"
+                        value={customQtyInput}
+                        onChange={(e) => setCustomQtyInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const qty = parseInt(customQtyInput);
+                            if (!qty || qty <= 0) return;
+                            const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                            if (!current.some((r) => r.qty === qty)) {
+                              form.setValue("priceBreakQtys", JSON.stringify([...current, { qty, manual: false }].sort((a, b) => a.qty - b.qty)));
+                            }
+                            setCustomQtyInput("");
+                          }
+                        }}
+                        className="w-20 h-7 text-xs font-mono"
+                      />
+                      <button
+                        type="button"
+                        className="px-2 py-1 rounded border text-xs hover:bg-muted transition-colors"
+                        onClick={() => {
+                          const qty = parseInt(customQtyInput);
+                          if (!qty || qty <= 0) return;
+                          const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                          if (!current.some((r) => r.qty === qty)) {
+                            form.setValue("priceBreakQtys", JSON.stringify([...current, { qty, manual: false }].sort((a, b) => a.qty - b.qty)));
+                          }
+                          setCustomQtyInput("");
+                        }}
+                      >
+                        Add
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Rows */}
                   {(() => {
-                    const qtys: number[] = (() => {
-                      try {
-                        return JSON.parse(form.watch("priceBreakQtys") || "[]");
-                      } catch {
-                        return [];
-                      }
-                    })();
-                    return qtys.length > 0 ? (
-                      <p className="text-xs text-muted-foreground">
-                        Price break columns will appear on the PDF for:{" "}
-                        <strong>
-                          {qtys.map((q) => `${q} off`).join(", ")}
-                        </strong>
-                      </p>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">
-                        No price breaks selected. Quote will show a single price
-                        per line item.
-                      </p>
+                    const rows = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                    if (rows.length === 0) {
+                      return (
+                        <p className="text-xs text-muted-foreground">
+                          No price breaks added. Click quantities above to add them.
+                        </p>
+                      );
+                    }
+                    return (
+                      <div className="border rounded divide-y text-sm">
+                        {rows.map((row, idx) => (
+                          <div key={idx} className="p-3 space-y-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <div className="flex items-center gap-1 shrink-0">
+                                <span className="text-xs text-muted-foreground">Qty</span>
+                                <Input
+                                  type="number"
+                                  value={row.qty}
+                                  min={1}
+                                  className="w-16 h-7 text-xs font-mono text-center"
+                                  onChange={(e) => {
+                                    const newQty = parseInt(e.target.value) || row.qty;
+                                    const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                                    current[idx] = { ...current[idx], qty: newQty };
+                                    form.setValue("priceBreakQtys", JSON.stringify([...current].sort((a, b) => a.qty - b.qty)));
+                                  }}
+                                />
+                              </div>
+                              <div className="flex rounded border overflow-hidden text-xs shrink-0">
+                                <button
+                                  type="button"
+                                  className={`px-2.5 py-1 transition-colors ${!row.manual ? "bg-muted font-semibold" : "text-muted-foreground hover:bg-muted/50"}`}
+                                  onClick={() => {
+                                    const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                                    current[idx] = { ...current[idx], manual: false };
+                                    form.setValue("priceBreakQtys", JSON.stringify(current));
+                                  }}
+                                >
+                                  Auto
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`px-2.5 py-1 border-l transition-colors ${row.manual ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:bg-muted/50"}`}
+                                  onClick={() => {
+                                    const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                                    current[idx] = { ...current[idx], manual: true };
+                                    form.setValue("priceBreakQtys", JSON.stringify(current));
+                                  }}
+                                >
+                                  Manual
+                                </button>
+                              </div>
+                              {row.manual && (
+                                <>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-xs text-muted-foreground">£ each</span>
+                                    <Input
+                                      type="number"
+                                      placeholder="0.00"
+                                      value={row.priceEach ?? ""}
+                                      step="0.01"
+                                      min={0}
+                                      className="w-24 h-7 text-xs font-mono"
+                                      onChange={(e) => {
+                                        const priceEach = e.target.value === "" ? undefined : parseFloat(e.target.value);
+                                        const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                                        current[idx] = {
+                                          ...current[idx],
+                                          priceEach,
+                                          total: priceEach != null ? parseFloat((priceEach * row.qty).toFixed(2)) : current[idx].total,
+                                        };
+                                        form.setValue("priceBreakQtys", JSON.stringify(current));
+                                      }}
+                                    />
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-xs text-muted-foreground">Total £</span>
+                                    <Input
+                                      type="number"
+                                      placeholder="0.00"
+                                      value={row.total ?? ""}
+                                      step="0.01"
+                                      min={0}
+                                      className="w-24 h-7 text-xs font-mono"
+                                      onChange={(e) => {
+                                        const total = e.target.value === "" ? undefined : parseFloat(e.target.value);
+                                        const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                                        current[idx] = {
+                                          ...current[idx],
+                                          total,
+                                          priceEach: total != null && row.qty > 0 ? parseFloat((total / row.qty).toFixed(4)) : current[idx].priceEach,
+                                        };
+                                        form.setValue("priceBreakQtys", JSON.stringify(current));
+                                      }}
+                                    />
+                                  </div>
+                                </>
+                              )}
+                              <button
+                                type="button"
+                                className="ml-auto text-muted-foreground hover:text-destructive transition-colors"
+                                onClick={() => {
+                                  const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                                  current.splice(idx, 1);
+                                  form.setValue("priceBreakQtys", JSON.stringify(current));
+                                }}
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <Input
+                              placeholder="Notes (optional)"
+                              value={row.notes ?? ""}
+                              className="h-7 text-xs"
+                              onChange={(e) => {
+                                const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                                current[idx] = { ...current[idx], notes: e.target.value };
+                                form.setValue("priceBreakQtys", JSON.stringify(current));
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
                     );
                   })()}
                 </CardContent>
@@ -1753,13 +1907,16 @@ export function QuoteWizard({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {["Loose", "Standard", "Tight", "Critical"].map(
-                              (v) => (
-                                <SelectItem key={v} value={v}>
-                                  {v}
-                                </SelectItem>
-                              ),
-                            )}
+                            {[
+                              { value: "Loose", label: "Loose (general workshop)" },
+                              { value: "Standard", label: "Standard (±0.10mm typical)" },
+                              { value: "Tight", label: "Tight (±0.05mm or better)" },
+                              { value: "Critical", label: "Critical (±0.01mm / fit-critical)" },
+                            ].map(({ value, label }) => (
+                              <SelectItem key={value} value={value}>
+                                {label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </FormItem>

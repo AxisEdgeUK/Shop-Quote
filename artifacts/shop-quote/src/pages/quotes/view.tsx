@@ -19,11 +19,11 @@ import {
   Copy,
   Check,
   Lock,
-  Share2,
   Eye,
   CopyPlus,
   Trophy,
-  GitBranch,
+  ChevronDown,
+  MoreHorizontal,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,6 +38,21 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Select,
   SelectContent,
@@ -86,6 +101,7 @@ export function ViewQuote() {
   const [wonPoNumber, setWonPoNumber] = useState("");
   const [wonExpectedDelivery, setWonExpectedDelivery] = useState("");
   const [wonNotesText, setWonNotesText] = useState("");
+  const [showMoreSheet, setShowMoreSheet] = useState(false);
 
   const handlePrint = () => window.print();
 
@@ -231,119 +247,134 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
 
   return (
     <div className="max-w-5xl mx-auto pb-28 md:pb-6">
-      {/* Non-printable action bar — desktop */}
-      <div className="hidden md:flex items-center justify-between print:hidden gap-3 flex-wrap mb-6">
-        <div className="flex items-center gap-3">
+      {/* Premium command bar — desktop */}
+      <div className="hidden md:flex items-center justify-between print:hidden mb-6 gap-4">
+        <div className="flex items-center gap-2.5 min-w-0">
           <Link href="/quotes">
-            <Button variant="outline" size="icon">
+            <Button variant="ghost" size="icon" className="shrink-0 -ml-2">
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Quote {quote.quoteNumber}
-          </h1>
-          <span
-            className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${statusColors[quote.status] ?? statusColors.Draft}`}
-          >
-            {quote.status}
-          </span>
-          {quote.lostReason && (
-            <span className="text-xs text-muted-foreground italic">
-              ({quote.lostReason})
-            </span>
-          )}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5">
+              <span className="text-xl font-bold tracking-tight font-mono">
+                {quote.quoteNumber}
+              </span>
+              <span
+                className={`px-2 py-0.5 rounded text-xs font-semibold border shrink-0 ${statusColors[quote.status] ?? statusColors.Draft}`}
+              >
+                {quote.status}
+              </span>
+              {quote.lostReason && (
+                <span className="text-xs text-muted-foreground italic truncate">
+                  ({quote.lostReason})
+                </span>
+              )}
+            </div>
+            <div className="text-sm text-muted-foreground leading-tight truncate">
+              {customer.companyName}
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {quote.status === "Draft" && (
-            <Button variant="outline" size="sm" onClick={handleMarkSent}>
-              <Lock className="w-3.5 h-3.5 mr-1.5" /> Mark Sent
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1">
+                More <ChevronDown className="w-3 h-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem asChild>
+                <Link
+                  href={`/quotes/${quote.id}/edit`}
+                  className="flex items-center gap-2 cursor-pointer w-full"
+                >
+                  <Edit className="w-3.5 h-3.5" /> Edit Quote
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  href={`/quotes/new?from=${quote.id}`}
+                  className="flex items-center gap-2 cursor-pointer w-full"
+                >
+                  <CopyPlus className="w-3.5 h-3.5" /> Quote Similar
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleCopyEmail}>
+                {emailCopied ? (
+                  <Check className="w-3.5 h-3.5 mr-2 text-green-600" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5 mr-2" />
+                )}
+                {emailCopied ? "Copied!" : "Copy Email Text"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground">
+                Update Status
+              </DropdownMenuLabel>
+              {quote.status === "Draft" && (
+                <DropdownMenuItem onClick={handleMarkSent}>
+                  <Lock className="w-3.5 h-3.5 mr-2" /> Mark Sent
+                </DropdownMenuItem>
+              )}
+              {(quote.status === "Draft" || quote.status === "Sent") && (
+                <DropdownMenuItem
+                  onClick={() => setShowWonDialog(true)}
+                  className="text-emerald-600 focus:text-emerald-600 focus:bg-emerald-50"
+                >
+                  <Trophy className="w-3.5 h-3.5 mr-2" /> Mark Won
+                </DropdownMenuItem>
+              )}
+              {(quote.status === "Draft" || quote.status === "Sent") && (
+                <DropdownMenuItem
+                  onClick={() => setShowLostDialog(true)}
+                  className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                >
+                  Mark Lost
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Link href={`/quotes/${quote.id}/present`}>
+            <Button variant="outline" size="sm">
+              <Eye className="w-3.5 h-3.5 mr-1.5" /> Presentation
             </Button>
-          )}
-          {(quote.status === "Draft" || quote.status === "Sent") && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-emerald-600 border-emerald-200 hover:bg-emerald-50"
-              onClick={() => setShowWonDialog(true)}
-            >
-              <Trophy className="w-3.5 h-3.5 mr-1.5" /> Mark Won
-            </Button>
-          )}
-          {(quote.status === "Draft" || quote.status === "Sent") && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-red-600 border-red-200 hover:bg-red-50"
-              onClick={() => setShowLostDialog(true)}
-            >
-              Mark Lost
-            </Button>
-          )}
+          </Link>
+
           {customer.email && (
             <Button variant="outline" size="sm" onClick={handleEmail}>
               <Mail className="w-3.5 h-3.5 mr-1.5" /> Send Email
             </Button>
           )}
-          <Button variant="outline" size="sm" onClick={handleCopyEmail}>
-            {emailCopied ? (
-              <>
-                <Check className="w-3.5 h-3.5 mr-1.5 text-green-600" />
-                Copied!
-              </>
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5 mr-1.5" />
-                Copy Email
-              </>
-            )}
-          </Button>
-          <Link href={`/quotes/new?from=${quote.id}`}>
-            <Button variant="outline" size="sm">
-              <CopyPlus className="w-3.5 h-3.5 mr-1.5" />
-              Quote Similar
-            </Button>
-          </Link>
-          <Link href={`/quotes/${quote.id}/present`}>
-            <Button variant="outline" size="sm">
-              <Eye className="w-3.5 h-3.5 mr-1.5" />
-              Presentation
-            </Button>
-          </Link>
-          <Link href={`/quotes/${quote.id}/edit`}>
-            <Button variant="outline" size="sm">
-              <Edit className="w-4 h-4 mr-1.5" />
-              Edit
-            </Button>
-          </Link>
-          <Button onClick={handlePrint} size="sm">
-            <FileDown className="w-4 h-4 mr-1.5" /> Generate PDF
+
+          <Button onClick={handlePrint} size="sm" className="font-semibold gap-1.5">
+            <FileDown className="w-4 h-4" /> Generate PDF
           </Button>
         </div>
       </div>
 
       {/* Mobile top bar */}
-      <div className="md:hidden flex items-center gap-3 mb-4 print:hidden">
+      <div className="md:hidden flex items-center gap-2.5 mb-4 print:hidden">
         <Link href="/quotes">
-          <Button variant="outline" size="icon" className="h-11 w-11">
+          <Button variant="ghost" size="icon" className="h-10 w-10 -ml-1 shrink-0">
             <ArrowLeft className="w-4 h-4" />
           </Button>
         </Link>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-lg font-bold tracking-tight">
+          <div className="flex items-center gap-2">
+            <h1 className="text-base font-bold tracking-tight font-mono">
               {quote.quoteNumber}
             </h1>
             <span
-              className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${statusColors[quote.status] ?? statusColors.Draft}`}
+              className={`px-1.5 py-0.5 rounded text-xs font-semibold border shrink-0 ${statusColors[quote.status] ?? statusColors.Draft}`}
             >
               {quote.status}
             </span>
           </div>
           {customer.companyName && (
-            <div
-              className="text-sm truncate"
-              style={{ color: "hsl(var(--muted-foreground))" }}
-            >
+            <div className="text-sm truncate text-muted-foreground">
               {customer.companyName}
             </div>
           )}
@@ -361,83 +392,125 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
         style={{
           background: "hsl(var(--background))",
           borderTop: "1px solid hsl(var(--border))",
-          paddingBottom: "env(safe-area-inset-bottom)",
         }}
       >
-        <div className="p-3 space-y-2">
-          {/* Primary action */}
+        <div
+          className="flex gap-2 px-3 pt-3"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)" }}
+        >
           <Button
-            className="w-full h-12 text-base font-semibold gap-2"
+            className="flex-1 h-12 font-semibold gap-2"
             onClick={handlePrint}
           >
-            <FileDown className="w-5 h-5" /> Generate PDF
+            <FileDown className="w-5 h-5" /> PDF
           </Button>
-          {/* Secondary row */}
-          <div className="flex gap-2">
-            <Link href={`/quotes/new?from=${quote.id}`} className="flex-1">
-              <Button variant="outline" className="w-full h-11 gap-1.5 text-sm">
-                <CopyPlus className="w-4 h-4" /> Quote Similar
-              </Button>
-            </Link>
-            <Link href={`/quotes/${quote.id}/present`} className="flex-1">
-              <Button variant="outline" className="w-full h-11 gap-1.5 text-sm">
-                <Eye className="w-4 h-4" /> Presentation
-              </Button>
-            </Link>
-          </div>
-          <div className="flex gap-2">
+          {customer.email && (
             <Button
               variant="outline"
-              className="flex-1 h-11 gap-1.5"
-              onClick={handleShare}
+              className="flex-1 h-12 gap-2"
+              onClick={handleEmail}
             >
-              <Share2 className="w-4 h-4" /> Share Quote
+              <Mail className="w-5 h-5" /> Email
             </Button>
-            <Link href={`/quotes/${quote.id}/edit`} className="flex-1">
-              <Button variant="outline" className="w-full h-11 gap-1.5">
-                <Edit className="w-4 h-4" /> Edit
+          )}
+          <Sheet open={showMoreSheet} onOpenChange={setShowMoreSheet}>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="w-12 h-12 shrink-0" size="icon">
+                <MoreHorizontal className="w-5 h-5" />
               </Button>
-            </Link>
-          </div>
-          {/* Status actions */}
-          <div className="flex gap-2">
-            {quote.status === "Draft" && (
-              <Button
-                variant="outline"
-                className="flex-1 h-11 gap-1.5 text-sm"
-                onClick={handleMarkSent}
-              >
-                <Lock className="w-4 h-4" /> Mark Sent
-              </Button>
-            )}
-            {(quote.status === "Draft" || quote.status === "Sent") && (
-              <Button
-                variant="outline"
-                className="flex-1 h-11 text-sm text-emerald-600 border-emerald-200 hover:bg-emerald-50"
-                onClick={() => setShowWonDialog(true)}
-              >
-                <Trophy className="w-4 h-4 mr-1" /> Won
-              </Button>
-            )}
-            {(quote.status === "Draft" || quote.status === "Sent") && (
-              <Button
-                variant="outline"
-                className="flex-1 h-11 text-sm text-red-600 border-red-200 hover:bg-red-50"
-                onClick={() => setShowLostDialog(true)}
-              >
-                Mark Lost
-              </Button>
-            )}
-            {customer.email && (
-              <Button
-                variant="outline"
-                className="flex-1 h-11 gap-1.5 text-sm"
-                onClick={handleEmail}
-              >
-                <Mail className="w-4 h-4" /> Email
-              </Button>
-            )}
-          </div>
+            </SheetTrigger>
+            <SheetContent side="bottom">
+              <SheetHeader className="mb-4">
+                <SheetTitle>More Actions</SheetTitle>
+              </SheetHeader>
+              <div className="space-y-2 pb-4">
+                <Link
+                  href={`/quotes/${quote.id}/present`}
+                  onClick={() => setShowMoreSheet(false)}
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 justify-start gap-2"
+                  >
+                    <Eye className="w-4 h-4" /> Presentation
+                  </Button>
+                </Link>
+                <Link
+                  href={`/quotes/${quote.id}/edit`}
+                  onClick={() => setShowMoreSheet(false)}
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 justify-start gap-2"
+                  >
+                    <Edit className="w-4 h-4" /> Edit Quote
+                  </Button>
+                </Link>
+                <Link
+                  href={`/quotes/new?from=${quote.id}`}
+                  onClick={() => setShowMoreSheet(false)}
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 justify-start gap-2"
+                  >
+                    <CopyPlus className="w-4 h-4" /> Quote Similar
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  className="w-full h-11 justify-start gap-2"
+                  onClick={() => {
+                    handleCopyEmail();
+                    setShowMoreSheet(false);
+                  }}
+                >
+                  <Copy className="w-4 h-4" /> Copy Email Text
+                </Button>
+                <div className="pt-1 border-t">
+                  <p className="text-xs text-muted-foreground px-1 py-2 font-semibold uppercase tracking-wider">
+                    Update Status
+                  </p>
+                </div>
+                {quote.status === "Draft" && (
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 justify-start gap-2"
+                    onClick={() => {
+                      handleMarkSent();
+                      setShowMoreSheet(false);
+                    }}
+                  >
+                    <Lock className="w-4 h-4" /> Mark Sent
+                  </Button>
+                )}
+                {(quote.status === "Draft" || quote.status === "Sent") && (
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 justify-start gap-2 text-emerald-600 border-emerald-200"
+                    onClick={() => {
+                      setShowWonDialog(true);
+                      setShowMoreSheet(false);
+                    }}
+                  >
+                    <Trophy className="w-4 h-4" /> Mark Won
+                  </Button>
+                )}
+                {(quote.status === "Draft" || quote.status === "Sent") && (
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 justify-start gap-2 text-red-600 border-red-200"
+                    onClick={() => {
+                      setShowLostDialog(true);
+                      setShowMoreSheet(false);
+                    }}
+                  >
+                    Mark Lost
+                  </Button>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
 
