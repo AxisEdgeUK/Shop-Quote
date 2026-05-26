@@ -1,0 +1,211 @@
+Your £499 lifetime / £50 per month for 12 months idea is commercially sensible for beta. It lowers the buying friction and still positions it as owned software rather than a permanent subscription.
+
+I would call it:
+
+**Beta Founder Licence**
+£499 one-off
+or
+£50/month for 12 months, then lifetime access
+
+Do not make this permanent. Make it clear it is early-access pricing.
+
+Paste this into Replit:
+
+```text
+Prepare SHOP Quote for beta testing and update the pricing model.
+
+Do not add unnecessary features. Focus on making the product ready for 20 to 30 live quote tests.
+
+PRIORITY 1: UPDATE PRICING
+
+Replace current pricing with a Beta Founder Licence.
+
+Pricing options:
+
+Option 1:
+Beta Founder Licence
+£499 one-off
+
+Option 2:
+Pay Monthly Founder Licence
+£50/month for 12 months
+Then lifetime access
+
+Add small supporting text:
+Early-access pricing for beta users.
+
+Add another restrained line:
+After 12 payments, the licence is owned.
+
+Do not make this feel cheap or discount-bin.
+It should feel like a limited founder offer for small machine shops.
+
+Remove or hide previous:
+£999 lifetime
+£92.50/month
+
+PRIORITY 2: ADD REVISION CONTROL
+
+Machine shops constantly revise quotes.
+
+Add a “Create Revision” workflow.
+
+Quote numbering example:
+QT-2026-001
+QT-2026-001-REV-A
+QT-2026-001-REV-B
+
+Requirements:
+- original quote stays locked after sending
+- if user edits a sent quote, prompt to create revision
+- revision keeps history
+- revision notes field
+- PDF shows revision clearly
+- quote list shows latest revision
+
+PRIORITY 3: ADD INTERNAL / CUSTOMER VIEW TOGGLE
+
+On quote detail page add toggle:
+
+Internal View
+Customer View
+
+Internal View shows:
+- costs
+- margin
+- hourly rates
+- risk notes
+- internal notes
+- quote health
+
+Customer View shows:
+- clean customer-facing quote
+- pricing
+- lead time
+- payment terms
+- validity
+- customer notes
+- drawing preview if included
+
+Do not show margin, hourly rates, or internal costs in Customer View.
+
+PRIORITY 4: IMPROVE FIRST QUOTE ONBOARDING
+
+Add a simple first-use path:
+
+“Create your first quote”
+
+Steps:
+1. Add company details
+2. Add first machine
+3. Add first customer
+4. Create quote
+5. Generate PDF
+
+Keep it skippable.
+
+Goal:
+A new user should create their first quote in under 3 minutes.
+
+PRIORITY 5: ADD RECENT DEFAULTS
+
+Reduce repetitive data entry.
+
+Remember:
+- last selected machine
+- last selected material
+- default margin
+- default lead time
+- default payment terms
+- last quote mode
+
+Prefill new quotes using these values.
+
+PRIORITY 6: ADD QUOTE VALIDATION BEFORE SEND
+
+Before Generate PDF or Send Email, show subtle review checks.
+
+Warn if:
+- material missing
+- quantity missing
+- lead time missing
+- setup time zero
+- runtime zero
+- margin below default threshold
+- customer email missing
+- tolerance class missing
+
+Use restrained wording:
+Review suggested before sending.
+
+Do not block unless critical.
+
+PRIORITY 7: IMPROVE PDF PROFESSIONALISM
+
+Tighten the customer PDF so it feels like a serious precision engineering quotation.
+
+Requirements:
+- clean spacing
+- strong typography
+- company logo prominent but not oversized
+- clear quote number and revision
+- customer details
+- line items
+- quantity breaks
+- lead time
+- payment terms
+- bank details if enabled
+- VAT if enabled
+- no internal costs
+- no margin shown
+
+PRIORITY 8: ADD BETA FEEDBACK FORM
+
+Add small feedback button:
+Send feedback
+
+Fields:
+- What worked well?
+- What felt slow?
+- What was confusing?
+- Did the quote feel accurate?
+- Did the PDF feel professional?
+- Would you use this again?
+- Would you pay £499 lifetime or £50/month for 12 months?
+- Notes
+
+Store feedback or make it exportable.
+
+PRIORITY 9: ADD BETA VERSION LABEL
+
+Show subtly:
+SHOP Quote Beta v0.1
+
+Do not make it look unfinished.
+Make it feel like controlled early access.
+
+PRIORITY 10: FINAL BETA TEST CHECKLIST
+
+Add a developer/admin checklist page or hidden route confirming:
+- Quick Quote works
+- Full Quote works
+- PDF generates
+- Quote Similar Job works
+- Create Revision works
+- Mark Won works
+- Mark Lost works
+- Customer View hides internal costs
+- iPhone layout works
+- logo appears on PDF
+- bank details appear only if enabled
+- quantity breaks work
+- custom quantity breaks work
+- Send Email attaches or clearly pairs PDF with email
+
+FINAL INSTRUCTION:
+Do not add AI, feeds/speeds, tooling integrations, ERP modules, or drawing-pack automation.
+
+The goal now is beta readiness for real machine shop quoting tests.
+```
+
+The pricing is now more realistic for early adoption. Just make sure it is framed as **Founder pricing**, not the permanent price.

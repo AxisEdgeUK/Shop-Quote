@@ -718,32 +718,35 @@ export function LandingPage() {
           </p>
           <div className="landing-pricing-grid">
             <PricingCard
-              label="MONTHLY"
-              price="£92.50"
-              period="per month, minimum 12 months"
+              label="PAY MONTHLY FOUNDER"
+              price="£50"
+              period="per month for 12 months · then lifetime access"
+              contextNote="After 12 payments, the licence is owned. No further charges."
               features={[
                 "Unlimited quotes",
                 "Unlimited customers",
                 "Unlimited machines",
                 "PDF exports",
                 "Email support",
-              ]}
-              cta="Start Monthly"
-              href="/dashboard"
-            />
-            <PricingCard
-              label="FOUNDER LIFETIME"
-              price="£999"
-              period="one-off payment, yours forever"
-              contextNote="Equivalent to approximately £2.74 per day over one year."
-              features={[
-                "All monthly features",
-                "Pay once, use forever",
-                "Priority support",
                 "All future updates",
               ]}
-              cta="Buy Lifetime Access"
-              href="/dashboard"
+              cta="Start Monthly"
+              href="/pricing"
+            />
+            <PricingCard
+              label="BETA FOUNDER LICENCE"
+              price="£499"
+              period="one-off payment · early-access pricing"
+              contextNote="This will not be the launch price. Founding members keep their terms permanently."
+              features={[
+                "Everything in Monthly",
+                "Pay once · never pay again",
+                "Priority support",
+                "All future updates included",
+                "Founder recognition",
+              ]}
+              cta="Buy Founder Access"
+              href="/pricing"
               featured
             />
           </div>
