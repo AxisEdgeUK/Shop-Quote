@@ -102,6 +102,8 @@ export function ViewQuote() {
   const [wonExpectedDelivery, setWonExpectedDelivery] = useState("");
   const [wonNotesText, setWonNotesText] = useState("");
   const [showMoreSheet, setShowMoreSheet] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [pdfSaved, setPdfSaved] = useState(false);
 
   const handlePrint = () => window.print();
 
@@ -208,13 +210,19 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
 
   const handleEmail = () => {
     if (!quote || !customer) return;
-    window.print();
-    const subject = encodeURIComponent(`Quotation ${quote.quoteNumber} for ${customer.companyName}`);
+    setPdfSaved(false);
+    setShowEmailDialog(true);
+    setTimeout(() => window.print(), 100);
+  };
+
+  const handleOpenEmailDraft = () => {
+    if (!quote || !customer) return;
+    const subject = encodeURIComponent(
+      `Quotation ${quote.quoteNumber} for ${customer.companyName}`,
+    );
     const body = encodeURIComponent(buildEmailBody());
-    setTimeout(() => {
-      window.location.href = `mailto:${customer.email}?subject=${subject}&body=${body}`;
-    }, 500);
-    toast({ title: "Save the PDF first", description: "Once saved, attach it to the email that opens." });
+    window.location.href = `mailto:${customer.email}?subject=${subject}&body=${body}`;
+    setShowEmailDialog(false);
   };
 
   const handleShare = async () => {
@@ -612,6 +620,84 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
               <Trophy className="w-4 h-4 mr-1.5" /> Confirm Won
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Email dialog — two-step: save PDF then open email */}
+      <Dialog
+        open={showEmailDialog}
+        onOpenChange={(open) => {
+          setShowEmailDialog(open);
+          if (!open) setPdfSaved(false);
+        }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-4 h-4" /> Send Quote by Email
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {/* Step 1 */}
+            <div
+              className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${pdfSaved ? "border-emerald-200 bg-emerald-50" : "border-border bg-muted/40"}`}
+            >
+              <div
+                className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${pdfSaved ? "bg-emerald-500 text-white" : "bg-primary text-primary-foreground"}`}
+              >
+                {pdfSaved ? <Check className="w-3.5 h-3.5" /> : "1"}
+              </div>
+              <div className="flex-1 space-y-1.5">
+                <p className="text-sm font-semibold leading-none">
+                  Save the PDF
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  In the print dialog, choose{" "}
+                  <strong>Save as PDF</strong> and save to your computer.
+                </p>
+                <Button
+                  size="sm"
+                  variant={pdfSaved ? "outline" : "default"}
+                  className="h-8 gap-1.5 text-xs"
+                  onClick={() => {
+                    window.print();
+                    setTimeout(() => setPdfSaved(true), 800);
+                  }}
+                >
+                  <FileDown className="w-3.5 h-3.5" />
+                  {pdfSaved ? "Re-save PDF" : "Open Print Dialog"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div
+              className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${!pdfSaved ? "opacity-50" : "border-border"}`}
+            >
+              <div
+                className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${pdfSaved ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+              >
+                2
+              </div>
+              <div className="flex-1 space-y-1.5">
+                <p className="text-sm font-semibold leading-none">
+                  Open Email Draft
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Opens your email client with the subject and body
+                  pre-filled. Attach the saved PDF before sending.
+                </p>
+                <Button
+                  size="sm"
+                  className="h-8 gap-1.5 text-xs"
+                  disabled={!pdfSaved}
+                  onClick={handleOpenEmailDraft}
+                >
+                  <Mail className="w-3.5 h-3.5" /> Open Email Draft
+                </Button>
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
