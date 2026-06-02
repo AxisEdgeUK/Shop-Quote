@@ -1,0 +1,139 @@
+Paste this into Replit:
+
+```text
+Add machine import from Excel/CSV to SHOP Quote.
+
+Purpose:
+Allow a machine shop to import their machine list quickly so machine names, hourly rates, setup rates and notes are automatically available inside quotes.
+
+Add this to the Machines page.
+
+Button:
+Import Machines
+
+Supported file types:
+- .xlsx
+- .xls
+- .csv
+
+The importer must support these columns exactly:
+
+- Machine Name
+- Machine Type
+- Axis Count
+- Hourly Rate
+- Setup Rate
+- Currency
+- Max Part Size
+- Notes
+- Active
+
+Machine table mapping:
+
+Machine Name → machine name
+Machine Type → machine type
+Axis Count → axis count
+Hourly Rate → hourly rate
+Setup Rate → setup rate
+Currency → currency
+Max Part Size → maximum part size / capacity
+Notes → notes
+Active → active / inactive
+
+Expected Machine Type values:
+- Milling
+- Turning
+- Mill-Turn
+- Manual
+- Inspection
+- Other
+
+Expected Active values:
+- Yes
+- No
+- True
+- False
+- Active
+- Inactive
+
+Workflow:
+
+1. User clicks Import Machines
+2. User uploads Excel or CSV file
+3. App reads the first row as headers
+4. App shows a mapping screen
+5. App automatically maps matching columns
+6. User can manually adjust mapping if needed
+7. App shows preview before import
+
+Preview must show:
+- total rows found
+- rows ready to import
+- rows with missing machine name
+- rows with invalid hourly rate
+- possible duplicate machines
+
+Duplicate detection:
+Use Machine Name as the main duplicate check.
+
+If duplicate found, offer:
+- Skip duplicate
+- Update existing machine
+- Import as new
+
+Default:
+Skip duplicate
+
+Validation:
+
+Required:
+- Machine Name
+- Machine Type
+- Hourly Rate
+
+Optional:
+- Axis Count
+- Setup Rate
+- Currency
+- Max Part Size
+- Notes
+- Active
+
+If Setup Rate is missing:
+use Hourly Rate as Setup Rate.
+
+If Currency is missing:
+use company default currency.
+
+If Active is missing:
+set Active to Yes.
+
+Hourly Rate and Setup Rate must be numeric.
+
+After import, show summary:
+- machines imported
+- duplicates skipped
+- rows updated
+- rows needing review
+
+Design:
+Keep the import workflow:
+- simple
+- premium
+- industrial
+- non-technical
+
+This is for small machine shop owners, not software experts.
+
+Important:
+Imported machines must immediately be available in:
+- Quick Quote
+- Full Quote
+- Quote Similar Job
+- quantity break calculations
+- price break calculations
+- PDF quote calculations where machine rates are used internally
+
+Final goal:
+A shop should be able to upload a machine spreadsheet and have all machines ready for quoting in under 2 minutes.
+```

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   useListMachines,
   useDeleteMachine,
@@ -15,7 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit, Trash2, Wrench } from "lucide-react";
+import { Plus, Upload, Edit, Trash2, Wrench } from "lucide-react";
+import { MachineImportDialog } from "@/components/machines/MachineImportDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -37,6 +39,7 @@ export function MachinesList() {
   const updateMachine = useUpdateMachine();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [importOpen, setImportOpen] = useState(false);
 
   const handleDelete = (id: number) => {
     deleteMachine.mutate(
@@ -113,13 +116,25 @@ export function MachinesList() {
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           Machines
         </h1>
-        <Link href="/machines/new">
-          <Button className="h-11 px-5" data-testid="button-new-machine">
-            <Plus className="w-4 h-4 mr-2" />
-            New Machine
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="h-11 px-4"
+            onClick={() => setImportOpen(true)}
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Import
           </Button>
-        </Link>
+          <Link href="/machines/new">
+            <Button className="h-11 px-5" data-testid="button-new-machine">
+              <Plus className="w-4 h-4 mr-2" />
+              New Machine
+            </Button>
+          </Link>
+        </div>
       </div>
+
+      <MachineImportDialog open={importOpen} onOpenChange={setImportOpen} />
 
       {/* ── Mobile cards ── */}
       <div className="md:hidden space-y-3">
