@@ -75,6 +75,7 @@
     "zod": "catalog:"
   },
   "dependencies": {
-    "pdfjs-dist": "^5.7.284"
+    "pdfjs-dist": "^5.7.284",
+    "xlsx": "^0.18.5"
   }
 }

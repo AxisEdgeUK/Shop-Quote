@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   useListCustomers,
   useDeleteCustomer,
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import {
   Plus,
+  Upload,
   Edit,
   Trash2,
   Users,
@@ -23,6 +25,7 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
+import { CustomerImportDialog } from "@/components/customers/CustomerImportDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -42,6 +45,7 @@ export function CustomersList() {
   const deleteCustomer = useDeleteCustomer();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [importOpen, setImportOpen] = useState(false);
 
   const handleDelete = (id: number) => {
     deleteCustomer.mutate(
@@ -98,13 +102,25 @@ export function CustomersList() {
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           Customers
         </h1>
-        <Link href="/customers/new">
-          <Button className="h-11 px-5" data-testid="button-new-customer">
-            <Plus className="w-4 h-4 mr-2" />
-            New Customer
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="h-11 px-4"
+            onClick={() => setImportOpen(true)}
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Import
           </Button>
-        </Link>
+          <Link href="/customers/new">
+            <Button className="h-11 px-5" data-testid="button-new-customer">
+              <Plus className="w-4 h-4 mr-2" />
+              New Customer
+            </Button>
+          </Link>
+        </div>
       </div>
+
+      <CustomerImportDialog open={importOpen} onOpenChange={setImportOpen} />
 
       {/* ── Mobile cards ── */}
       <div className="md:hidden space-y-3">
