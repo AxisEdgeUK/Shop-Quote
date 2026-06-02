@@ -13,6 +13,8 @@ tags:
     description: Customer operations
   - name: machines
     description: Machine operations
+  - name: materials
+    description: Material database operations
   - name: quotes
     description: Quote operations
   - name: settings
@@ -216,6 +218,93 @@ paths:
       operationId: deleteMachine
       tags: [machines]
       summary: Delete a machine
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /materials:
+    get:
+      operationId: listMaterials
+      tags: [materials]
+      summary: List all materials
+      responses:
+        "200":
+          description: List of materials
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Material"
+    post:
+      operationId: createMaterial
+      tags: [materials]
+      summary: Create a material
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MaterialInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Material"
+
+  /materials/{id}:
+    get:
+      operationId: getMaterial
+      tags: [materials]
+      summary: Get a material
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Material
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Material"
+    patch:
+      operationId: updateMaterial
+      tags: [materials]
+      summary: Update a material
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MaterialUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Material"
+    delete:
+      operationId: deleteMaterial
+      tags: [materials]
+      summary: Delete a material
       parameters:
         - name: id
           in: path
@@ -642,6 +731,84 @@ components:
           type: number
         notes:
           type: string
+        active:
+          type: boolean
+
+    Material:
+      type: object
+      required:
+        - id
+        - material
+        - grade
+        - form
+        - costPerKg
+        - density
+        - supplier
+        - defaultStockAllowance
+        - active
+        - createdAt
+      properties:
+        id:
+          type: integer
+        material:
+          type: string
+        grade:
+          type: string
+        form:
+          type: string
+        costPerKg:
+          type: number
+        density:
+          type: number
+        supplier:
+          type: string
+        defaultStockAllowance:
+          type: number
+        active:
+          type: boolean
+        createdAt:
+          type: string
+
+    MaterialInput:
+      type: object
+      required:
+        - material
+        - grade
+      properties:
+        material:
+          type: string
+        grade:
+          type: string
+        form:
+          type: string
+        costPerKg:
+          type: number
+        density:
+          type: number
+        supplier:
+          type: string
+        defaultStockAllowance:
+          type: number
+        active:
+          type: boolean
+
+    MaterialUpdate:
+      type: object
+      properties:
+        material:
+          type: string
+        grade:
+          type: string
+        form:
+          type: string
+        costPerKg:
+          type: number
+        density:
+          type: number
+        supplier:
+          type: string
+        defaultStockAllowance:
+          type: number
         active:
           type: boolean
 

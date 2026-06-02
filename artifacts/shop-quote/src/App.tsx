@@ -17,6 +17,9 @@ import { AnalyticsPage } from "@/pages/analytics";
 import { MachinesList } from "@/pages/machines";
 import { NewMachine } from "@/pages/machines/new";
 import { EditMachine } from "@/pages/machines/edit";
+import { MaterialsList } from "@/pages/materials";
+import { NewMaterial } from "@/pages/materials/new";
+import { EditMaterial } from "@/pages/materials/edit";
 import { SettingsPage } from "@/pages/settings";
 import { QuotesList } from "@/pages/quotes";
 import { NewQuote } from "@/pages/quotes/new";
@@ -67,6 +70,15 @@ function Router() {
       </Route>
       <Route path="/machines/:id/edit">
         <AppRoute component={EditMachine} />
+      </Route>
+      <Route path="/materials">
+        <AppRoute component={MaterialsList} />
+      </Route>
+      <Route path="/materials/new">
+        <AppRoute component={NewMaterial} />
+      </Route>
+      <Route path="/materials/:id/edit">
+        <AppRoute component={EditMaterial} />
       </Route>
       <Route path="/analytics">
         <AppRoute component={AnalyticsPage} />

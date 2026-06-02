@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Users,
   Wrench,
+  Layers,
   FileText,
   Settings as SettingsIcon,
   BarChart3,
@@ -18,6 +19,7 @@ const navItems = [
   { name: "Quotes", href: "/quotes", icon: FileText },
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Machines", href: "/machines", icon: Wrench },
+  { name: "Materials", href: "/materials", icon: Layers },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Settings", href: "/settings", icon: SettingsIcon },
 ];

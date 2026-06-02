@@ -50,6 +50,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { QUOTE_TEMPLATES, QuoteTemplate } from "./quote-templates";
+import { MaterialCombobox } from "./MaterialCombobox";
 
 /* ── Schema ──────────────────────────────────────────────────── */
 const lineItemSchema = z.object({
@@ -1818,9 +1819,17 @@ export function QuoteWizard({
                       <FormItem>
                         <FormLabel>Material *</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="e.g. EN8, 316 SS, 6082 T6"
-                            {...field}
+                          <MaterialCombobox
+                            value={field.value ?? ""}
+                            onChange={(val, costPerKg) => {
+                              field.onChange(val);
+                              if (costPerKg !== undefined) {
+                                form.setValue(
+                                  `lineItems.${activeLineItemIndex}.materialCostPerUnit`,
+                                  costPerKg,
+                                );
+                              }
+                            }}
                           />
                         </FormControl>
                         <FormMessage />

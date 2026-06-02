@@ -1,0 +1,160 @@
+I've created the materials import spreadsheet:
+
+[Download the materials database](sandbox:/mnt/data/SHOP_Quote_Demo_Materials.xlsx)
+
+Now give Replit this prompt:
+
+```text
+Add Material Database Import to SHOP Quote.
+
+Purpose:
+Allow machine shops to import their own material database so quoting becomes faster and more consistent.
+
+Add a new section:
+Materials
+
+Add button:
+Import Materials
+
+Supported file types:
+- xlsx
+- xls
+- csv
+
+Support these columns:
+
+- Material
+- Grade
+- Form
+- Cost Per Kg
+- Density
+- Supplier
+- Default Stock Allowance
+- Active
+
+Examples:
+
+Material: Aluminium
+Grade: 6082-T6
+Form: Plate
+
+Material: Steel
+Grade: EN24T
+Form: Round Bar
+
+Material: Stainless
+Grade: 316
+Form: Plate
+
+Import workflow:
+
+1. Upload file
+2. Auto map matching columns
+3. Allow manual mapping
+4. Preview before import
+5. Import
+
+Validation:
+
+Required:
+- Material
+- Grade
+
+Optional:
+- Form
+- Cost Per Kg
+- Density
+- Supplier
+- Default Stock Allowance
+- Active
+
+Duplicate detection:
+
+Duplicate if:
+- Material
+- Grade
+- Form
+
+match existing records.
+
+Options:
+- Skip
+- Update Existing
+- Import As New
+
+Default:
+Skip
+
+After import show:
+- Imported
+- Updated
+- Skipped
+- Errors
+
+Material database functionality:
+
+When creating a quote:
+
+User selects:
+Material
+↓
+Auto fill:
+- Grade
+- Cost Per Kg
+- Density
+- Supplier
+- Default Stock Allowance
+
+Add material search.
+
+Common materials should appear first.
+
+Recently used materials should appear first.
+
+Add favourites.
+
+Future-ready structure:
+
+Store:
+- Material
+- Grade
+- Form
+- Cost Per Kg
+- Density
+- Supplier
+- Default Stock Allowance
+- Active
+
+so future versions can calculate:
+- material cost
+- stock weight
+- stock size recommendations
+- margin impact
+
+Design:
+
+Keep materials simple.
+
+Do not build inventory control.
+
+Do not build stock management.
+
+Do not build ERP functionality.
+
+This is a quoting database only.
+
+Final goal:
+
+A machine shop should be able to import their machine list, customer list and material list and start quoting immediately.
+```
+
+After this is complete, I would stop feature development and start your 20–30 real quote tests. At that point we'll have:
+
+* Customers
+* Machines
+* Materials
+* Quote workflows
+* PDFs
+* Won/Lost tracking
+
+That's enough to learn what the market actually values.

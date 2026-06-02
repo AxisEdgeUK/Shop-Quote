@@ -88,6 +88,41 @@ export interface MachineUpdate {
   active?: boolean;
 }
 
+export interface Material {
+  id: number;
+  material: string;
+  grade: string;
+  form: string;
+  costPerKg: number;
+  density: number;
+  supplier: string;
+  defaultStockAllowance: number;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface MaterialInput {
+  material: string;
+  grade: string;
+  form?: string;
+  costPerKg?: number;
+  density?: number;
+  supplier?: string;
+  defaultStockAllowance?: number;
+  active?: boolean;
+}
+
+export interface MaterialUpdate {
+  material?: string;
+  grade?: string;
+  form?: string;
+  costPerKg?: number;
+  density?: number;
+  supplier?: string;
+  defaultStockAllowance?: number;
+  active?: boolean;
+}
+
 export interface QuoteLineItem {
   id: number;
   quoteId: number;

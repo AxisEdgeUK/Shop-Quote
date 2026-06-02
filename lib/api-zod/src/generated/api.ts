@@ -199,6 +199,95 @@ export const DeleteMachineParams = zod.object({
 });
 
 /**
+ * @summary List all materials
+ */
+export const ListMaterialsResponseItem = zod.object({
+  id: zod.number(),
+  material: zod.string(),
+  grade: zod.string(),
+  form: zod.string(),
+  costPerKg: zod.number(),
+  density: zod.number(),
+  supplier: zod.string(),
+  defaultStockAllowance: zod.number(),
+  active: zod.boolean(),
+  createdAt: zod.string(),
+});
+export const ListMaterialsResponse = zod.array(ListMaterialsResponseItem);
+
+/**
+ * @summary Create a material
+ */
+export const CreateMaterialBody = zod.object({
+  material: zod.string(),
+  grade: zod.string(),
+  form: zod.string().optional(),
+  costPerKg: zod.number().optional(),
+  density: zod.number().optional(),
+  supplier: zod.string().optional(),
+  defaultStockAllowance: zod.number().optional(),
+  active: zod.boolean().optional(),
+});
+
+/**
+ * @summary Get a material
+ */
+export const GetMaterialParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetMaterialResponse = zod.object({
+  id: zod.number(),
+  material: zod.string(),
+  grade: zod.string(),
+  form: zod.string(),
+  costPerKg: zod.number(),
+  density: zod.number(),
+  supplier: zod.string(),
+  defaultStockAllowance: zod.number(),
+  active: zod.boolean(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Update a material
+ */
+export const UpdateMaterialParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateMaterialBody = zod.object({
+  material: zod.string().optional(),
+  grade: zod.string().optional(),
+  form: zod.string().optional(),
+  costPerKg: zod.number().optional(),
+  density: zod.number().optional(),
+  supplier: zod.string().optional(),
+  defaultStockAllowance: zod.number().optional(),
+  active: zod.boolean().optional(),
+});
+
+export const UpdateMaterialResponse = zod.object({
+  id: zod.number(),
+  material: zod.string(),
+  grade: zod.string(),
+  form: zod.string(),
+  costPerKg: zod.number(),
+  density: zod.number(),
+  supplier: zod.string(),
+  defaultStockAllowance: zod.number(),
+  active: zod.boolean(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Delete a material
+ */
+export const DeleteMaterialParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
  * @summary List all quotes
  */
 export const ListQuotesResponseItem = zod.object({
