@@ -8,10 +8,7 @@ import {
 import { useLocation, useSearch } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import {
-  QuoteWizard,
-  QuoteFormValues,
-} from "@/components/quotes/quote-wizard";
+import { QuoteWizard, QuoteFormValues } from "@/components/quotes/quote-wizard";
 import { QuoteWorkspace } from "@/components/quotes/quote-workspace";
 import { useWorkflowDefaults } from "@/hooks/use-workflow-defaults";
 import { Skeleton } from "@/components/ui/skeleton";

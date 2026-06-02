@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
-import { useScanContext, type DrawingScanResult } from "@/contexts/scan-context";
+import {
+  useScanContext,
+  type DrawingScanResult,
+} from "@/contexts/scan-context";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -424,7 +427,9 @@ function buildSuggestions(
       displayValue: scan.tolerances[0],
       fieldPath: `lineItems.${idx}.toleranceClass`,
     });
-  const finishValue = scan.finish || (scan.coatings.length > 0 ? scan.coatings.join("; ") : undefined);
+  const finishValue =
+    scan.finish ||
+    (scan.coatings.length > 0 ? scan.coatings.join("; ") : undefined);
   if (finishValue)
     items.push({
       label: "Possible finish / coating",
@@ -470,7 +475,8 @@ function ScanAssistPanel({
             Unable to detect drawing text. Please review manually.
           </p>
           <p className="text-xs mt-1" style={{ color: "#94A3B8" }}>
-            If you uploaded a PDF, try uploading a screenshot, JPG, or PNG of the drawing instead.
+            If you uploaded a PDF, try uploading a screenshot, JPG, or PNG of
+            the drawing instead.
           </p>
         </div>
         <button type="button" onClick={onDismiss} style={{ color: "#CBD5E1" }}>
@@ -494,8 +500,7 @@ function ScanAssistPanel({
     onApply(item.fieldPath, item.numericValue ?? item.displayValue);
     setStatuses((p) => ({ ...p, [i]: "accepted" }));
   };
-  const ignore = (i: number) =>
-    setStatuses((p) => ({ ...p, [i]: "ignored" }));
+  const ignore = (i: number) => setStatuses((p) => ({ ...p, [i]: "ignored" }));
   const applyAll = () => {
     const next = { ...statuses };
     pendingIndices.forEach((i) => {
@@ -750,7 +755,8 @@ function ScanAssistPanel({
                 }`,
               }}
             >
-              {scan.quoteRisk.charAt(0).toUpperCase() + scan.quoteRisk.slice(1)} risk
+              {scan.quoteRisk.charAt(0).toUpperCase() + scan.quoteRisk.slice(1)}{" "}
+              risk
             </span>
           )}
           {scan.summary && (
@@ -805,40 +811,64 @@ function ScanAssistPanel({
           <div className="flex flex-col gap-1.5">
             {scan.partName && (
               <div className="flex gap-2">
-                <span className="text-xs w-32 shrink-0" style={{ color: "#94A3B8" }}>
+                <span
+                  className="text-xs w-32 shrink-0"
+                  style={{ color: "#94A3B8" }}
+                >
                   Part name
                 </span>
-                <span className="text-xs font-mono" style={{ color: "#334155" }}>
+                <span
+                  className="text-xs font-mono"
+                  style={{ color: "#334155" }}
+                >
                   {scan.partName}
                 </span>
               </div>
             )}
             {scan.heatTreatment && (
               <div className="flex gap-2">
-                <span className="text-xs w-32 shrink-0" style={{ color: "#94A3B8" }}>
+                <span
+                  className="text-xs w-32 shrink-0"
+                  style={{ color: "#94A3B8" }}
+                >
                   Heat treatment
                 </span>
-                <span className="text-xs font-mono" style={{ color: "#334155" }}>
+                <span
+                  className="text-xs font-mono"
+                  style={{ color: "#334155" }}
+                >
                   {scan.heatTreatment}
                 </span>
               </div>
             )}
             {scan.threads && scan.threads.length > 0 && (
               <div className="flex gap-2">
-                <span className="text-xs w-32 shrink-0" style={{ color: "#94A3B8" }}>
+                <span
+                  className="text-xs w-32 shrink-0"
+                  style={{ color: "#94A3B8" }}
+                >
                   Threads
                 </span>
-                <span className="text-xs font-mono" style={{ color: "#334155" }}>
+                <span
+                  className="text-xs font-mono"
+                  style={{ color: "#334155" }}
+                >
                   {scan.threads.join(", ")}
                 </span>
               </div>
             )}
             {scan.criticalDimensions && scan.criticalDimensions.length > 0 && (
               <div className="flex gap-2">
-                <span className="text-xs w-32 shrink-0" style={{ color: "#94A3B8" }}>
+                <span
+                  className="text-xs w-32 shrink-0"
+                  style={{ color: "#94A3B8" }}
+                >
                   Critical dims
                 </span>
-                <span className="text-xs font-mono" style={{ color: "#334155" }}>
+                <span
+                  className="text-xs font-mono"
+                  style={{ color: "#334155" }}
+                >
                   {scan.criticalDimensions.join(", ")}
                 </span>
               </div>
@@ -1555,14 +1585,17 @@ export function QuoteWizard({
                 <CardHeader>
                   <CardTitle>Quantity Price Breaks</CardTitle>
                   <CardDescription>
-                    Add alternative pricing for different order quantities. Toggle Manual to override calculated prices.
+                    Add alternative pricing for different order quantities.
+                    Toggle Manual to override calculated prices.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Quick-add chips */}
                   <div className="flex flex-wrap gap-1.5 items-center">
                     {[5, 10, 25, 50, 100, 250, 500].map((qty) => {
-                      const rows = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                      const rows = parsePriceBreakRows(
+                        form.watch("priceBreakQtys"),
+                      );
                       const exists = rows.some((r) => r.qty === qty);
                       return (
                         <button
@@ -1570,11 +1603,18 @@ export function QuoteWizard({
                           type="button"
                           className={`px-2.5 py-1 rounded border text-xs font-mono transition-colors ${exists ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
                           onClick={() => {
-                            const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                            const current = parsePriceBreakRows(
+                              form.watch("priceBreakQtys"),
+                            );
                             const next = exists
                               ? current.filter((r) => r.qty !== qty)
-                              : [...current, { qty, manual: false }].sort((a, b) => a.qty - b.qty);
-                            form.setValue("priceBreakQtys", JSON.stringify(next));
+                              : [...current, { qty, manual: false }].sort(
+                                  (a, b) => a.qty - b.qty,
+                                );
+                            form.setValue(
+                              "priceBreakQtys",
+                              JSON.stringify(next),
+                            );
                           }}
                         >
                           {qty}
@@ -1591,9 +1631,18 @@ export function QuoteWizard({
                             e.preventDefault();
                             const qty = parseInt(customQtyInput);
                             if (!qty || qty <= 0) return;
-                            const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                            const current = parsePriceBreakRows(
+                              form.watch("priceBreakQtys"),
+                            );
                             if (!current.some((r) => r.qty === qty)) {
-                              form.setValue("priceBreakQtys", JSON.stringify([...current, { qty, manual: false }].sort((a, b) => a.qty - b.qty)));
+                              form.setValue(
+                                "priceBreakQtys",
+                                JSON.stringify(
+                                  [...current, { qty, manual: false }].sort(
+                                    (a, b) => a.qty - b.qty,
+                                  ),
+                                ),
+                              );
                             }
                             setCustomQtyInput("");
                           }
@@ -1606,9 +1655,18 @@ export function QuoteWizard({
                         onClick={() => {
                           const qty = parseInt(customQtyInput);
                           if (!qty || qty <= 0) return;
-                          const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                          const current = parsePriceBreakRows(
+                            form.watch("priceBreakQtys"),
+                          );
                           if (!current.some((r) => r.qty === qty)) {
-                            form.setValue("priceBreakQtys", JSON.stringify([...current, { qty, manual: false }].sort((a, b) => a.qty - b.qty)));
+                            form.setValue(
+                              "priceBreakQtys",
+                              JSON.stringify(
+                                [...current, { qty, manual: false }].sort(
+                                  (a, b) => a.qty - b.qty,
+                                ),
+                              ),
+                            );
                           }
                           setCustomQtyInput("");
                         }}
@@ -1620,11 +1678,14 @@ export function QuoteWizard({
 
                   {/* Rows */}
                   {(() => {
-                    const rows = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                    const rows = parsePriceBreakRows(
+                      form.watch("priceBreakQtys"),
+                    );
                     if (rows.length === 0) {
                       return (
                         <p className="text-xs text-muted-foreground">
-                          No price breaks added. Click quantities above to add them.
+                          No price breaks added. Click quantities above to add
+                          them.
                         </p>
                       );
                     }
@@ -1634,17 +1695,32 @@ export function QuoteWizard({
                           <div key={idx} className="p-3 space-y-2">
                             <div className="flex items-center gap-2 flex-wrap">
                               <div className="flex items-center gap-1 shrink-0">
-                                <span className="text-xs text-muted-foreground">Qty</span>
+                                <span className="text-xs text-muted-foreground">
+                                  Qty
+                                </span>
                                 <Input
                                   type="number"
                                   value={row.qty}
                                   min={1}
                                   className="w-16 h-7 text-xs font-mono text-center"
                                   onChange={(e) => {
-                                    const newQty = parseInt(e.target.value) || row.qty;
-                                    const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
-                                    current[idx] = { ...current[idx], qty: newQty };
-                                    form.setValue("priceBreakQtys", JSON.stringify([...current].sort((a, b) => a.qty - b.qty)));
+                                    const newQty =
+                                      parseInt(e.target.value) || row.qty;
+                                    const current = parsePriceBreakRows(
+                                      form.watch("priceBreakQtys"),
+                                    );
+                                    current[idx] = {
+                                      ...current[idx],
+                                      qty: newQty,
+                                    };
+                                    form.setValue(
+                                      "priceBreakQtys",
+                                      JSON.stringify(
+                                        [...current].sort(
+                                          (a, b) => a.qty - b.qty,
+                                        ),
+                                      ),
+                                    );
                                   }}
                                 />
                               </div>
@@ -1653,9 +1729,17 @@ export function QuoteWizard({
                                   type="button"
                                   className={`px-2.5 py-1 transition-colors ${!row.manual ? "bg-muted font-semibold" : "text-muted-foreground hover:bg-muted/50"}`}
                                   onClick={() => {
-                                    const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
-                                    current[idx] = { ...current[idx], manual: false };
-                                    form.setValue("priceBreakQtys", JSON.stringify(current));
+                                    const current = parsePriceBreakRows(
+                                      form.watch("priceBreakQtys"),
+                                    );
+                                    current[idx] = {
+                                      ...current[idx],
+                                      manual: false,
+                                    };
+                                    form.setValue(
+                                      "priceBreakQtys",
+                                      JSON.stringify(current),
+                                    );
                                   }}
                                 >
                                   Auto
@@ -1664,9 +1748,17 @@ export function QuoteWizard({
                                   type="button"
                                   className={`px-2.5 py-1 border-l transition-colors ${row.manual ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:bg-muted/50"}`}
                                   onClick={() => {
-                                    const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
-                                    current[idx] = { ...current[idx], manual: true };
-                                    form.setValue("priceBreakQtys", JSON.stringify(current));
+                                    const current = parsePriceBreakRows(
+                                      form.watch("priceBreakQtys"),
+                                    );
+                                    current[idx] = {
+                                      ...current[idx],
+                                      manual: true,
+                                    };
+                                    form.setValue(
+                                      "priceBreakQtys",
+                                      JSON.stringify(current),
+                                    );
                                   }}
                                 >
                                   Manual
@@ -1675,7 +1767,9 @@ export function QuoteWizard({
                               {row.manual && (
                                 <>
                                   <div className="flex items-center gap-1">
-                                    <span className="text-xs text-muted-foreground">£ each</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      £ each
+                                    </span>
                                     <Input
                                       type="number"
                                       placeholder="0.00"
@@ -1684,19 +1778,36 @@ export function QuoteWizard({
                                       min={0}
                                       className="w-24 h-7 text-xs font-mono"
                                       onChange={(e) => {
-                                        const priceEach = e.target.value === "" ? undefined : parseFloat(e.target.value);
-                                        const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                                        const priceEach =
+                                          e.target.value === ""
+                                            ? undefined
+                                            : parseFloat(e.target.value);
+                                        const current = parsePriceBreakRows(
+                                          form.watch("priceBreakQtys"),
+                                        );
                                         current[idx] = {
                                           ...current[idx],
                                           priceEach,
-                                          total: priceEach != null ? parseFloat((priceEach * row.qty).toFixed(2)) : current[idx].total,
+                                          total:
+                                            priceEach != null
+                                              ? parseFloat(
+                                                  (priceEach * row.qty).toFixed(
+                                                    2,
+                                                  ),
+                                                )
+                                              : current[idx].total,
                                         };
-                                        form.setValue("priceBreakQtys", JSON.stringify(current));
+                                        form.setValue(
+                                          "priceBreakQtys",
+                                          JSON.stringify(current),
+                                        );
                                       }}
                                     />
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <span className="text-xs text-muted-foreground">Total £</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      Total £
+                                    </span>
                                     <Input
                                       type="number"
                                       placeholder="0.00"
@@ -1705,14 +1816,27 @@ export function QuoteWizard({
                                       min={0}
                                       className="w-24 h-7 text-xs font-mono"
                                       onChange={(e) => {
-                                        const total = e.target.value === "" ? undefined : parseFloat(e.target.value);
-                                        const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                                        const total =
+                                          e.target.value === ""
+                                            ? undefined
+                                            : parseFloat(e.target.value);
+                                        const current = parsePriceBreakRows(
+                                          form.watch("priceBreakQtys"),
+                                        );
                                         current[idx] = {
                                           ...current[idx],
                                           total,
-                                          priceEach: total != null && row.qty > 0 ? parseFloat((total / row.qty).toFixed(4)) : current[idx].priceEach,
+                                          priceEach:
+                                            total != null && row.qty > 0
+                                              ? parseFloat(
+                                                  (total / row.qty).toFixed(4),
+                                                )
+                                              : current[idx].priceEach,
                                         };
-                                        form.setValue("priceBreakQtys", JSON.stringify(current));
+                                        form.setValue(
+                                          "priceBreakQtys",
+                                          JSON.stringify(current),
+                                        );
                                       }}
                                     />
                                   </div>
@@ -1722,9 +1846,14 @@ export function QuoteWizard({
                                 type="button"
                                 className="ml-auto text-muted-foreground hover:text-destructive transition-colors"
                                 onClick={() => {
-                                  const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
+                                  const current = parsePriceBreakRows(
+                                    form.watch("priceBreakQtys"),
+                                  );
                                   current.splice(idx, 1);
-                                  form.setValue("priceBreakQtys", JSON.stringify(current));
+                                  form.setValue(
+                                    "priceBreakQtys",
+                                    JSON.stringify(current),
+                                  );
                                 }}
                               >
                                 <X className="w-4 h-4" />
@@ -1735,9 +1864,17 @@ export function QuoteWizard({
                               value={row.notes ?? ""}
                               className="h-7 text-xs"
                               onChange={(e) => {
-                                const current = parsePriceBreakRows(form.watch("priceBreakQtys"));
-                                current[idx] = { ...current[idx], notes: e.target.value };
-                                form.setValue("priceBreakQtys", JSON.stringify(current));
+                                const current = parsePriceBreakRows(
+                                  form.watch("priceBreakQtys"),
+                                );
+                                current[idx] = {
+                                  ...current[idx],
+                                  notes: e.target.value,
+                                };
+                                form.setValue(
+                                  "priceBreakQtys",
+                                  JSON.stringify(current),
+                                );
                               }}
                             />
                           </div>
@@ -1917,10 +2054,22 @@ export function QuoteWizard({
                           </FormControl>
                           <SelectContent>
                             {[
-                              { value: "Loose", label: "Loose (general workshop)" },
-                              { value: "Standard", label: "Standard (±0.10mm typical)" },
-                              { value: "Tight", label: "Tight (±0.05mm or better)" },
-                              { value: "Critical", label: "Critical (±0.01mm / fit-critical)" },
+                              {
+                                value: "Loose",
+                                label: "Loose (general workshop)",
+                              },
+                              {
+                                value: "Standard",
+                                label: "Standard (±0.10mm typical)",
+                              },
+                              {
+                                value: "Tight",
+                                label: "Tight (±0.05mm or better)",
+                              },
+                              {
+                                value: "Critical",
+                                label: "Critical (±0.01mm / fit-critical)",
+                              },
                             ].map(({ value, label }) => (
                               <SelectItem key={value} value={value}>
                                 {label}

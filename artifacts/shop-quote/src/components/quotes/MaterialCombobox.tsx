@@ -33,14 +33,13 @@ export function MaterialCombobox({
 
   const activeMaterials = materials.filter((m) => m.active);
 
-  const grouped = activeMaterials.reduce<Record<string, typeof activeMaterials>>(
-    (acc, m) => {
-      if (!acc[m.material]) acc[m.material] = [];
-      acc[m.material].push(m);
-      return acc;
-    },
-    {},
-  );
+  const grouped = activeMaterials.reduce<
+    Record<string, typeof activeMaterials>
+  >((acc, m) => {
+    if (!acc[m.material]) acc[m.material] = [];
+    acc[m.material].push(m);
+    return acc;
+  }, {});
 
   return (
     <div className="flex gap-2">
@@ -99,7 +98,9 @@ export function MaterialCombobox({
                         }}
                       >
                         <div className="flex flex-col gap-0.5 py-0.5 w-full">
-                          <div className="font-medium text-sm">{display || m.grade}</div>
+                          <div className="font-medium text-sm">
+                            {display || m.grade}
+                          </div>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             {m.supplier && <span>{m.supplier}</span>}
                             {m.costPerKg > 0 && (
@@ -107,9 +108,7 @@ export function MaterialCombobox({
                                 £{m.costPerKg.toFixed(2)}/kg
                               </span>
                             )}
-                            {m.density > 0 && (
-                              <span>{m.density} g/cm³</span>
-                            )}
+                            {m.density > 0 && <span>{m.density} g/cm³</span>}
                           </div>
                         </div>
                       </CommandItem>

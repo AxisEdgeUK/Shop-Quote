@@ -14,6 +14,7 @@ import {
   ScanLine,
 } from "lucide-react";
 import { useScanContext } from "@/contexts/scan-context";
+import { useExperimentalFeatures } from "@/hooks/use-experimental-features";
 
 type DrawingFile = {
   file?: File;
@@ -82,7 +83,9 @@ async function fileToBase64(file: File): Promise<string> {
   });
 }
 
-async function urlToBase64(url: string): Promise<{ base64: string; mimeType: string }> {
+async function urlToBase64(
+  url: string,
+): Promise<{ base64: string; mimeType: string }> {
   const resp = await fetch(url);
   if (!resp.ok) throw new Error("Failed to fetch drawing");
   const blob = await resp.blob();
@@ -98,7 +101,6 @@ async function urlToBase64(url: string): Promise<{ base64: string; mimeType: str
   });
 }
 
-
 export function DrawingViewer({ quoteId }: { quoteId?: number }) {
   const [drawing, setDrawing] = useState<DrawingFile | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -109,9 +111,12 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
   const [uploadState, setUploadState] = useState<
     "idle" | "uploading" | "saved" | "error"
   >("idle");
-  const [scanState, setScanState] = useState<"idle" | "scanning" | "error">("idle");
+  const [scanState, setScanState] = useState<"idle" | "scanning" | "error">(
+    "idle",
+  );
   const [scanError, setScanError] = useState<string | null>(null);
   const { setScanResult } = useScanContext();
+  const { features } = useExperimentalFeatures();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastTouchDist = useRef<number | null>(null);
@@ -287,7 +292,9 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
       console.log("[ScanAssist] Starting scan, type:", drawing.type);
 
       if (drawing.type === "pdf") {
-        throw new Error("PDF scanning is not supported. Please upload a JPG or PNG screenshot of the drawing instead.");
+        throw new Error(
+          "PDF scanning is not supported. Please upload a JPG or PNG screenshot of the drawing instead.",
+        );
       } else {
         if (drawing.file) {
           if (drawing.file.size > MAX_SCAN_BYTES) {
@@ -302,7 +309,12 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
           base64 = fetched.base64;
           mimeType = fetched.mimeType || "image/png";
         }
-        console.log("[ScanAssist] Image loaded. mimeType:", mimeType, "base64 length:", base64.length);
+        console.log(
+          "[ScanAssist] Image loaded. mimeType:",
+          mimeType,
+          "base64 length:",
+          base64.length,
+        );
       }
 
       console.log("[ScanAssist] Sending to /api/ai/scan-drawing…");
@@ -321,11 +333,13 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
         try {
           const parsed = JSON.parse(body) as { error?: string };
           if (parsed.error) msg = parsed.error;
-        } catch { /* raw text */ }
+        } catch {
+          /* raw text */
+        }
         throw new Error(msg);
       }
 
-      const result = await resp.json() as Record<string, unknown>;
+      const result = (await resp.json()) as Record<string, unknown>;
       console.log("[ScanAssist] Result:", result);
       setScanResult(result as Parameters<typeof setScanResult>[0]);
       setScanState("idle");
@@ -443,6 +457,23 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
               />
             </>
           )}
+          {drawing && features.enableScanAssist && drawing.type === "image" && (
+            <ToolBtn
+              icon={
+                scanState === "scanning" ? (
+                  <Loader className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <ScanLine className="w-3.5 h-3.5" />
+                )
+              }
+              onClick={handleScan}
+              title={
+                scanState === "scanning"
+                  ? "Scanning…"
+                  : "Scan Assist — extract fields from drawing (experimental)"
+              }
+            />
+          )}
           {drawing && (
             <>
               <ToolBtn
@@ -496,7 +527,10 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
           <span className="flex-1">{scanError}</span>
           <button
             type="button"
-            onClick={() => { setScanState("idle"); setScanError(null); }}
+            onClick={() => {
+              setScanState("idle");
+              setScanError(null);
+            }}
             className="ml-1 shrink-0 opacity-60 hover:opacity-100"
           >
             <X className="w-3 h-3" />

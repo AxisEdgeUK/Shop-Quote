@@ -80,7 +80,9 @@ export function EditMaterial() {
       { id, data: values },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListMaterialsQueryKey() });
+          queryClient.invalidateQueries({
+            queryKey: getListMaterialsQueryKey(),
+          });
           toast({ title: "Material updated" });
           setLocation("/materials");
         },
@@ -222,7 +224,13 @@ export function EditMaterial() {
                   <FormItem>
                     <FormLabel>Stock Allowance %</FormLabel>
                     <FormControl>
-                      <Input type="number" step="1" min="0" max="100" {...field} />
+                      <Input
+                        type="number"
+                        step="1"
+                        min="0"
+                        max="100"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -237,10 +245,15 @@ export function EditMaterial() {
                 <FormItem className="flex items-center justify-between rounded-lg border p-4">
                   <div>
                     <FormLabel className="text-base">Active</FormLabel>
-                    <p className="text-sm text-muted-foreground">Show this material in the quote wizard</p>
+                    <p className="text-sm text-muted-foreground">
+                      Show this material in the quote wizard
+                    </p>
                   </div>
                   <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -251,7 +264,9 @@ export function EditMaterial() {
                 {updateMaterial.isPending ? "Saving…" : "Save Changes"}
               </Button>
               <Link href="/materials">
-                <Button type="button" variant="outline">Cancel</Button>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
               </Link>
             </div>
           </form>

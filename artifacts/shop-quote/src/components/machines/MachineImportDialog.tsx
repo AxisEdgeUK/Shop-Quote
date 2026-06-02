@@ -95,13 +95,7 @@ const AUTO_ALIASES: Record<string, string[]> = {
     "asset name",
     "asset",
   ],
-  machineType: [
-    "machine type",
-    "type",
-    "category",
-    "machine category",
-    "kind",
-  ],
+  machineType: ["machine type", "type", "category", "machine category", "kind"],
   axisCount: [
     "axis count",
     "axes",
@@ -121,13 +115,7 @@ const AUTO_ALIASES: Record<string, string[]> = {
     "hr rate",
     "£/hr",
   ],
-  setupRate: [
-    "setup rate",
-    "setup cost",
-    "setup",
-    "prep rate",
-    "setup charge",
-  ],
+  setupRate: ["setup rate", "setup cost", "setup", "prep rate", "setup charge"],
   notes: ["notes", "note", "comments", "comment", "remarks", "info"],
   active: ["active", "status", "enabled", "in use", "available"],
 };
@@ -452,8 +440,7 @@ export function MachineImportDialog({ open, onOpenChange }: Props) {
   };
 
   const importCount =
-    counts.ready +
-    (duplicateAction !== "skip" ? counts.duplicates : 0);
+    counts.ready + (duplicateAction !== "skip" ? counts.duplicates : 0);
 
   /* ── Render ──────────────────────────────────────────────── */
 
@@ -526,7 +513,6 @@ export function MachineImportDialog({ open, onOpenChange }: Props) {
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col">
-
           {/* ── STEP 1: Upload ── */}
           {step === "upload" && (
             <div className="p-6 flex flex-col items-center justify-center min-h-[320px]">
@@ -652,10 +638,7 @@ export function MachineImportDialog({ open, onOpenChange }: Props) {
                 </div>
               </ScrollArea>
               <div className="px-6 py-4 border-t shrink-0 flex justify-between">
-                <Button
-                  variant="outline"
-                  onClick={() => setStep("upload")}
-                >
+                <Button variant="outline" onClick={() => setStep("upload")}>
                   Back
                 </Button>
                 <Button
@@ -814,14 +797,13 @@ export function MachineImportDialog({ open, onOpenChange }: Props) {
                   {(counts.missingName > 0 || counts.invalidRate > 0) && (
                     <span className="text-xs text-muted-foreground">
                       {counts.missingName + counts.invalidRate} row
-                      {counts.missingName + counts.invalidRate > 1 ? "s" : ""}{" "}
+                      {counts.missingName + counts.invalidRate > 1
+                        ? "s"
+                        : ""}{" "}
                       will be skipped
                     </span>
                   )}
-                  <Button
-                    onClick={runImport}
-                    disabled={importCount === 0}
-                  >
+                  <Button onClick={runImport} disabled={importCount === 0}>
                     Import {importCount} Machine
                     {importCount !== 1 ? "s" : ""}
                   </Button>

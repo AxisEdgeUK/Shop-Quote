@@ -81,7 +81,11 @@ export function PrintConfirmDialog({
               )}
               <span
                 className="text-sm"
-                style={{ color: checked[i] ? "inherit" : "hsl(var(--muted-foreground))" }}
+                style={{
+                  color: checked[i]
+                    ? "inherit"
+                    : "hsl(var(--muted-foreground))",
+                }}
               >
                 {label}
               </span>

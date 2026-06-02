@@ -226,33 +226,34 @@ export function PresentQuote() {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#0D1117" }}>
-                {["Part", "Material", "Process", "Qty", "Unit Price", "Total"].map(
-                  (h, i) => (
-                    <th
-                      key={h}
-                      style={{
-                        padding: "10px 12px",
-                        textAlign:
-                          i >= 3 ? "right" : i === 3 ? "center" : "left",
-                        fontSize: 10,
-                        fontWeight: 700,
-                        letterSpacing: "0.1em",
-                        textTransform: "uppercase" as const,
-                        color: "#ffffff",
-                      }}
-                    >
-                      {h}
-                    </th>
-                  ),
-                )}
+                {[
+                  "Part",
+                  "Material",
+                  "Process",
+                  "Qty",
+                  "Unit Price",
+                  "Total",
+                ].map((h, i) => (
+                  <th
+                    key={h}
+                    style={{
+                      padding: "10px 12px",
+                      textAlign: i >= 3 ? "right" : i === 3 ? "center" : "left",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase" as const,
+                      color: "#ffffff",
+                    }}
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {visibleItems.map((item, idx) => (
-                <tr
-                  key={idx}
-                  style={{ borderBottom: "1px solid #f3f4f6" }}
-                >
+                <tr key={idx} style={{ borderBottom: "1px solid #f3f4f6" }}>
                   <td
                     style={{
                       padding: "14px 12px",
@@ -414,7 +415,6 @@ export function PresentQuote() {
           <span>{settings.companyName}</span>
         </div>
       </div>
-
     </div>
   );
 }

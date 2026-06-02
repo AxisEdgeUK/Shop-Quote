@@ -90,7 +90,9 @@ router.patch("/materials/:id", async (req, res): Promise<void> => {
   if (parsed.data.density !== undefined)
     updateData.density = String(parsed.data.density);
   if (parsed.data.defaultStockAllowance !== undefined)
-    updateData.defaultStockAllowance = String(parsed.data.defaultStockAllowance);
+    updateData.defaultStockAllowance = String(
+      parsed.data.defaultStockAllowance,
+    );
   const [material] = await db
     .update(materialsTable)
     .set(updateData)

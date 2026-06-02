@@ -37,7 +37,9 @@ import {
   Upload,
   X,
   Loader2,
+  FlaskConical,
 } from "lucide-react";
+import { useExperimentalFeatures } from "@/hooks/use-experimental-features";
 
 const PAYMENT_TERM_PRESETS = [
   { label: "Pro Forma", value: "Pro forma" },
@@ -912,16 +914,26 @@ export function SettingsPage() {
         </form>
       </Form>
 
+      {/* Experimental Features */}
+      <ExperimentalFeaturesSection />
+
       {/* Beta: Reset demo data */}
       <div
         className="mt-8 border rounded-lg p-6"
-        style={{ borderColor: "hsl(var(--destructive) / 0.2)", background: "hsl(var(--destructive) / 0.03)" }}
+        style={{
+          borderColor: "hsl(var(--destructive) / 0.2)",
+          background: "hsl(var(--destructive) / 0.03)",
+        }}
       >
-        <h2 className="text-base font-semibold mb-1" style={{ color: "hsl(var(--destructive))" }}>
+        <h2
+          className="text-base font-semibold mb-1"
+          style={{ color: "hsl(var(--destructive))" }}
+        >
           Beta Testing
         </h2>
         <p className="text-sm text-muted-foreground mb-4">
-          Wipe all quotes, customers and machines and reload with clean demo data. Use this to reset between test sessions.
+          Wipe all quotes, customers and machines and reload with clean demo
+          data. Use this to reset between test sessions.
         </p>
         <DemoResetButton />
       </div>
@@ -941,10 +953,17 @@ function DemoResetButton() {
       const r = await fetch("/api/settings/demo-reset", { method: "POST" });
       if (!r.ok) throw new Error("Reset failed");
       await qc.invalidateQueries();
-      toast({ title: "Demo data reset", description: "All data cleared and demo records loaded." });
+      toast({
+        title: "Demo data reset",
+        description: "All data cleared and demo records loaded.",
+      });
       setConfirming(false);
     } catch {
-      toast({ title: "Reset failed", description: "Please try again.", variant: "destructive" });
+      toast({
+        title: "Reset failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -953,16 +972,28 @@ function DemoResetButton() {
   if (confirming) {
     return (
       <div className="flex items-center gap-3">
-        <span className="text-sm font-medium">Are you sure? This cannot be undone.</span>
+        <span className="text-sm font-medium">
+          Are you sure? This cannot be undone.
+        </span>
         <Button
           variant="destructive"
           size="sm"
           disabled={busy}
           onClick={handleReset}
         >
-          {busy ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Resetting…</> : "Yes, reset"}
+          {busy ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Resetting…
+            </>
+          ) : (
+            "Yes, reset"
+          )}
         </Button>
-        <Button variant="outline" size="sm" onClick={() => setConfirming(false)}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setConfirming(false)}
+        >
           Cancel
         </Button>
       </div>
@@ -970,9 +1001,47 @@ function DemoResetButton() {
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={() => setConfirming(true)}
-      style={{ borderColor: "hsl(var(--destructive) / 0.4)", color: "hsl(var(--destructive))" }}>
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setConfirming(true)}
+      style={{
+        borderColor: "hsl(var(--destructive) / 0.4)",
+        color: "hsl(var(--destructive))",
+      }}
+    >
       Reset demo data
     </Button>
+  );
+}
+
+function ExperimentalFeaturesSection() {
+  const { features, set } = useExperimentalFeatures();
+
+  return (
+    <div className="mt-8 border rounded-lg p-6 bg-card space-y-4">
+      <div className="flex items-center gap-2">
+        <FlaskConical className="w-4 h-4 text-muted-foreground" />
+        <h2 className="text-base font-semibold">Experimental Features</h2>
+      </div>
+      <p className="text-sm text-muted-foreground">
+        These features are in development and may not be fully stable. Settings
+        are stored locally in your browser.
+      </p>
+      <div className="flex items-center justify-between rounded-lg border p-4">
+        <div>
+          <div className="font-medium text-sm">Drawing Scan Assist</div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            AI-powered scan of uploaded drawings to pre-fill material, quantity
+            and tolerance fields. Requires an image (JPG/PNG) — PDF scanning is
+            not supported.
+          </div>
+        </div>
+        <Switch
+          checked={features.enableScanAssist}
+          onCheckedChange={(v) => set("enableScanAssist", v)}
+        />
+      </div>
+    </div>
   );
 }

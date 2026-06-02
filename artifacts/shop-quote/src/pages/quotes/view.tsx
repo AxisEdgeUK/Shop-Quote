@@ -116,11 +116,20 @@ export function ViewQuote() {
     const items = (quote as any).lineItems ?? [];
     const hasNoMaterial = items.some((i: any) => !i.material);
     const hasNoMachine = items.some((i: any) => !i.machineId);
-    const hasZeroSetup = items.some((i: any) => parseFloat(i.setupHours ?? "0") === 0 && parseFloat(i.quantity ?? "1") > 0);
-    const hasLowMargin = items.some((i: any) => parseFloat(i.profitMarginPercentage ?? "0") < 10);
+    const hasZeroSetup = items.some(
+      (i: any) =>
+        parseFloat(i.setupHours ?? "0") === 0 &&
+        parseFloat(i.quantity ?? "1") > 0,
+    );
+    const hasLowMargin = items.some(
+      (i: any) => parseFloat(i.profitMarginPercentage ?? "0") < 10,
+    );
     if (hasNoMaterial) warns.push("One or more parts are missing a material.");
     if (hasNoMachine) warns.push("One or more parts have no machine assigned.");
-    if (hasZeroSetup) warns.push("Setup time is zero on one or more parts — check this is intentional.");
+    if (hasZeroSetup)
+      warns.push(
+        "Setup time is zero on one or more parts — check this is intentional.",
+      );
     if (hasLowMargin) warns.push("Margin is below 10% on one or more parts.");
     return warns;
   })();
@@ -398,7 +407,11 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
             </Button>
           )}
 
-          <Button onClick={handlePrint} size="sm" className="font-semibold gap-1.5">
+          <Button
+            onClick={handlePrint}
+            size="sm"
+            className="font-semibold gap-1.5"
+          >
             <FileDown className="w-4 h-4" /> Generate PDF
           </Button>
         </div>
@@ -407,7 +420,11 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
       {/* Mobile top bar */}
       <div className="md:hidden flex items-center gap-2.5 mb-4 print:hidden">
         <Link href="/quotes">
-          <Button variant="ghost" size="icon" className="h-10 w-10 -ml-1 shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 -ml-1 shrink-0"
+          >
             <ArrowLeft className="w-4 h-4" />
           </Button>
         </Link>
@@ -463,24 +480,35 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
       {/* Internal view */}
       {viewMode === "internal" && (
         <div className="space-y-4 print:hidden">
-
           {/* Quote health */}
-          <div className={`rounded-lg border p-4 ${quoteWarnings.length > 0 ? "border-amber-200 bg-amber-50" : "border-emerald-200 bg-emerald-50"}`}>
+          <div
+            className={`rounded-lg border p-4 ${quoteWarnings.length > 0 ? "border-amber-200 bg-amber-50" : "border-emerald-200 bg-emerald-50"}`}
+          >
             <div className="flex items-center gap-2 mb-2">
-              <span className={`text-xs font-bold uppercase tracking-wider ${quoteWarnings.length > 0 ? "text-amber-700" : "text-emerald-700"}`}>
-                {quoteWarnings.length > 0 ? `⚠ ${quoteWarnings.length} item${quoteWarnings.length > 1 ? "s" : ""} to review` : "✓ Quote looks ready"}
+              <span
+                className={`text-xs font-bold uppercase tracking-wider ${quoteWarnings.length > 0 ? "text-amber-700" : "text-emerald-700"}`}
+              >
+                {quoteWarnings.length > 0
+                  ? `⚠ ${quoteWarnings.length} item${quoteWarnings.length > 1 ? "s" : ""} to review`
+                  : "✓ Quote looks ready"}
               </span>
             </div>
             {quoteWarnings.length > 0 ? (
               <ul className="space-y-1">
                 {quoteWarnings.map((w, i) => (
-                  <li key={i} className="text-sm text-amber-800 flex items-start gap-2">
-                    <span className="mt-0.5 shrink-0">·</span>{w}
+                  <li
+                    key={i}
+                    className="text-sm text-amber-800 flex items-start gap-2"
+                  >
+                    <span className="mt-0.5 shrink-0">·</span>
+                    {w}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-emerald-700">All checks passed. This quote is ready to send.</p>
+              <p className="text-sm text-emerald-700">
+                All checks passed. This quote is ready to send.
+              </p>
             )}
           </div>
 
@@ -491,46 +519,86 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
             const costBeforeMargin = parseFloat(item.costBeforeMargin ?? "0");
             const sellPrice = parseFloat(item.sellPrice ?? "0");
             const margin = parseFloat(item.profitMarginPercentage ?? "0");
-            const machineHourlyRate = parseFloat(item.machineHourlyRate ?? settings.defaultHourlyRate ?? "65");
-            const machineCost = costBeforeMargin - setupCost - materialCostTotal;
+            const machineHourlyRate = parseFloat(
+              item.machineHourlyRate ?? settings.defaultHourlyRate ?? "65",
+            );
+            const machineCost =
+              costBeforeMargin - setupCost - materialCostTotal;
             const cur = settings.currency ?? "£";
             return (
               <div key={idx} className="rounded-lg border bg-card">
                 <div className="flex items-center justify-between px-4 py-3 border-b">
                   <div>
-                    <span className="font-semibold text-sm">{item.partName || `Part ${idx + 1}`}</span>
-                    <span className="ml-2 text-xs text-muted-foreground font-mono">× {item.quantity}</span>
-                    {item.material && <span className="ml-2 text-xs text-muted-foreground">{item.material}</span>}
+                    <span className="font-semibold text-sm">
+                      {item.partName || `Part ${idx + 1}`}
+                    </span>
+                    <span className="ml-2 text-xs text-muted-foreground font-mono">
+                      × {item.quantity}
+                    </span>
+                    {item.material && (
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        {item.material}
+                      </span>
+                    )}
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-bold">{cur}{sellPrice.toFixed(2)} total</div>
-                    <div className="text-xs text-muted-foreground">{cur}{(item.pricePerPart ?? 0).toFixed(2)}/part</div>
+                    <div className="text-sm font-bold">
+                      {cur}
+                      {sellPrice.toFixed(2)} total
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {cur}
+                      {(item.pricePerPart ?? 0).toFixed(2)}/part
+                    </div>
                   </div>
                 </div>
                 <div className="px-4 py-3 grid grid-cols-2 gap-x-8 gap-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Setup cost</span>
-                    <span className="font-mono">{cur}{setupCost.toFixed(2)}</span>
+                    <span className="font-mono">
+                      {cur}
+                      {setupCost.toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Material cost</span>
-                    <span className="font-mono">{cur}{materialCostTotal.toFixed(2)}</span>
+                    <span className="font-mono">
+                      {cur}
+                      {materialCostTotal.toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Machining cost</span>
-                    <span className="font-mono">{cur}{machineCost > 0 ? machineCost.toFixed(2) : "0.00"}</span>
+                    <span className="text-muted-foreground">
+                      Machining cost
+                    </span>
+                    <span className="font-mono">
+                      {cur}
+                      {machineCost > 0 ? machineCost.toFixed(2) : "0.00"}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Machine rate</span>
-                    <span className="font-mono">{cur}{machineHourlyRate.toFixed(2)}/hr</span>
+                    <span className="font-mono">
+                      {cur}
+                      {machineHourlyRate.toFixed(2)}/hr
+                    </span>
                   </div>
                   <div className="flex justify-between border-t pt-1 mt-1">
-                    <span className="text-muted-foreground">Cost before margin</span>
-                    <span className="font-mono">{cur}{costBeforeMargin.toFixed(2)}</span>
+                    <span className="text-muted-foreground">
+                      Cost before margin
+                    </span>
+                    <span className="font-mono">
+                      {cur}
+                      {costBeforeMargin.toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between border-t pt-1 mt-1">
-                    <span className="text-muted-foreground font-medium">Margin</span>
-                    <span className={`font-bold font-mono ${margin < 10 ? "text-red-600" : margin < 20 ? "text-amber-600" : "text-emerald-600"}`}>
+                    <span className="text-muted-foreground font-medium">
+                      Margin
+                    </span>
+                    <span
+                      className={`font-bold font-mono ${margin < 10 ? "text-red-600" : margin < 20 ? "text-amber-600" : "text-emerald-600"}`}
+                    >
                       {margin.toFixed(1)}%
                     </span>
                   </div>
@@ -542,25 +610,48 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
           {/* Totals summary */}
           {(() => {
             const items = (quote as any).lineItems ?? [];
-            const totalCost = items.reduce((s: number, i: any) => s + parseFloat(i.costBeforeMargin ?? "0"), 0);
-            const totalSell = items.reduce((s: number, i: any) => s + parseFloat(i.sellPrice ?? "0"), 0);
-            const effectiveMargin = totalSell > 0 ? ((totalSell - totalCost) / totalSell) * 100 : 0;
+            const totalCost = items.reduce(
+              (s: number, i: any) => s + parseFloat(i.costBeforeMargin ?? "0"),
+              0,
+            );
+            const totalSell = items.reduce(
+              (s: number, i: any) => s + parseFloat(i.sellPrice ?? "0"),
+              0,
+            );
+            const effectiveMargin =
+              totalSell > 0 ? ((totalSell - totalCost) / totalSell) * 100 : 0;
             const cur = settings.currency ?? "£";
             return (
               <div className="rounded-lg border bg-card px-4 py-3">
-                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Quote Totals</div>
+                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                  Quote Totals
+                </div>
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
-                    <div className="text-muted-foreground text-xs">Total cost</div>
-                    <div className="font-bold font-mono">{cur}{totalCost.toFixed(2)}</div>
+                    <div className="text-muted-foreground text-xs">
+                      Total cost
+                    </div>
+                    <div className="font-bold font-mono">
+                      {cur}
+                      {totalCost.toFixed(2)}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground text-xs">Total sell</div>
-                    <div className="font-bold font-mono">{cur}{totalSell.toFixed(2)}</div>
+                    <div className="text-muted-foreground text-xs">
+                      Total sell
+                    </div>
+                    <div className="font-bold font-mono">
+                      {cur}
+                      {totalSell.toFixed(2)}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground text-xs">Effective margin</div>
-                    <div className={`font-bold font-mono ${effectiveMargin < 10 ? "text-red-600" : effectiveMargin < 20 ? "text-amber-600" : "text-emerald-600"}`}>
+                    <div className="text-muted-foreground text-xs">
+                      Effective margin
+                    </div>
+                    <div
+                      className={`font-bold font-mono ${effectiveMargin < 10 ? "text-red-600" : effectiveMargin < 20 ? "text-amber-600" : "text-emerald-600"}`}
+                    >
                       {effectiveMargin.toFixed(1)}%
                     </div>
                   </div>
@@ -572,13 +663,16 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
           {/* Internal notes */}
           {quote.internalNotes && (
             <div className="rounded-lg border bg-amber-50 border-amber-200 px-4 py-3">
-              <div className="text-xs font-bold uppercase tracking-wider text-amber-700 mb-1">Internal Notes</div>
-              <p className="text-sm text-amber-900 whitespace-pre-wrap">{quote.internalNotes}</p>
+              <div className="text-xs font-bold uppercase tracking-wider text-amber-700 mb-1">
+                Internal Notes
+              </div>
+              <p className="text-sm text-amber-900 whitespace-pre-wrap">
+                {quote.internalNotes}
+              </p>
             </div>
           )}
         </div>
       )}
-    
 
       {/* Sticky mobile action bar */}
       <div
@@ -609,7 +703,11 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
           )}
           <Sheet open={showMoreSheet} onOpenChange={setShowMoreSheet}>
             <SheetTrigger asChild>
-              <Button variant="outline" className="w-12 h-12 shrink-0" size="icon">
+              <Button
+                variant="outline"
+                className="w-12 h-12 shrink-0"
+                size="icon"
+              >
                 <MoreHorizontal className="w-5 h-5" />
               </Button>
             </SheetTrigger>
@@ -838,8 +936,8 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
                   Save the PDF
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  In the print dialog, choose{" "}
-                  <strong>Save as PDF</strong> and save to your computer.
+                  In the print dialog, choose <strong>Save as PDF</strong> and
+                  save to your computer.
                 </p>
                 <Button
                   size="sm"
@@ -870,8 +968,8 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
                   Open Email Draft
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Opens your email client with the subject and body
-                  pre-filled. Attach the saved PDF before sending.
+                  Opens your email client with the subject and body pre-filled.
+                  Attach the saved PDF before sending.
                 </p>
                 <Button
                   size="sm"
@@ -886,7 +984,6 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
           </div>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }

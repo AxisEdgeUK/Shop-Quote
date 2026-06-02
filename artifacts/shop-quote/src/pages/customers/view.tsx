@@ -42,8 +42,7 @@ export function CustomerView() {
     const totalValue = quotes.reduce((s, q) => s + q.totalValue, 0);
     const wonValue = wonQ.reduce((s, q) => s + q.totalValue, 0);
     const closedCount = wonQ.length + lostQ.length;
-    const winRate =
-      closedCount > 0 ? (wonQ.length / closedCount) * 100 : 0;
+    const winRate = closedCount > 0 ? (wonQ.length / closedCount) * 100 : 0;
     return {
       totalQuotes: quotes.length,
       wonQuotes: wonQ.length,
@@ -74,7 +73,10 @@ export function CustomerView() {
   if (!customer) {
     return (
       <div className="text-center py-24">
-        <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+        <p
+          className="text-sm"
+          style={{ color: "hsl(var(--muted-foreground))" }}
+        >
           Customer not found.
         </p>
         <Link href="/customers">

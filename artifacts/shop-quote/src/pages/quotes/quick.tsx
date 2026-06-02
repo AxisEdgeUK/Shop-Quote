@@ -7,13 +7,7 @@ import {
   getListQuotesQueryKey,
 } from "@workspace/api-client-react";
 import { Link, useLocation } from "wouter";
-import {
-  ArrowLeft,
-  Zap,
-  Save,
-  FileDown,
-  ArrowRight,
-} from "lucide-react";
+import { ArrowLeft, Zap, Save, FileDown, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -95,10 +89,7 @@ export function QuickQuote() {
   useEffect(() => {
     if (settingsLoading || machinesLoading || defaultsLoaded) return;
     const d = loadDefaults();
-    if (
-      d.lastMachineId &&
-      machines?.find((m) => m.id === d.lastMachineId)
-    ) {
+    if (d.lastMachineId && machines?.find((m) => m.id === d.lastMachineId)) {
       setMachineId(d.lastMachineId);
     }
     if (d.lastMaterial) setMaterial(d.lastMaterial);
@@ -113,7 +104,14 @@ export function QuickQuote() {
       setLeadTime(settings.defaultLeadTime);
     }
     setDefaultsLoaded(true);
-  }, [settingsLoading, machinesLoading, machines, settings, defaultsLoaded, loadDefaults]);
+  }, [
+    settingsLoading,
+    machinesLoading,
+    machines,
+    settings,
+    defaultsLoaded,
+    loadDefaults,
+  ]);
 
   const selectedMachine = machines?.find((m) => m.id === machineId);
   const hourlyRate = selectedMachine
@@ -430,9 +428,7 @@ export function QuickQuote() {
                   min="0"
                   step="0.01"
                   value={toolingAllowance}
-                  onChange={(e) =>
-                    setToolingAllowance(Number(e.target.value))
-                  }
+                  onChange={(e) => setToolingAllowance(Number(e.target.value))}
                   className="h-11"
                 />
               </div>

@@ -1,0 +1,88 @@
+I checked the repo. Before full testing, there are a few issues to fix.
+
+Main concerns:
+
+* Some core files are still compressed into long single-line code, which makes future fixes harder. ([GitHub][1])
+* The Materials route/file looks empty or not correctly exposed, so the material database import may not be properly wired yet. ([GitHub][2])
+* The scanner code is still active in the quote wizard, including Scan Assist panels and unreadable PDF messaging. If you removed scan documentation, decide whether this feature is staying in beta or hidden. ([GitHub][1])
+* The root package has build/typecheck scripts, but you need Replit to run them and confirm clean output before testing. ([GitHub][3])
+
+Give Replit this:
+
+```text
+Run a final pre-beta technical audit and fix only critical issues.
+
+1. Run:
+pnpm install
+pnpm run typecheck
+pnpm run build
+
+Fix any TypeScript, build, import, route, or schema errors.
+
+2. Format the codebase properly with Prettier.
+Core TSX files must not remain compressed into long single-line files.
+
+3. Verify Material Database is fully wired.
+Check:
+- Materials page exists
+- Materials navigation link exists
+- Materials API routes exist
+- Material import works for xlsx, xls and csv
+- Imported materials are available inside Quick Quote and Full Quote
+- Selecting material can autofill grade, cost per kg, density and stock allowance
+
+4. Verify Machine Import is fully wired.
+Imported machines must appear immediately in quote machine selection and use hourly/setup rates in calculations.
+
+5. Verify Customer Import is fully wired.
+Imported customers must be selectable in Quick Quote and Full Quote.
+
+6. Decide Drawing Scan Assist status.
+If it is not ready for beta, hide it behind:
+Settings → Experimental Features → Drawing Scan Assist
+
+Default must be OFF.
+
+7. Check quote calculation integrity.
+Run the original test quote and confirm:
+Direct cost: £1,635.83
+Risk: £130.87
+Cost before margin: £1,766.70
+Sell price: £2,523.86
+Price per part: £50.48
+
+8. Check customer PDF.
+Confirm:
+- no internal margin shown
+- no hourly rates shown
+- logo appears
+- bank details appear only if enabled
+- quantity breaks appear correctly
+- manual quantity break overrides are respected
+- tolerance class shows bracketed guidance
+
+9. Check Send Quote workflow.
+If direct email attachment is not ready, make the fallback clear:
+- Generate PDF
+- Download PDF
+- Copy email text
+
+Do not pretend it sends automatically unless it actually does.
+
+10. Final output required:
+List:
+- files changed
+- build result
+- typecheck result
+- material import status
+- machine import status
+- customer import status
+- PDF status
+- known limitations
+```
+
+After that, start testing. Do not add more features until you’ve run at least 20 real quotes.
+
+[1]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/src/components/quotes/quote-wizard.tsx "raw.githubusercontent.com"
+[2]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/api-server/src/routes/materials.ts "raw.githubusercontent.com"
+[3]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/package.json "raw.githubusercontent.com"

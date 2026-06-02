@@ -77,7 +77,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             border: "1px solid rgba(29,143,255,0.1)",
           }}
         >
-          Beta version — for workflow testing only. Always check all figures before sending live quotes.
+          Beta version — for workflow testing only. Always check all figures
+          before sending live quotes.
         </div>
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>

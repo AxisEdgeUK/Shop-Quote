@@ -54,7 +54,18 @@ const COMMON_MATERIALS = [
   "Other",
 ];
 
-const COMMON_FORMS = ["Plate", "Round Bar", "Square Bar", "Flat Bar", "Sheet", "Tube", "Extrusion", "Casting", "Forging", "Other"];
+const COMMON_FORMS = [
+  "Plate",
+  "Round Bar",
+  "Square Bar",
+  "Flat Bar",
+  "Sheet",
+  "Tube",
+  "Extrusion",
+  "Casting",
+  "Forging",
+  "Other",
+];
 
 export function NewMaterial() {
   const [, setLocation] = useLocation();
@@ -81,7 +92,9 @@ export function NewMaterial() {
       { data: values },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListMaterialsQueryKey() });
+          queryClient.invalidateQueries({
+            queryKey: getListMaterialsQueryKey(),
+          });
           toast({ title: "Material added" });
           setLocation("/materials");
         },
@@ -113,7 +126,16 @@ export function NewMaterial() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Material *</FormLabel>
-                    <Select onValueChange={(v) => { if (v !== "__custom__") field.onChange(v); }} value={COMMON_MATERIALS.includes(field.value) ? field.value : ""}>
+                    <Select
+                      onValueChange={(v) => {
+                        if (v !== "__custom__") field.onChange(v);
+                      }}
+                      value={
+                        COMMON_MATERIALS.includes(field.value)
+                          ? field.value
+                          : ""
+                      }
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select or type below" />
@@ -121,12 +143,17 @@ export function NewMaterial() {
                       </FormControl>
                       <SelectContent>
                         {COMMON_MATERIALS.map((m) => (
-                          <SelectItem key={m} value={m}>{m}</SelectItem>
+                          <SelectItem key={m} value={m}>
+                            {m}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     <FormControl>
-                      <Input placeholder="or type e.g. Aluminium, Steel" {...field} />
+                      <Input
+                        placeholder="or type e.g. Aluminium, Steel"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -139,7 +166,10 @@ export function NewMaterial() {
                   <FormItem>
                     <FormLabel>Grade *</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. 6082-T6, EN24T, 316" {...field} />
+                      <Input
+                        placeholder="e.g. 6082-T6, EN24T, 316"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -154,7 +184,14 @@ export function NewMaterial() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Form</FormLabel>
-                    <Select onValueChange={(v) => { if (v !== "__custom__") field.onChange(v); }} value={COMMON_FORMS.includes(field.value) ? field.value : ""}>
+                    <Select
+                      onValueChange={(v) => {
+                        if (v !== "__custom__") field.onChange(v);
+                      }}
+                      value={
+                        COMMON_FORMS.includes(field.value) ? field.value : ""
+                      }
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select or type below" />
@@ -162,12 +199,17 @@ export function NewMaterial() {
                       </FormControl>
                       <SelectContent>
                         {COMMON_FORMS.map((f) => (
-                          <SelectItem key={f} value={f}>{f}</SelectItem>
+                          <SelectItem key={f} value={f}>
+                            {f}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     <FormControl>
-                      <Input placeholder="or type e.g. Plate, Round Bar" {...field} />
+                      <Input
+                        placeholder="or type e.g. Plate, Round Bar"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -209,7 +251,13 @@ export function NewMaterial() {
                   <FormItem>
                     <FormLabel>Density (g/cm³)</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" min="0" placeholder="e.g. 2.70" {...field} />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="e.g. 2.70"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -222,7 +270,13 @@ export function NewMaterial() {
                   <FormItem>
                     <FormLabel>Stock Allowance %</FormLabel>
                     <FormControl>
-                      <Input type="number" step="1" min="0" max="100" {...field} />
+                      <Input
+                        type="number"
+                        step="1"
+                        min="0"
+                        max="100"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -237,10 +291,15 @@ export function NewMaterial() {
                 <FormItem className="flex items-center justify-between rounded-lg border p-4">
                   <div>
                     <FormLabel className="text-base">Active</FormLabel>
-                    <p className="text-sm text-muted-foreground">Show this material in the quote wizard</p>
+                    <p className="text-sm text-muted-foreground">
+                      Show this material in the quote wizard
+                    </p>
                   </div>
                   <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -251,7 +310,9 @@ export function NewMaterial() {
                 {createMaterial.isPending ? "Saving…" : "Add Material"}
               </Button>
               <Link href="/materials">
-                <Button type="button" variant="outline">Cancel</Button>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
               </Link>
             </div>
           </form>

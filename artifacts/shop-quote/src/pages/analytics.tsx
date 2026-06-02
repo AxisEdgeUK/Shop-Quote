@@ -73,11 +73,10 @@ export function AnalyticsPage() {
     const wonValue = wonQuotes.reduce((s, q) => s + q.totalValue, 0);
     const lostValue = lostQuotes.reduce((s, q) => s + q.totalValue, 0);
     const closedCount = wonQuotes.length + lostQuotes.length;
-    const winRate = closedCount > 0 ? (wonQuotes.length / closedCount) * 100 : 0;
-    const avgWon =
-      wonQuotes.length > 0 ? wonValue / wonQuotes.length : 0;
-    const avgQuote =
-      quotes.length > 0 ? totalValue / quotes.length : 0;
+    const winRate =
+      closedCount > 0 ? (wonQuotes.length / closedCount) * 100 : 0;
+    const avgWon = wonQuotes.length > 0 ? wonValue / wonQuotes.length : 0;
+    const avgQuote = quotes.length > 0 ? totalValue / quotes.length : 0;
 
     const customerMap = new Map<
       number,
@@ -320,9 +319,7 @@ export function AnalyticsPage() {
                         })}
                       </div>
                     </div>
-                    <ChevronRight
-                      className="w-3.5 h-3.5 shrink-0 opacity-0 group-hover:opacity-40 transition-opacity"
-                    />
+                    <ChevronRight className="w-3.5 h-3.5 shrink-0 opacity-0 group-hover:opacity-40 transition-opacity" />
                   </div>
                 </Link>
               ))}
@@ -414,9 +411,7 @@ export function AnalyticsPage() {
                 {stats.monthlyTrend.map((m) => (
                   <div key={m.month} className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span
-                        style={{ color: "hsl(var(--muted-foreground))" }}
-                      >
+                      <span style={{ color: "hsl(var(--muted-foreground))" }}>
                         {m.label}
                       </span>
                       <span className="font-medium">

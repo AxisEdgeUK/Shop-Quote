@@ -46,7 +46,9 @@ export function MaterialsList() {
       { id },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListMaterialsQueryKey() });
+          queryClient.invalidateQueries({
+            queryKey: getListMaterialsQueryKey(),
+          });
           toast({ title: "Material deleted" });
         },
         onError: () => {
@@ -61,7 +63,9 @@ export function MaterialsList() {
       { id, data: { active } },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListMaterialsQueryKey() });
+          queryClient.invalidateQueries({
+            queryKey: getListMaterialsQueryKey(),
+          });
         },
         onError: () => {
           toast({ title: "Failed to update material", variant: "destructive" });
@@ -73,7 +77,11 @@ export function MaterialsList() {
   const deleteDialog = (id: number, label: string) => (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-destructive h-10 w-10">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-destructive h-10 w-10"
+        >
           <Trash2 className="w-4 h-4" />
         </Button>
       </AlertDialogTrigger>
@@ -100,9 +108,15 @@ export function MaterialsList() {
   return (
     <div className="space-y-5">
       <div className="flex justify-between items-center gap-3">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Materials</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+          Materials
+        </h1>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="h-11 px-4" onClick={() => setImportOpen(true)}>
+          <Button
+            variant="outline"
+            className="h-11 px-4"
+            onClick={() => setImportOpen(true)}
+          >
             <Upload className="w-4 h-4 mr-2" />
             Import
           </Button>
@@ -127,53 +141,94 @@ export function MaterialsList() {
           <div className="text-center py-16 text-muted-foreground">
             <Layers className="w-10 h-10 mx-auto mb-3 opacity-40" />
             <p className="text-sm font-medium mb-1">No materials yet</p>
-            <p className="text-xs">Import your material database or add one manually.</p>
+            <p className="text-xs">
+              Import your material database or add one manually.
+            </p>
           </div>
         ) : (
           materials?.map((m) => (
-            <div key={m.id} className="rounded-xl border bg-card overflow-hidden" style={{ borderColor: "hsl(var(--card-border))" }}>
+            <div
+              key={m.id}
+              className="rounded-xl border bg-card overflow-hidden"
+              style={{ borderColor: "hsl(var(--card-border))" }}
+            >
               <div className="px-4 pt-4 pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="font-bold text-base truncate">{m.material}</div>
-                    <div className="text-sm mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>
-                      {m.grade}{m.form ? ` · ${m.form}` : ""}
+                    <div className="font-bold text-base truncate">
+                      {m.material}
+                    </div>
+                    <div
+                      className="text-sm mt-0.5"
+                      style={{ color: "hsl(var(--muted-foreground))" }}
+                    >
+                      {m.grade}
+                      {m.form ? ` · ${m.form}` : ""}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0 pt-0.5">
-                    <span className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+                    <span
+                      className="text-xs"
+                      style={{ color: "hsl(var(--muted-foreground))" }}
+                    >
                       {m.active ? "Active" : "Inactive"}
                     </span>
                     <Switch
                       checked={m.active}
-                      onCheckedChange={(checked) => handleToggleActive(m.id, checked)}
+                      onCheckedChange={(checked) =>
+                        handleToggleActive(m.id, checked)
+                      }
                     />
                   </div>
                 </div>
                 <div className="flex gap-4 mt-2">
                   {m.costPerKg > 0 && (
                     <div>
-                      <div className="text-xs font-medium" style={{ color: "hsl(var(--muted-foreground))" }}>Cost/kg</div>
-                      <div className="font-mono font-semibold text-sm">£{m.costPerKg.toFixed(2)}</div>
+                      <div
+                        className="text-xs font-medium"
+                        style={{ color: "hsl(var(--muted-foreground))" }}
+                      >
+                        Cost/kg
+                      </div>
+                      <div className="font-mono font-semibold text-sm">
+                        £{m.costPerKg.toFixed(2)}
+                      </div>
                     </div>
                   )}
                   {m.density > 0 && (
                     <div>
-                      <div className="text-xs font-medium" style={{ color: "hsl(var(--muted-foreground))" }}>Density</div>
+                      <div
+                        className="text-xs font-medium"
+                        style={{ color: "hsl(var(--muted-foreground))" }}
+                      >
+                        Density
+                      </div>
                       <div className="font-mono text-sm">{m.density} g/cm³</div>
                     </div>
                   )}
                   {m.supplier && (
                     <div>
-                      <div className="text-xs font-medium" style={{ color: "hsl(var(--muted-foreground))" }}>Supplier</div>
+                      <div
+                        className="text-xs font-medium"
+                        style={{ color: "hsl(var(--muted-foreground))" }}
+                      >
+                        Supplier
+                      </div>
                       <div className="text-sm">{m.supplier}</div>
                     </div>
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-1 px-3 pb-3 pt-1 border-t" style={{ borderColor: "hsl(var(--card-border))" }}>
+              <div
+                className="flex items-center gap-1 px-3 pb-3 pt-1 border-t"
+                style={{ borderColor: "hsl(var(--card-border))" }}
+              >
                 <Link href={`/materials/${m.id}/edit`}>
-                  <Button variant="ghost" size="sm" className="h-10 px-3 text-xs gap-1.5">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-10 px-3 text-xs gap-1.5"
+                  >
                     <Edit className="w-3.5 h-3.5" /> Edit
                   </Button>
                 </Link>
@@ -204,16 +259,24 @@ export function MaterialsList() {
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   {Array.from({ length: 8 }).map((_, j) => (
-                    <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
+                    <TableCell key={j}>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : materials?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                <TableCell
+                  colSpan={8}
+                  className="text-center py-12 text-muted-foreground"
+                >
                   <Layers className="w-8 h-8 mx-auto mb-3 opacity-40" />
                   <p className="font-medium mb-1">No materials yet</p>
-                  <p className="text-sm">Import your material database or click New Material to add one.</p>
+                  <p className="text-sm">
+                    Import your material database or click New Material to add
+                    one.
+                  </p>
                 </TableCell>
               </TableRow>
             ) : (
@@ -221,14 +284,24 @@ export function MaterialsList() {
                 <TableRow key={m.id}>
                   <TableCell className="font-medium">{m.material}</TableCell>
                   <TableCell>{m.grade}</TableCell>
-                  <TableCell className="text-muted-foreground">{m.form || "—"}</TableCell>
-                  <TableCell className="font-mono">{m.costPerKg > 0 ? `£${m.costPerKg.toFixed(2)}` : "—"}</TableCell>
-                  <TableCell className="font-mono text-muted-foreground">{m.density > 0 ? `${m.density} g/cm³` : "—"}</TableCell>
-                  <TableCell className="text-muted-foreground">{m.supplier || "—"}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {m.form || "—"}
+                  </TableCell>
+                  <TableCell className="font-mono">
+                    {m.costPerKg > 0 ? `£${m.costPerKg.toFixed(2)}` : "—"}
+                  </TableCell>
+                  <TableCell className="font-mono text-muted-foreground">
+                    {m.density > 0 ? `${m.density} g/cm³` : "—"}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {m.supplier || "—"}
+                  </TableCell>
                   <TableCell>
                     <Switch
                       checked={m.active}
-                      onCheckedChange={(checked) => handleToggleActive(m.id, checked)}
+                      onCheckedChange={(checked) =>
+                        handleToggleActive(m.id, checked)
+                      }
                     />
                   </TableCell>
                   <TableCell>

@@ -438,7 +438,8 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
                       item.toleranceClass !== "Standard" && (
                         <span>
                           <span style={{ color: "#9ca3af" }}>Tolerance:</span>{" "}
-                          {TOLERANCE_LABELS[item.toleranceClass] ?? item.toleranceClass}
+                          {TOLERANCE_LABELS[item.toleranceClass] ??
+                            item.toleranceClass}
                         </span>
                       )}
                   </div>
@@ -461,22 +462,49 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
                       >
                         <thead>
                           <tr style={{ background: "#f9fafb" }}>
-                            <th className="px-3 py-1 text-left font-semibold" style={{ color: "#6b7280" }}>Qty</th>
-                            <th className="px-3 py-1 text-right font-semibold" style={{ color: "#6b7280" }}>Unit Price</th>
-                            <th className="px-3 py-1 text-right font-semibold" style={{ color: "#6b7280" }}>Total</th>
+                            <th
+                              className="px-3 py-1 text-left font-semibold"
+                              style={{ color: "#6b7280" }}
+                            >
+                              Qty
+                            </th>
+                            <th
+                              className="px-3 py-1 text-right font-semibold"
+                              style={{ color: "#6b7280" }}
+                            >
+                              Unit Price
+                            </th>
+                            <th
+                              className="px-3 py-1 text-right font-semibold"
+                              style={{ color: "#6b7280" }}
+                            >
+                              Total
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
-                          <tr className="font-semibold" style={{ background: "#f3f4f6", borderBottom: "1px solid #e5e7eb" }}>
+                          <tr
+                            className="font-semibold"
+                            style={{
+                              background: "#f3f4f6",
+                              borderBottom: "1px solid #e5e7eb",
+                            }}
+                          >
                             <td className="px-3 py-1 font-mono">
                               {item.quantity}{" "}
-                              <span style={{ color: "#9ca3af", fontWeight: 400 }}>(quoted)</span>
+                              <span
+                                style={{ color: "#9ca3af", fontWeight: 400 }}
+                              >
+                                (quoted)
+                              </span>
                             </td>
                             <td className="px-3 py-1 text-right font-mono">
-                              {cur}{(item.pricePerPart || 0).toFixed(2)}
+                              {cur}
+                              {(item.pricePerPart || 0).toFixed(2)}
                             </td>
                             <td className="px-3 py-1 text-right font-mono">
-                              {cur}{(item.sellPrice || 0).toFixed(2)}
+                              {cur}
+                              {(item.sellPrice || 0).toFixed(2)}
                             </td>
                           </tr>
                           {priceBreakRows
@@ -493,24 +521,52 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
                                   [row.qty],
                                   defaultHourlyRate,
                                   defaultSetupRate,
-                                  (item as any).machineHourlyRate || defaultHourlyRate,
+                                  (item as any).machineHourlyRate ||
+                                    defaultHourlyRate,
                                 );
                                 perPart = calc.perPart;
                                 total = calc.total;
                               }
                               return (
-                                <tr key={row.qty} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                                <tr
+                                  key={row.qty}
+                                  style={{ borderBottom: "1px solid #f3f4f6" }}
+                                >
                                   <td className="px-3 py-1 font-mono">
                                     {row.qty}
                                     {row.manual && (
-                                      <span style={{ color: "#9ca3af", fontWeight: 400, fontSize: 9, marginLeft: 4 }}>manual</span>
+                                      <span
+                                        style={{
+                                          color: "#9ca3af",
+                                          fontWeight: 400,
+                                          fontSize: 9,
+                                          marginLeft: 4,
+                                        }}
+                                      >
+                                        manual
+                                      </span>
                                     )}
                                     {row.notes && (
-                                      <span style={{ color: "#9ca3af", fontWeight: 400, fontSize: 9, marginLeft: 4 }}>· {row.notes}</span>
+                                      <span
+                                        style={{
+                                          color: "#9ca3af",
+                                          fontWeight: 400,
+                                          fontSize: 9,
+                                          marginLeft: 4,
+                                        }}
+                                      >
+                                        · {row.notes}
+                                      </span>
                                     )}
                                   </td>
-                                  <td className="px-3 py-1 text-right font-mono">{cur}{perPart.toFixed(2)}</td>
-                                  <td className="px-3 py-1 text-right font-mono">{cur}{total.toFixed(2)}</td>
+                                  <td className="px-3 py-1 text-right font-mono">
+                                    {cur}
+                                    {perPart.toFixed(2)}
+                                  </td>
+                                  <td className="px-3 py-1 text-right font-mono">
+                                    {cur}
+                                    {total.toFixed(2)}
+                                  </td>
                                 </tr>
                               );
                             })}

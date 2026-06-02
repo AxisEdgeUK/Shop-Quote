@@ -1,5 +1,13 @@
 import { Router, type IRouter } from "express";
-import { db, settingsTable, customersTable, machinesTable, quotesTable, quoteLineItemsTable, quoteDrawingsTable } from "@workspace/db";
+import {
+  db,
+  settingsTable,
+  customersTable,
+  machinesTable,
+  quotesTable,
+  quoteLineItemsTable,
+  quoteDrawingsTable,
+} from "@workspace/db";
 import {
   GetSettingsResponse,
   UpdateSettingsBody,

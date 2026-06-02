@@ -17,7 +17,15 @@ router.post("/feedback", async (req, res) => {
   try {
     const [row] = await db
       .insert(feedbackTable)
-      .values({ workedWell, feltSlow, wasConfusing, quoteAccurate, wouldUseAgain, wouldPay, notes })
+      .values({
+        workedWell,
+        feltSlow,
+        wasConfusing,
+        quoteAccurate,
+        wouldUseAgain,
+        wouldPay,
+        notes,
+      })
       .returning({ id: feedbackTable.id });
 
     req.log.info({ id: row?.id }, "beta feedback submitted");
