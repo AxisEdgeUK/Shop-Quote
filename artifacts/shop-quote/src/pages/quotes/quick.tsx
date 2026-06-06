@@ -11,6 +11,7 @@ import { ArrowLeft, Zap, Save, FileDown, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -42,6 +43,15 @@ const LEAD_TIMES = [
   "8 weeks",
   "10 weeks",
   "12 weeks",
+  "To be confirmed",
+];
+
+const DELIVERY_METHODS = [
+  "Collection",
+  "Local Delivery",
+  "Courier",
+  "Pallet",
+  "Customer Arranged",
   "To be confirmed",
 ];
 const CUR = "£";
@@ -97,6 +107,9 @@ export function QuickQuote() {
   const [toolingAllowance, setToolingAllowance] = useState(0);
   const [margin, setMargin] = useState(30);
   const [leadTime, setLeadTime] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState("");
+  const [deliveryCost, setDeliveryCost] = useState(0);
+  const [includeDeliveryInTotal, setIncludeDeliveryInTotal] = useState(true);
   const [defaultsLoaded, setDefaultsLoaded] = useState(false);
 
   useEffect(() => {
@@ -179,6 +192,9 @@ export function QuickQuote() {
       notes: "",
       internalNotes: "",
       priceBreakQtys: "",
+      deliveryMethod,
+      deliveryCost,
+      includeDeliveryInTotal,
       materialCertIncluded: false,
       inspectionReportIncluded: false,
       fairIncluded: false,
@@ -485,6 +501,60 @@ export function QuickQuote() {
               </div>
             </div>
           </div>
+
+          <div className="rounded border p-5 space-y-4" style={cardStyle}>
+            <div
+              className="text-xs font-semibold uppercase tracking-widest"
+              style={{ color: "hsl(var(--muted-foreground))" }}
+            >
+              Delivery
+            </div>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Delivery Method</Label>
+                <Select value={deliveryMethod} onValueChange={setDeliveryMethod}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Select method..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DELIVERY_METHODS.map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {m}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Delivery Cost ({CUR})</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={deliveryCost}
+                    onChange={(e) => setDeliveryCost(Number(e.target.value))}
+                    className="h-11"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Include in Total</Label>
+                  <div className="flex items-center gap-2 h-11">
+                    <Switch
+                      checked={includeDeliveryInTotal}
+                      onCheckedChange={setIncludeDeliveryInTotal}
+                    />
+                    <span
+                      className="text-sm"
+                      style={{ color: "hsl(var(--muted-foreground))" }}
+                    >
+                      {includeDeliveryInTotal ? "Yes" : "No"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="lg:col-span-2">
@@ -524,7 +594,15 @@ export function QuickQuote() {
                 style={{ color: "hsl(var(--muted-foreground))" }}
               >
                 Total: {CUR}
-                {result.sellPrice.toFixed(2)}
+                {(
+                  result.sellPrice +
+                  (includeDeliveryInTotal && deliveryCost > 0
+                    ? deliveryCost
+                    : 0)
+                ).toFixed(2)}
+                {includeDeliveryInTotal && deliveryCost > 0 && (
+                  <span className="ml-1 text-xs opacity-70">(incl. delivery)</span>
+                )}
               </div>
             </div>
 
@@ -547,6 +625,17 @@ export function QuickQuote() {
                   </span>
                 </div>
               ))}
+              {deliveryCost > 0 && includeDeliveryInTotal && (
+                <div className="flex justify-between">
+                  <span style={{ color: "hsl(var(--muted-foreground))" }}>
+                    Delivery
+                  </span>
+                  <span className="font-mono">
+                    {CUR}
+                    {deliveryCost.toFixed(2)}
+                  </span>
+                </div>
+              )}
               <div
                 className="flex justify-between border-t pt-2 mt-2"
                 style={{ borderColor: "hsl(var(--border))" }}
@@ -585,6 +674,7 @@ export function QuickQuote() {
                 </div>
               )}
               {leadTime && <div>Lead time: {leadTime}</div>}
+              {deliveryMethod && <div>Delivery: {deliveryMethod}</div>}
             </div>
 
             <div className="mt-5 space-y-2">

@@ -98,7 +98,9 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
     (sum, item) => sum + (item.vatAmount || 0),
     0,
   );
-  const grandTotal = subtotal + vatTotal;
+  const deliveryCostFloat = parseFloat(String(quote.deliveryCost || 0));
+  const deliveryIncluded = quote.includeDeliveryInTotal && deliveryCostFloat > 0;
+  const grandTotal = subtotal + (deliveryIncluded ? deliveryCostFloat : 0) + vatTotal;
 
   const hasCerts =
     quote.materialCertIncluded ||
@@ -692,6 +694,22 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
                   {cur}{subtotal.toFixed(2)}
                 </span>
               </div>
+              {deliveryIncluded && (
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 13 }}>
+                  <span style={{ color: "#64748b" }}>
+                    Delivery{quote.deliveryMethod ? ` (${quote.deliveryMethod})` : ""}
+                  </span>
+                  <span style={{ fontFamily: "monospace", color: "#334155" }}>
+                    {cur}{deliveryCostFloat.toFixed(2)}
+                  </span>
+                </div>
+              )}
+              {!deliveryIncluded && quote.deliveryMethod && (
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 13 }}>
+                  <span style={{ color: "#64748b" }}>Delivery</span>
+                  <span style={{ color: "#64748b", fontSize: 12 }}>{quote.deliveryMethod}</span>
+                </div>
+              )}
               {vatTotal > 0 && (
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 13 }}>
                   <span style={{ color: "#64748b" }}>VAT</span>

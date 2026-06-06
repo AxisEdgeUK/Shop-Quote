@@ -1108,6 +1108,9 @@ components:
         - fairIncluded
         - cmmReportIncluded
         - priceBreakQtys
+        - deliveryMethod
+        - deliveryCost
+        - includeDeliveryInTotal
         - lineItems
         - createdAt
         - updatedAt
@@ -1164,6 +1167,12 @@ components:
           type: boolean
         priceBreakQtys:
           type: string
+        deliveryMethod:
+          type: string
+        deliveryCost:
+          type: number
+        includeDeliveryInTotal:
+          type: boolean
         lineItems:
           type: array
           items:
@@ -1215,6 +1224,12 @@ components:
           type: boolean
         priceBreakQtys:
           type: string
+        deliveryMethod:
+          type: string
+        deliveryCost:
+          type: number
+        includeDeliveryInTotal:
+          type: boolean
         lineItems:
           type: array
           items:
@@ -1271,6 +1286,12 @@ components:
           type: boolean
         priceBreakQtys:
           type: string
+        deliveryMethod:
+          type: string
+        deliveryCost:
+          type: number
+        includeDeliveryInTotal:
+          type: boolean
         lineItems:
           type: array
           items:

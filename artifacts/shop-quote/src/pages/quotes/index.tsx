@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit, Trash2, FileText, Copy, ChevronRight } from "lucide-react";
+import { Plus, Edit, Trash2, FileText, Copy, ChevronRight, Zap } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -133,12 +133,20 @@ export function QuotesList() {
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           Quotes
         </h1>
-        <Link href="/quotes/new">
-          <Button className="h-11 px-5" data-testid="button-new-quote">
-            <Plus className="w-4 h-4 mr-2" />
-            New Quote
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/quotes/new">
+            <Button variant="outline" className="h-11 px-4" data-testid="button-new-quote">
+              <Plus className="w-4 h-4 mr-1.5" />
+              Full Quote
+            </Button>
+          </Link>
+          <Link href="/quotes/quick">
+            <Button className="h-11 px-5">
+              <Zap className="w-4 h-4 mr-1.5" />
+              Quick Quote
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* ── Mobile cards ── */}

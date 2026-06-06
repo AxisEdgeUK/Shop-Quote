@@ -47,6 +47,13 @@ export const quotesTable = pgTable("quotes", {
   fairIncluded: boolean("fair_included").notNull().default(false),
   cmmReportIncluded: boolean("cmm_report_included").notNull().default(false),
   priceBreakQtys: text("price_break_qtys").notNull().default(""),
+  deliveryMethod: text("delivery_method").notNull().default(""),
+  deliveryCost: numeric("delivery_cost", { precision: 10, scale: 2 })
+    .notNull()
+    .default("0"),
+  includeDeliveryInTotal: boolean("include_delivery_in_total")
+    .notNull()
+    .default(true),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

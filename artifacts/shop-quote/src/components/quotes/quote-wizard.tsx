@@ -108,6 +108,9 @@ const quoteSchema = z.object({
   fairIncluded: z.boolean().default(false),
   cmmReportIncluded: z.boolean().default(false),
   priceBreakQtys: z.string().default(""),
+  deliveryMethod: z.string().optional(),
+  deliveryCost: z.coerce.number().default(0),
+  includeDeliveryInTotal: z.boolean().default(true),
   lineItems: z.array(lineItemSchema).min(1, "At least one part is required"),
 });
 
@@ -958,6 +961,9 @@ export function QuoteWizard({
       fairIncluded: initialValues?.fairIncluded || false,
       cmmReportIncluded: initialValues?.cmmReportIncluded || false,
       priceBreakQtys: initialValues?.priceBreakQtys || "",
+      deliveryMethod: initialValues?.deliveryMethod || "",
+      deliveryCost: parseFloat(String(initialValues?.deliveryCost || 0)),
+      includeDeliveryInTotal: initialValues?.includeDeliveryInTotal ?? true,
       lineItems: initialValues?.lineItems?.length
         ? (initialValues.lineItems as any)
         : [
@@ -1455,6 +1461,64 @@ export function QuoteWizard({
                         )}
                       />
                     </div>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Delivery Cost</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <label className="text-xs text-muted-foreground">Cost (£)</label>
+                        <FormField
+                          control={form.control}
+                          name="deliveryCost"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  placeholder="0.00"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs text-muted-foreground">Method</label>
+                        <FormField
+                          control={form.control}
+                          name="deliveryMethod"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input placeholder="e.g. Courier" {...field} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="includeDeliveryInTotal"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center gap-3">
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <label className="text-sm text-muted-foreground cursor-pointer" onClick={() => field.onChange(!field.value)}>
+                              Include delivery in quote total
+                            </label>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Payment Terms</label>

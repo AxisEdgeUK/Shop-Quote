@@ -360,6 +360,9 @@ router.post("/quotes", async (req, res): Promise<void> => {
       fairIncluded: parsed.data.fairIncluded ?? false,
       cmmReportIncluded: parsed.data.cmmReportIncluded ?? false,
       priceBreakQtys: parsed.data.priceBreakQtys ?? "",
+      deliveryMethod: parsed.data.deliveryMethod ?? "",
+      deliveryCost: String(parsed.data.deliveryCost ?? 0),
+      includeDeliveryInTotal: parsed.data.includeDeliveryInTotal ?? true,
     })
     .returning();
 
@@ -434,6 +437,10 @@ router.patch("/quotes/:id", async (req, res): Promise<void> => {
     updateData.cmmReportIncluded = d.cmmReportIncluded;
   if (d.priceBreakQtys !== undefined)
     updateData.priceBreakQtys = d.priceBreakQtys;
+  if (d.deliveryMethod !== undefined) updateData.deliveryMethod = d.deliveryMethod;
+  if (d.deliveryCost !== undefined) updateData.deliveryCost = String(d.deliveryCost);
+  if (d.includeDeliveryInTotal !== undefined)
+    updateData.includeDeliveryInTotal = d.includeDeliveryInTotal;
   if (d.wonDate !== undefined) updateData.wonDate = d.wonDate;
   if (d.wonNotes !== undefined) updateData.wonNotes = d.wonNotes;
   if (d.poNumber !== undefined) updateData.poNumber = d.poNumber;
@@ -530,6 +537,9 @@ router.post("/quotes/:id/duplicate", async (req, res): Promise<void> => {
       fairIncluded: original.fairIncluded,
       cmmReportIncluded: original.cmmReportIncluded,
       priceBreakQtys: original.priceBreakQtys,
+      deliveryMethod: original.deliveryMethod,
+      deliveryCost: original.deliveryCost,
+      includeDeliveryInTotal: original.includeDeliveryInTotal,
     })
     .returning();
 

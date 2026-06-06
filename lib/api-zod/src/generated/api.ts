@@ -326,6 +326,9 @@ export const CreateQuoteBody = zod.object({
   fairIncluded: zod.boolean().optional(),
   cmmReportIncluded: zod.boolean().optional(),
   priceBreakQtys: zod.string().optional(),
+  deliveryMethod: zod.string().optional(),
+  deliveryCost: zod.number().optional(),
+  includeDeliveryInTotal: zod.boolean().optional(),
   lineItems: zod.array(
     zod.object({
       partName: zod.string(),
@@ -397,6 +400,9 @@ export const GetQuoteResponse = zod.object({
   fairIncluded: zod.boolean(),
   cmmReportIncluded: zod.boolean(),
   priceBreakQtys: zod.string(),
+  deliveryMethod: zod.string(),
+  deliveryCost: zod.number(),
+  includeDeliveryInTotal: zod.boolean(),
   lineItems: zod.array(
     zod.object({
       id: zod.number(),
@@ -485,6 +491,9 @@ export const UpdateQuoteBody = zod.object({
   fairIncluded: zod.boolean().optional(),
   cmmReportIncluded: zod.boolean().optional(),
   priceBreakQtys: zod.string().optional(),
+  deliveryMethod: zod.string().optional(),
+  deliveryCost: zod.number().optional(),
+  includeDeliveryInTotal: zod.boolean().optional(),
   lineItems: zod
     .array(
       zod.object({
@@ -551,6 +560,9 @@ export const UpdateQuoteResponse = zod.object({
   fairIncluded: zod.boolean(),
   cmmReportIncluded: zod.boolean(),
   priceBreakQtys: zod.string(),
+  deliveryMethod: zod.string(),
+  deliveryCost: zod.number(),
+  includeDeliveryInTotal: zod.boolean(),
   lineItems: zod.array(
     zod.object({
       id: zod.number(),

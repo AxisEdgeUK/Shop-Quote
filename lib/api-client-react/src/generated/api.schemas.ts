@@ -252,6 +252,9 @@ export interface Quote {
   fairIncluded: boolean;
   cmmReportIncluded: boolean;
   priceBreakQtys: string;
+  deliveryMethod: string;
+  deliveryCost: number;
+  includeDeliveryInTotal: boolean;
   lineItems: QuoteLineItem[];
   createdAt: string;
   updatedAt: string;
@@ -276,6 +279,9 @@ export interface QuoteInput {
   fairIncluded?: boolean;
   cmmReportIncluded?: boolean;
   priceBreakQtys?: string;
+  deliveryMethod?: string;
+  deliveryCost?: number;
+  includeDeliveryInTotal?: boolean;
   lineItems: QuoteLineItemInput[];
 }
 
@@ -306,6 +312,9 @@ export interface QuoteUpdate {
   fairIncluded?: boolean;
   cmmReportIncluded?: boolean;
   priceBreakQtys?: string;
+  deliveryMethod?: string;
+  deliveryCost?: number;
+  includeDeliveryInTotal?: boolean;
   lineItems?: QuoteLineItemInput[];
 }
 
