@@ -450,17 +450,56 @@ export function ViewQuote() {
 
           {/* Cost breakdown per line item */}
           {((quote as any).lineItems ?? []).map((item: any, idx: number) => {
+            const sellPrice = parseFloat(item.sellPrice ?? "0");
+            const cur = settings.currency ?? "£";
+            const isLibraryItem =
+              item.lineItemType === "extra" || item.lineItemType === "product";
+
+            if (isLibraryItem) {
+              const qty = item.quantity ?? 1;
+              const unitPrice = qty > 0 ? sellPrice / qty : sellPrice;
+              const label =
+                item.lineItemType === "extra"
+                  ? "Chargeable Extra"
+                  : "Standard Product";
+              return (
+                <div key={idx} className="rounded-lg border bg-card">
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div>
+                      <span className="font-semibold text-sm">
+                        {item.partName || label}
+                      </span>
+                      <span className="ml-2 text-xs text-muted-foreground font-mono">
+                        × {qty}
+                      </span>
+                      <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                        {label}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold">
+                        {cur}
+                        {sellPrice.toFixed(2)} total
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {cur}
+                        {unitPrice.toFixed(2)}/unit
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
             const setupCost = parseFloat(item.setupCost ?? "0");
             const materialCostTotal = parseFloat(item.materialCostTotal ?? "0");
             const costBeforeMargin = parseFloat(item.costBeforeMargin ?? "0");
-            const sellPrice = parseFloat(item.sellPrice ?? "0");
             const margin = parseFloat(item.profitMarginPercentage ?? "0");
             const machineHourlyRate = parseFloat(
               item.machineHourlyRate ?? settings.defaultHourlyRate ?? "65",
             );
             const machineCost =
               costBeforeMargin - setupCost - materialCostTotal;
-            const cur = settings.currency ?? "£";
             return (
               <div key={idx} className="rounded-lg border bg-card">
                 <div className="flex items-center justify-between px-4 py-3 border-b">

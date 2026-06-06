@@ -7,7 +7,18 @@ import {
   getListQuotesQueryKey,
 } from "@workspace/api-client-react";
 import { Link, useLocation } from "wouter";
-import { ArrowLeft, Zap, Save, FileDown, ArrowRight } from "lucide-react";
+import {
+  ArrowLeft,
+  Zap,
+  Save,
+  FileDown,
+  ArrowRight,
+  Plus,
+  Trash2,
+  PlusCircle,
+  Package,
+  Search,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,9 +32,27 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useWorkflowDefaults } from "@/hooks/use-workflow-defaults";
 import { MaterialCombobox } from "@/components/quotes/MaterialCombobox";
+import { apiFetch, type ChargeableExtra, type StandardProduct } from "@/lib/api";
+
+interface QuoteAddon {
+  key: string;
+  type: "extra" | "product";
+  id: number;
+  name: string;
+  category: string;
+  unit: string;
+  unitSellPrice: number;
+  qty: number;
+  notes: string;
+}
+
+let addonKeyCounter = 0;
+function nextKey() {
+  return `addon-${++addonKeyCounter}`;
+}
 
 const PROCESSES = [
   "Milling",
@@ -111,7 +140,34 @@ export function QuickQuote() {
   const [deliveryMethod, setDeliveryMethod] = useState("");
   const [deliveryCost, setDeliveryCost] = useState(0);
   const [includeDeliveryInTotal, setIncludeDeliveryInTotal] = useState(true);
+  const [addons, setAddons] = useState<QuoteAddon[]>([]);
+  const [addonSearch, setAddonSearch] = useState("");
+  const [showAddonPicker, setShowAddonPicker] = useState(false);
   const [defaultsLoaded, setDefaultsLoaded] = useState(false);
+
+  const { data: extrasData = [] } = useQuery<ChargeableExtra[]>({
+    queryKey: ["extras", true],
+    queryFn: () => apiFetch<ChargeableExtra[]>("/extras?all=false"),
+  });
+
+  const { data: productsData = [] } = useQuery<StandardProduct[]>({
+    queryKey: ["products", true],
+    queryFn: () => apiFetch<StandardProduct[]>("/products?all=false"),
+  });
+
+  const addonSearchLower = addonSearch.toLowerCase();
+  const filteredExtras = extrasData.filter(
+    (e) =>
+      e.extraName.toLowerCase().includes(addonSearchLower) ||
+      e.extraCode.toLowerCase().includes(addonSearchLower) ||
+      e.category.toLowerCase().includes(addonSearchLower),
+  );
+  const filteredProducts = productsData.filter(
+    (p) =>
+      p.productName.toLowerCase().includes(addonSearchLower) ||
+      p.productCode.toLowerCase().includes(addonSearchLower) ||
+      p.category.toLowerCase().includes(addonSearchLower),
+  );
 
   useEffect(() => {
     if (settingsLoading || machinesLoading || defaultsLoaded) return;
@@ -224,6 +280,31 @@ export function QuickQuote() {
           vatEnabled: settings?.vatEnabled ?? false,
           vatRate: settings?.vatRate ?? 20,
         },
+        ...addons.map((addon) => ({
+          partName: addon.name,
+          quantity: addon.qty,
+          material: "",
+          processType: "",
+          machineId: null,
+          setupHours: 0,
+          programmingHours: 0,
+          machiningMinutesPerPart: 0,
+          inspectionHours: 0,
+          deburringMinutesPerPart: 0,
+          materialCostPerUnit: 0,
+          materialWastagePercentage: 0,
+          toolingAllowance: 0,
+          outsideProcessing: addon.unitSellPrice * addon.qty,
+          packaging: 0,
+          delivery: 0,
+          riskPercentage: 0,
+          profitMarginPercentage: 0,
+          discountPercentage: 0,
+          vatEnabled: false,
+          vatRate: 20,
+          lineItemType: addon.type as "extra" | "product",
+          notes: addon.notes,
+        })),
       ],
     };
   };
@@ -559,6 +640,218 @@ export function QuickQuote() {
               </div>
             </div>
           </div>
+
+          {/* Extras & Products */}
+          <div className="rounded border p-5 space-y-4" style={cardStyle}>
+            <div className="flex items-center justify-between">
+              <div
+                className="text-xs font-semibold uppercase tracking-widest"
+                style={{ color: "hsl(var(--muted-foreground))" }}
+              >
+                Extras &amp; Products
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAddonPicker((v) => !v)}
+              >
+                <Plus className="w-3.5 h-3.5 mr-1.5" />
+                Add
+              </Button>
+            </div>
+
+            {showAddonPicker && (
+              <div
+                className="rounded border p-3 space-y-2"
+                style={{
+                  background: "hsl(var(--muted)/0.3)",
+                  borderColor: "hsl(var(--border))",
+                }}
+              >
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <Input
+                    className="pl-8 h-8 text-sm"
+                    placeholder="Search extras and products..."
+                    value={addonSearch}
+                    onChange={(e) => setAddonSearch(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+                <div className="max-h-52 overflow-y-auto space-y-0.5">
+                  {filteredExtras.length === 0 &&
+                    filteredProducts.length === 0 && (
+                      <div className="text-xs text-muted-foreground text-center py-3">
+                        No items found
+                      </div>
+                    )}
+                  {filteredExtras.length > 0 && (
+                    <>
+                      <div className="flex items-center gap-1.5 px-1 py-1.5">
+                        <PlusCircle className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                          Chargeable Extras
+                        </span>
+                      </div>
+                      {filteredExtras.map((extra) => (
+                        <button
+                          key={`extra-${extra.id}`}
+                          type="button"
+                          className="w-full text-left flex items-center justify-between px-3 py-2 rounded text-sm hover:bg-primary/10 transition-colors"
+                          onClick={() => {
+                            setAddons((prev) => [
+                              ...prev,
+                              {
+                                key: nextKey(),
+                                type: "extra",
+                                id: extra.id,
+                                name: extra.extraName,
+                                category: extra.category,
+                                unit: extra.unit,
+                                unitSellPrice: extra.defaultSellPrice,
+                                qty: 1,
+                                notes: extra.notes,
+                              },
+                            ]);
+                            setAddonSearch("");
+                            setShowAddonPicker(false);
+                          }}
+                        >
+                          <div>
+                            <div className="font-medium">{extra.extraName}</div>
+                            {extra.category && (
+                              <div className="text-xs text-muted-foreground">
+                                {extra.category}
+                              </div>
+                            )}
+                          </div>
+                          <div className="font-mono text-xs text-muted-foreground ml-4 shrink-0">
+                            {CUR}
+                            {extra.defaultSellPrice.toFixed(2)} /{extra.unit}
+                          </div>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                  {filteredProducts.length > 0 && (
+                    <>
+                      <div className="flex items-center gap-1.5 px-1 py-1.5 mt-1">
+                        <Package className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                          Standard Products
+                        </span>
+                      </div>
+                      {filteredProducts.map((product) => (
+                        <button
+                          key={`product-${product.id}`}
+                          type="button"
+                          className="w-full text-left flex items-center justify-between px-3 py-2 rounded text-sm hover:bg-primary/10 transition-colors"
+                          onClick={() => {
+                            setAddons((prev) => [
+                              ...prev,
+                              {
+                                key: nextKey(),
+                                type: "product",
+                                id: product.id,
+                                name: product.productName,
+                                category: product.category,
+                                unit: product.unit,
+                                unitSellPrice: product.defaultSellPrice,
+                                qty: 1,
+                                notes: product.notes,
+                              },
+                            ]);
+                            setAddonSearch("");
+                            setShowAddonPicker(false);
+                          }}
+                        >
+                          <div>
+                            <div className="font-medium">{product.productName}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {[product.category, product.material, product.standardSize]
+                                .filter(Boolean)
+                                .join(" · ")}
+                            </div>
+                          </div>
+                          <div className="font-mono text-xs text-muted-foreground ml-4 shrink-0">
+                            {CUR}
+                            {product.defaultSellPrice.toFixed(2)} /{product.unit}
+                          </div>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {addons.length === 0 && !showAddonPicker && (
+              <p className="text-sm text-muted-foreground">
+                No extras or products added yet. Click{" "}
+                <span className="font-medium">Add</span> to pick from your
+                library.
+              </p>
+            )}
+
+            {addons.length > 0 && (
+              <div className="space-y-2">
+                {addons.map((addon) => (
+                  <div
+                    key={addon.key}
+                    className="flex items-center gap-2 rounded border p-2"
+                    style={{ borderColor: "hsl(var(--border))" }}
+                  >
+                    {addon.type === "extra" ? (
+                      <PlusCircle className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                    ) : (
+                      <Package className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate">
+                        {addon.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {CUR}
+                        {addon.unitSellPrice.toFixed(2)} /{addon.unit}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Input
+                        type="number"
+                        min="1"
+                        value={addon.qty}
+                        onChange={(e) => {
+                          const q = Math.max(1, Number(e.target.value));
+                          setAddons((prev) =>
+                            prev.map((a) =>
+                              a.key === addon.key ? { ...a, qty: q } : a,
+                            ),
+                          );
+                        }}
+                        className="w-16 h-8 text-sm text-center"
+                      />
+                      <div className="text-sm font-mono text-right w-16">
+                        {CUR}
+                        {(addon.unitSellPrice * addon.qty).toFixed(2)}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() =>
+                          setAddons((prev) =>
+                            prev.filter((a) => a.key !== addon.key),
+                          )
+                        }
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="lg:col-span-2">
@@ -600,6 +893,7 @@ export function QuickQuote() {
                 Total: {CUR}
                 {(
                   result.sellPrice +
+                  addons.reduce((s, a) => s + a.unitSellPrice * a.qty, 0) +
                   (includeDeliveryInTotal && deliveryCost > 0
                     ? deliveryCost
                     : 0)
@@ -629,6 +923,19 @@ export function QuickQuote() {
                   </span>
                 </div>
               ))}
+              {addons.length > 0 && (
+                <div className="flex justify-between">
+                  <span style={{ color: "hsl(var(--muted-foreground))" }}>
+                    Extras &amp; Products
+                  </span>
+                  <span className="font-mono">
+                    {CUR}
+                    {addons
+                      .reduce((s, a) => s + a.unitSellPrice * a.qty, 0)
+                      .toFixed(2)}
+                  </span>
+                </div>
+              )}
               {deliveryCost > 0 && includeDeliveryInTotal && (
                 <div className="flex justify-between">
                   <span style={{ color: "hsl(var(--muted-foreground))" }}>

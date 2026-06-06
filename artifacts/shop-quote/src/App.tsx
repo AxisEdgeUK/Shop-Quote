@@ -28,6 +28,12 @@ import { ViewQuote } from "@/pages/quotes/view";
 import { QuickQuote } from "@/pages/quotes/quick";
 import { PresentQuote } from "@/pages/quotes/present";
 import { IdeasPage } from "@/pages/ideas";
+import { ExtrasLibrary } from "@/pages/extras";
+import { NewExtra } from "@/pages/extras/new";
+import { EditExtra } from "@/pages/extras/edit";
+import { ProductsLibrary } from "@/pages/products";
+import { NewProduct } from "@/pages/products/new";
+import { EditProduct } from "@/pages/products/edit";
 
 const queryClient = new QueryClient();
 
@@ -107,6 +113,24 @@ function Router() {
       </Route>
       <Route path="/ideas">
         <AppRoute component={IdeasPage} />
+      </Route>
+      <Route path="/extras">
+        <AppRoute component={ExtrasLibrary} />
+      </Route>
+      <Route path="/extras/new">
+        <AppRoute component={NewExtra} />
+      </Route>
+      <Route path="/extras/:id/edit">
+        <AppRoute component={EditExtra} />
+      </Route>
+      <Route path="/products">
+        <AppRoute component={ProductsLibrary} />
+      </Route>
+      <Route path="/products/new">
+        <AppRoute component={NewProduct} />
+      </Route>
+      <Route path="/products/:id/edit">
+        <AppRoute component={EditProduct} />
       </Route>
       <Route component={NotFound} />
     </Switch>

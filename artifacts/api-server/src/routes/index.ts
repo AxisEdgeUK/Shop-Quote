@@ -10,6 +10,8 @@ import storageRouter from "./storage";
 import aiRouter from "./ai";
 import feedbackRouter from "./feedback";
 import featureRequestsRouter from "./feature-requests";
+import { extrasRouter } from "./extras";
+import { productsRouter } from "./products";
 
 const router: IRouter = Router();
 
@@ -24,5 +26,7 @@ router.use(storageRouter);
 router.use(aiRouter);
 router.use(feedbackRouter);
 router.use(featureRequestsRouter);
+router.use(extrasRouter);
+router.use(productsRouter);
 
 export default router;

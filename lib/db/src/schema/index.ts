@@ -5,3 +5,5 @@ export * from "./materials";
 export * from "./quotes";
 export * from "./feedback";
 export * from "./feature-requests";
+export * from "./extras";
+export * from "./products";

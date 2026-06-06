@@ -88,7 +88,14 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
 
   const visibleItems = quote.lineItems.filter((i) => !i.hiddenFromPdf);
   const oneoffItems = visibleItems.filter((i) => i.lineItemType === "oneoff");
-  const standardItems = visibleItems.filter((i) => i.lineItemType !== "oneoff");
+  const extraItems = visibleItems.filter((i) => i.lineItemType === "extra");
+  const productItems = visibleItems.filter((i) => i.lineItemType === "product");
+  const standardItems = visibleItems.filter(
+    (i) =>
+      i.lineItemType !== "oneoff" &&
+      i.lineItemType !== "extra" &&
+      i.lineItemType !== "product",
+  );
 
   const subtotal = visibleItems.reduce(
     (sum, item) => sum + (item.sellPrice || 0),
@@ -627,6 +634,56 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
                     </td>
                   </tr>
                 ))}
+              </>
+            )}
+
+            {(extraItems.length > 0 || productItems.length > 0) && (
+              <>
+                <tr>
+                  <td colSpan={4} style={{ padding: "12px 10px 4px" }}>
+                    <div
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 700,
+                        letterSpacing: "0.14em",
+                        textTransform: "uppercase",
+                        color: "#94a3b8",
+                      }}
+                    >
+                      Chargeable Extras &amp; Products
+                    </div>
+                  </td>
+                </tr>
+                {[...extraItems, ...productItems].map((item, idx) => {
+                  const qty = item.quantity ?? 1;
+                  const unitPrice = qty > 0 ? (item.sellPrice || 0) / qty : (item.sellPrice || 0);
+                  return (
+                    <tr
+                      key={`lib-${item.id || idx}`}
+                      style={{ borderBottom: "1px solid #f1f5f9" }}
+                    >
+                      <td style={{ padding: "8px 10px", textAlign: "center", fontFamily: "monospace", fontSize: 12, color: "#334155" }}>
+                        {qty}
+                      </td>
+                      <td style={{ padding: "8px 10px" }}>
+                        <div style={{ fontWeight: 500, color: "#1e293b", fontSize: 12 }}>
+                          {item.partName}
+                        </div>
+                        {(item as any).notes && (
+                          <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 2 }}>
+                            {(item as any).notes}
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "monospace", color: "#64748b", fontSize: 12 }}>
+                        {cur}{unitPrice.toFixed(2)}
+                      </td>
+                      <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "monospace", fontWeight: 700, fontSize: 12, color: "#0f172a" }}>
+                        {cur}{(item.sellPrice || 0).toFixed(2)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </>
             )}
           </tbody>

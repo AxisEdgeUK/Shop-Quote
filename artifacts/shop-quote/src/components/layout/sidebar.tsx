@@ -11,18 +11,32 @@ import {
   X,
   MessageSquare,
   Lightbulb,
+  PlusCircle,
+  Package,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FeedbackDialog } from "@/components/feedback-dialog";
 
-const navItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Quotes", href: "/quotes", icon: FileText },
-  { name: "Customers", href: "/customers", icon: Users },
-  { name: "Machines", href: "/machines", icon: Wrench },
-  { name: "Materials", href: "/materials", icon: Layers },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
-  { name: "Settings", href: "/settings", icon: SettingsIcon },
+const navGroups = [
+  {
+    label: "Navigation",
+    items: [
+      { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { name: "Quotes", href: "/quotes", icon: FileText },
+      { name: "Customers", href: "/customers", icon: Users },
+      { name: "Machines", href: "/machines", icon: Wrench },
+      { name: "Materials", href: "/materials", icon: Layers },
+      { name: "Analytics", href: "/analytics", icon: BarChart3 },
+      { name: "Settings", href: "/settings", icon: SettingsIcon },
+    ],
+  },
+  {
+    label: "Libraries",
+    items: [
+      { name: "Chargeable Extras", href: "/extras", icon: PlusCircle },
+      { name: "Standard Products", href: "/products", icon: Package },
+    ],
+  },
 ];
 
 function ShopQuoteLogo({ size = 28 }: { size?: number }) {
@@ -149,42 +163,48 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         )}
       </div>
 
-      <nav className="flex-1 p-3 space-y-0.5 pt-4">
-        <div
-          className="text-xs font-semibold uppercase tracking-widest px-3 mb-3"
-          style={{ color: "hsl(220 5% 35%)" }}
-        >
-          Navigation
-        </div>
-        {navItems.map((item) => {
-          const isActive = location.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onClose}
-              className={cn(
-                "flex items-center gap-3 px-3 py-3 text-sm font-medium transition-all rounded",
-                !isActive && "hover:bg-white/5",
-              )}
-              style={
-                isActive
-                  ? {
-                      background: "rgba(29,143,255,0.12)",
-                      color: "#60AFFF",
-                      borderLeft: "3px solid #1D8FFF",
-                    }
-                  : {
-                      color: "hsl(var(--sidebar-foreground))",
-                      borderLeft: "3px solid transparent",
-                    }
-              }
+      <nav className="flex-1 p-3 pt-4 overflow-y-auto">
+        {navGroups.map((group) => (
+          <div key={group.label} className="mb-4">
+            <div
+              className="text-xs font-semibold uppercase tracking-widest px-3 mb-2"
+              style={{ color: "hsl(220 5% 35%)" }}
             >
-              <item.icon className="w-5 h-5 shrink-0" />
-              {item.name}
-            </Link>
-          );
-        })}
+              {group.label}
+            </div>
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const isActive = location.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={onClose}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all rounded",
+                      !isActive && "hover:bg-white/5",
+                    )}
+                    style={
+                      isActive
+                        ? {
+                            background: "rgba(29,143,255,0.12)",
+                            color: "#60AFFF",
+                            borderLeft: "3px solid #1D8FFF",
+                          }
+                        : {
+                            color: "hsl(var(--sidebar-foreground))",
+                            borderLeft: "3px solid transparent",
+                          }
+                    }
+                  >
+                    <item.icon className="w-5 h-5 shrink-0" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       <div
