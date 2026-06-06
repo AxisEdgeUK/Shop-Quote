@@ -230,39 +230,7 @@ export function NewMaterial() {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="costPerKg"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cost Per Kg (£)</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.01" min="0" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="density"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Density (g/cm³)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="e.g. 2.70"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className="grid grid-cols-1 gap-4">
               <FormField
                 control={form.control}
                 name="defaultStockAllowance"

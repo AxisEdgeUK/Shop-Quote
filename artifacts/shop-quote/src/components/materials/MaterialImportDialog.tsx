@@ -67,8 +67,6 @@ const SHOP_FIELDS: { key: string; label: string; required?: boolean }[] = [
   { key: "material", label: "Material", required: true },
   { key: "grade", label: "Grade", required: true },
   { key: "form", label: "Form" },
-  { key: "costPerKg", label: "Cost Per Kg" },
-  { key: "density", label: "Density (g/cm³)" },
   { key: "supplier", label: "Supplier" },
   { key: "defaultStockAllowance", label: "Stock Allowance %" },
   { key: "active", label: "Active" },

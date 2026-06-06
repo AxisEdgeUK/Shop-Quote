@@ -182,30 +182,6 @@ export function MaterialsList() {
                   </div>
                 </div>
                 <div className="flex gap-4 mt-2">
-                  {m.costPerKg > 0 && (
-                    <div>
-                      <div
-                        className="text-xs font-medium"
-                        style={{ color: "hsl(var(--muted-foreground))" }}
-                      >
-                        Cost/kg
-                      </div>
-                      <div className="font-mono font-semibold text-sm">
-                        £{m.costPerKg.toFixed(2)}
-                      </div>
-                    </div>
-                  )}
-                  {m.density > 0 && (
-                    <div>
-                      <div
-                        className="text-xs font-medium"
-                        style={{ color: "hsl(var(--muted-foreground))" }}
-                      >
-                        Density
-                      </div>
-                      <div className="font-mono text-sm">{m.density} g/cm³</div>
-                    </div>
-                  )}
                   {m.supplier && (
                     <div>
                       <div
@@ -247,8 +223,6 @@ export function MaterialsList() {
               <TableHead>Material</TableHead>
               <TableHead>Grade</TableHead>
               <TableHead>Form</TableHead>
-              <TableHead>Cost / kg</TableHead>
-              <TableHead>Density</TableHead>
               <TableHead>Supplier</TableHead>
               <TableHead>Active</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
@@ -258,7 +232,7 @@ export function MaterialsList() {
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
-                  {Array.from({ length: 8 }).map((_, j) => (
+                  {Array.from({ length: 6 }).map((_, j) => (
                     <TableCell key={j}>
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
@@ -268,7 +242,7 @@ export function MaterialsList() {
             ) : materials?.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={8}
+                  colSpan={6}
                   className="text-center py-12 text-muted-foreground"
                 >
                   <Layers className="w-8 h-8 mx-auto mb-3 opacity-40" />
@@ -286,12 +260,6 @@ export function MaterialsList() {
                   <TableCell>{m.grade}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {m.form || "—"}
-                  </TableCell>
-                  <TableCell className="font-mono">
-                    {m.costPerKg > 0 ? `£${m.costPerKg.toFixed(2)}` : "—"}
-                  </TableCell>
-                  <TableCell className="font-mono text-muted-foreground">
-                    {m.density > 0 ? `${m.density} g/cm³` : "—"}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {m.supplier || "—"}

@@ -15,9 +15,6 @@ import {
   ArrowLeft,
   Edit,
   FileDown,
-  Mail,
-  Copy,
-  Check,
   Lock,
   Eye,
   CopyPlus,
@@ -27,7 +24,6 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { format } from "date-fns";
 import { PrintLayout } from "@/components/quotes/print-layout";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -93,7 +89,6 @@ export function ViewQuote() {
   const { data: settings, isLoading: isLoadingSettings } = useGetSettings();
   const updateQuote = useUpdateQuote();
 
-  const [emailCopied, setEmailCopied] = useState(false);
   const [showLostDialog, setShowLostDialog] = useState(false);
   const [lostReason, setLostReason] = useState("");
   const [lostNotes, setLostNotes] = useState("");
@@ -102,11 +97,29 @@ export function ViewQuote() {
   const [wonExpectedDelivery, setWonExpectedDelivery] = useState("");
   const [wonNotesText, setWonNotesText] = useState("");
   const [showMoreSheet, setShowMoreSheet] = useState(false);
-  const [showEmailDialog, setShowEmailDialog] = useState(false);
-  const [pdfSaved, setPdfSaved] = useState(false);
   const [viewMode, setViewMode] = useState<"customer" | "internal">("customer");
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    if (quote && customer) {
+      const quoteNum = quote.quoteNumber.replace(/[^A-Za-z0-9\-]/g, "");
+      const rev =
+        quote.quoteRevision && quote.quoteRevision !== "A"
+          ? `-REV-${quote.quoteRevision}`
+          : "";
+      const company = customer.companyName
+        .replace(/[^A-Za-z0-9\s]/g, "")
+        .trim()
+        .replace(/\s+/g, "-");
+      const prev = document.title;
+      document.title = `${quoteNum}${rev}_${company}`;
+      window.print();
+      setTimeout(() => {
+        document.title = prev;
+      }, 1500);
+    } else {
+      window.print();
+    }
+  };
 
   const quoteWarnings = (() => {
     if (!quote || !customer) return [];
@@ -203,69 +216,6 @@ export function ViewQuote() {
     );
   };
 
-  const buildEmailBody = () => {
-    if (!quote || !customer || !settings) return "";
-    const partNames = quote.lineItems
-      .filter((l) => !l.hiddenFromPdf)
-      .map((l) => l.partName)
-      .join(", ");
-    const validity = quote.validUntil
-      ? format(new Date(quote.validUntil), "dd MMM yyyy")
-      : "";
-    return `Dear ${customer.contactName || customer.companyName},
-
-Please find attached our quotation ${quote.quoteNumber} (Rev ${quote.quoteRevision || "A"}) for: ${partNames}.
-
-This quotation is valid until ${validity}.${quote.leadTime ? `\nLead time is estimated at ${quote.leadTime}.` : ""}${quote.deliveryTerms ? `\nDelivery: ${quote.deliveryTerms}.` : ""}${quote.paymentTerms ? `\nPayment terms: ${quote.paymentTerms}.` : ""}
-
-Please do not hesitate to contact us if you have any questions or would like to proceed.
-
-Kind regards,
-${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.email ? `\n${settings.email}` : ""}`;
-  };
-
-  const buildEmailTemplate = () => {
-    if (!quote || !customer || !settings) return "";
-    return `Subject: Quotation ${quote.quoteNumber} for ${customer.companyName}\n\n${buildEmailBody()}`;
-  };
-
-  const handleCopyEmail = async () => {
-    await navigator.clipboard.writeText(buildEmailTemplate());
-    setEmailCopied(true);
-    setTimeout(() => setEmailCopied(false), 2500);
-  };
-
-  const handleEmail = () => {
-    if (!quote || !customer) return;
-    setPdfSaved(false);
-    setShowEmailDialog(true);
-    setTimeout(() => window.print(), 100);
-  };
-
-  const handleOpenEmailDraft = () => {
-    if (!quote || !customer) return;
-    const subject = encodeURIComponent(
-      `Quotation ${quote.quoteNumber} for ${customer.companyName}`,
-    );
-    const body = encodeURIComponent(buildEmailBody());
-    window.location.href = `mailto:${customer.email}?subject=${subject}&body=${body}`;
-    setShowEmailDialog(false);
-  };
-
-  const handleShare = async () => {
-    const text = buildEmailBody();
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: `Quote ${quote?.quoteNumber}`, text });
-      } catch {
-        // user cancelled
-      }
-    } else {
-      await navigator.clipboard.writeText(text);
-      toast({ title: "Quote text copied to clipboard" });
-    }
-  };
-
   if (isLoadingQuote || isLoadingCustomer || isLoadingSettings) {
     return <Skeleton className="h-[800px] w-full max-w-4xl mx-auto" />;
   }
@@ -336,14 +286,6 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
                   <CopyPlus className="w-3.5 h-3.5" /> Quote Similar
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCopyEmail}>
-                {emailCopied ? (
-                  <Check className="w-3.5 h-3.5 mr-2 text-green-600" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5 mr-2" />
-                )}
-                {emailCopied ? "Copied!" : "Copy Email Text"}
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground">
                 Update Status
@@ -400,12 +342,6 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
               <Eye className="w-3.5 h-3.5 mr-1.5" /> Presentation
             </Button>
           </Link>
-
-          {customer.email && (
-            <Button variant="outline" size="sm" onClick={handleEmail}>
-              <Mail className="w-3.5 h-3.5 mr-1.5" /> Send Email
-            </Button>
-          )}
 
           <Button
             onClick={handlePrint}
@@ -692,15 +628,6 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
           >
             <FileDown className="w-5 h-5" /> PDF
           </Button>
-          {customer.email && (
-            <Button
-              variant="outline"
-              className="flex-1 h-12 gap-2"
-              onClick={handleEmail}
-            >
-              <Mail className="w-5 h-5" /> Email
-            </Button>
-          )}
           <Sheet open={showMoreSheet} onOpenChange={setShowMoreSheet}>
             <SheetTrigger asChild>
               <Button
@@ -749,16 +676,6 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
                     <CopyPlus className="w-4 h-4" /> Quote Similar
                   </Button>
                 </Link>
-                <Button
-                  variant="outline"
-                  className="w-full h-11 justify-start gap-2"
-                  onClick={() => {
-                    handleCopyEmail();
-                    setShowMoreSheet(false);
-                  }}
-                >
-                  <Copy className="w-4 h-4" /> Copy Email Text
-                </Button>
                 <div className="pt-1 border-t">
                   <p className="text-xs text-muted-foreground px-1 py-2 font-semibold uppercase tracking-wider">
                     Update Status
@@ -907,83 +824,6 @@ ${settings.companyName}${settings.phone ? `\n${settings.phone}` : ""}${settings.
         </DialogContent>
       </Dialog>
 
-      {/* Send Email dialog — two-step: save PDF then open email */}
-      <Dialog
-        open={showEmailDialog}
-        onOpenChange={(open) => {
-          setShowEmailDialog(open);
-          if (!open) setPdfSaved(false);
-        }}
-      >
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Mail className="w-4 h-4" /> Send Quote by Email
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            {/* Step 1 */}
-            <div
-              className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${pdfSaved ? "border-emerald-200 bg-emerald-50" : "border-border bg-muted/40"}`}
-            >
-              <div
-                className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${pdfSaved ? "bg-emerald-500 text-white" : "bg-primary text-primary-foreground"}`}
-              >
-                {pdfSaved ? <Check className="w-3.5 h-3.5" /> : "1"}
-              </div>
-              <div className="flex-1 space-y-1.5">
-                <p className="text-sm font-semibold leading-none">
-                  Save the PDF
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  In the print dialog, choose <strong>Save as PDF</strong> and
-                  save to your computer.
-                </p>
-                <Button
-                  size="sm"
-                  variant={pdfSaved ? "outline" : "default"}
-                  className="h-8 gap-1.5 text-xs"
-                  onClick={() => {
-                    window.print();
-                    setTimeout(() => setPdfSaved(true), 800);
-                  }}
-                >
-                  <FileDown className="w-3.5 h-3.5" />
-                  {pdfSaved ? "Re-save PDF" : "Open Print Dialog"}
-                </Button>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div
-              className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${!pdfSaved ? "opacity-50" : "border-border"}`}
-            >
-              <div
-                className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${pdfSaved ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-              >
-                2
-              </div>
-              <div className="flex-1 space-y-1.5">
-                <p className="text-sm font-semibold leading-none">
-                  Open Email Draft
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Opens your email client with the subject and body pre-filled.
-                  Attach the saved PDF before sending.
-                </p>
-                <Button
-                  size="sm"
-                  className="h-8 gap-1.5 text-xs"
-                  disabled={!pdfSaved}
-                  onClick={handleOpenEmailDraft}
-                >
-                  <Mail className="w-3.5 h-3.5" /> Open Email Draft
-                </Button>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -1,0 +1,222 @@
+Paste this into Replit:
+
+```text
+Refine the quote completion, PDF output and material database.
+
+Do not add new major features. This is cleanup before real-world testing.
+
+1. Remove Send Email workflow
+
+Remove or hide the Send Email section/button from the quote ready screen.
+
+Reason:
+We do not want a half-working email workflow where the user has to manually download and attach the PDF.
+
+For now keep only:
+- Generate PDF
+- Download PDF
+- Presentation Mode
+- Mark as Sent
+
+Remove:
+- Send Email
+- Copy Email
+- email sending panels
+- any wording suggesting the app sends emails automatically
+
+If any email functionality remains in the code, hide it from the UI.
+
+2. Improve PDF file naming
+
+When user clicks Generate PDF / Save as PDF, the downloaded PDF filename must automatically be:
+
+[QuoteNumber]_[CustomerCompanyName].pdf
+
+Example:
+QT-2026-001_ABC-Manufacturing-Ltd.pdf
+
+Rules:
+- remove spaces or replace with hyphens
+- remove special characters
+- keep filename clean and professional
+- include revision if applicable
+
+Example with revision:
+QT-2026-001-REV-A_ABC-Manufacturing-Ltd.pdf
+
+3. Redesign the customer PDF
+
+The current PDF looks too basic.
+
+Redesign it to feel like a professional precision engineering quotation.
+
+Design goal:
+- clean
+- premium
+- concise
+- engineering-grade
+- not template-looking
+- suitable to send to real customers
+
+Keep the PDF to one page wherever possible.
+
+One-page priority:
+- header
+- company logo/details
+- customer details
+- quote number/revision/date
+- line item table
+- quantity price breaks if used
+- lead time
+- payment terms
+- validity
+- total price
+- notes
+- bank details if enabled
+
+If quote has many parts, allow extra pages, but for normal quotes aim for one clean page.
+
+4. PDF layout requirements
+
+Use a compact professional layout:
+
+Top:
+- company logo left
+- company details right or beneath logo
+- document title: QUOTATION
+
+Quote meta block:
+- quote number
+- revision
+- quote date
+- valid until
+- lead time
+- payment terms
+
+Customer block:
+- customer company
+- contact
+- address
+- email
+
+Line item table:
+- part name
+- drawing number
+- revision
+- material
+- tolerance class
+- quantity
+- price each
+- total
+
+Quantity breaks:
+Show neatly only if present.
+Do not make them oversized.
+
+Footer:
+- customer notes
+- terms summary
+- bank details if enabled
+- VAT details if enabled
+
+5. PDF must hide internal data
+
+Do not show:
+- margin
+- hourly rates
+- setup cost
+- runtime cost
+- internal cost breakdown
+- internal notes
+- machine hourly rate
+- material cost per kg
+- density
+
+6. Remove Density and Cost from material database UI
+
+Remove or hide these from the user-facing Materials page and material import preview:
+- Density
+- Cost Per Kg
+
+Reason:
+For beta testing, this adds complexity and may confuse users.
+
+Keep material database simple:
+- Material
+- Grade
+- Form
+- Supplier
+- Default Stock Allowance
+- Active
+
+If density and cost already exist in the database, they may stay internally for future use, but do not show them in:
+- material table
+- quote material selector
+- import preview
+- customer PDF
+- quote PDF
+- customer-facing output
+
+7. Update material import
+
+Material import should now expect:
+
+- Material
+- Grade
+- Form
+- Supplier
+- Default Stock Allowance
+- Active
+
+If uploaded spreadsheets contain:
+- Cost Per Kg
+- Density
+
+ignore those columns for now.
+
+Do not error because they exist.
+
+8. Improve material selector
+
+When selecting material in a quote, show:
+- Material
+- Grade
+- Form
+- Default Stock Allowance
+
+Do not show:
+- Density
+- Cost Per Kg
+
+9. Keep PDF clean and restrained
+
+Avoid:
+- excessive borders
+- large shaded boxes
+- heavy colours
+- oversized badges
+- clutter
+
+Use:
+- strong typography
+- good spacing
+- thin rules
+- clean table
+- subtle industrial styling
+
+The PDF should look more like a serious engineering company quotation than a generic software-generated document.
+
+10. Final checks
+
+After completing, confirm:
+- Send Email removed from UI
+- PDF downloads with QuoteNumber_CustomerName filename
+- PDF normally fits on one page for simple quotes
+- PDF looks more professional
+- internal costs are hidden
+- Density removed from user-facing materials UI
+- Cost Per Kg removed from user-facing materials UI
+- material import still works
+```
+
+This is the right simplification. Email can come later when it is fully server-side and reliable. PDF quality matters more right now.

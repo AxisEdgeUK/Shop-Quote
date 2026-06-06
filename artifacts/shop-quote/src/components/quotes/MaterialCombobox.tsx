@@ -103,12 +103,9 @@ export function MaterialCombobox({
                           </div>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             {m.supplier && <span>{m.supplier}</span>}
-                            {m.costPerKg > 0 && (
-                              <span className="font-mono">
-                                £{m.costPerKg.toFixed(2)}/kg
-                              </span>
+                            {m.defaultStockAllowance > 0 && (
+                              <span>{m.defaultStockAllowance}% stock allowance</span>
                             )}
-                            {m.density > 0 && <span>{m.density} g/cm³</span>}
                           </div>
                         </div>
                       </CommandItem>
