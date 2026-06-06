@@ -143,6 +143,7 @@ function parseQuote(
 ) {
   return {
     ...quote,
+    deliveryCost: parseFloat(String(quote.deliveryCost ?? 0)),
     createdAt: quote.createdAt.toISOString(),
     updatedAt: quote.updatedAt.toISOString(),
     lineItems: lineItems.map(parseLineItem),
