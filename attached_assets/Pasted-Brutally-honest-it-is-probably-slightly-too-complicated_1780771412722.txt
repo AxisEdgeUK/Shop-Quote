@@ -1,0 +1,191 @@
+Brutally honest: it is probably **slightly too complicated for a first-time small shop user**, but it is not too complicated for the product category.
+
+The issue is not the number of features. The issue is **when the user sees them**.
+
+Right now, the danger is that it may feel like:
+
+> “I need to configure a system before I can quote.”
+
+That is bad.
+
+What it must feel like is:
+
+> “I can quote quickly, and the deeper tools are there when I need them.”
+
+## My verdict
+
+For **you**, it is useful.
+
+For a busy 5–15 person machine shop owner seeing it for the first time, it may still feel like too much unless the default path is extremely simple.
+
+The app needs two clear lanes:
+
+### Lane 1: Quick Quote
+
+For 80% of jobs.
+
+Only show:
+
+* customer
+* part
+* material
+* quantity
+* machine
+* setup
+* runtime
+* margin
+* delivery cost
+* lead time
+* PDF
+
+### Lane 2: Full Quote
+
+For serious quoting.
+
+Show:
+
+* revisions
+* quantity breaks
+* tolerances
+* inspection
+* certs
+* notes
+* customer terms
+* internal costing
+
+If Quick Quote is clean, the product is fine. If users land inside Full Quote first, it will feel too heavy.
+
+## Delivery cost
+
+Yes, add it.
+
+Delivery is a real quoting cost and small shops often forget it.
+
+But keep it simple:
+
+* Delivery method
+* Delivery cost
+* Include in total: yes/no
+
+Options:
+
+* Collection
+* Local delivery
+* Courier
+* Pallet
+* Customer arranged
+* Other
+
+Do **not** build shipping integrations.
+
+## What I would change before testing
+
+Make Quick Quote the default button everywhere.
+
+Full Quote should feel like:
+
+> “advanced estimating”
+
+not the default.
+
+## Replit prompt
+
+```text
+Refine SHOP Quote to make it simpler for first-time users and add delivery cost properly.
+
+Do not add complex shipping integrations.
+
+1. Add delivery cost to quotes
+
+Add fields:
+- Delivery Method
+- Delivery Cost
+- Include Delivery In Total: Yes/No
+
+Delivery Method options:
+- Collection
+- Local Delivery
+- Courier
+- Pallet
+- Customer Arranged
+- Other
+
+If delivery is included:
+add delivery cost into final quote total.
+
+If not included:
+show “Delivery excluded” or “Delivery by customer arrangement” on the customer PDF.
+
+2. Add delivery to PDF
+
+Customer PDF should show:
+- Delivery method
+- Delivery cost if included
+- Delivery excluded note if not included
+
+Keep it compact.
+
+3. Make Quick Quote the default workflow
+
+On dashboard and main actions, make Quick Quote the primary action.
+
+Full Quote should be secondary.
+
+Button hierarchy:
+Primary: Quick Quote
+Secondary: Full Quote
+Secondary: Quote Similar Job
+
+4. Simplify Quick Quote
+
+Quick Quote should show only:
+- customer
+- part name
+- material
+- quantity
+- machine
+- setup hours
+- runtime minutes per part
+- margin
+- delivery method
+- delivery cost
+- lead time
+- generate PDF
+
+Hide everything else unless user chooses:
+Convert to Full Quote
+
+5. Reduce first-time user overwhelm
+
+Do not show advanced fields by default.
+
+Advanced fields include:
+- inspection
+- deburring
+- certifications
+- quantity breaks
+- revision notes
+- risk
+- internal notes
+- supplier recommendations
+
+6. Improve wording
+
+Use:
+Quick Quote
+Full Quote
+Convert to Full Quote
+
+Avoid:
+advanced configuration
+workflow modules
+complex setup
+
+7. Final rule
+
+A first-time user should be able to create a simple quote without understanding every feature.
+
+The app should feel simple first, powerful second.
+```
+
+My honest position: **the idea has legs, but only if Quick Quote is stupidly easy.** If it feels like ERP, small shops will not use it.

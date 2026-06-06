@@ -26,10 +26,23 @@ import { useWorkflowDefaults } from "@/hooks/use-workflow-defaults";
 const PROCESSES = [
   "Milling",
   "Turning",
+  "Mill/Turn",
   "Drilling",
   "Grinding",
   "Wire EDM",
   "Other",
+];
+
+const LEAD_TIMES = [
+  "1 week",
+  "2 weeks",
+  "3 weeks",
+  "4 weeks",
+  "6 weeks",
+  "8 weeks",
+  "10 weeks",
+  "12 weeks",
+  "To be confirmed",
 ];
 const CUR = "£";
 
@@ -457,12 +470,18 @@ export function QuickQuote() {
               </div>
               <div className="space-y-1.5">
                 <Label>Lead Time</Label>
-                <Input
-                  value={leadTime}
-                  onChange={(e) => setLeadTime(e.target.value)}
-                  placeholder="e.g. 2 weeks"
-                  className="h-11"
-                />
+                <Select value={leadTime} onValueChange={setLeadTime}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Select lead time..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LEAD_TIMES.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

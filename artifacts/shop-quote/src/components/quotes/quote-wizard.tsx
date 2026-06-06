@@ -1992,7 +1992,7 @@ export function QuoteWizard({
                             {[
                               "Milling",
                               "Turning",
-                              "Mill-Turn",
+                              "Mill/Turn",
                               "Manual",
                               "Other",
                             ].map((v) => (
