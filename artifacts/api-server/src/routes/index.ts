@@ -9,6 +9,7 @@ import dashboardRouter from "./dashboard";
 import storageRouter from "./storage";
 import aiRouter from "./ai";
 import feedbackRouter from "./feedback";
+import featureRequestsRouter from "./feature-requests";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(settingsRouter);
 router.use(storageRouter);
 router.use(aiRouter);
 router.use(feedbackRouter);
+router.use(featureRequestsRouter);
 
 export default router;

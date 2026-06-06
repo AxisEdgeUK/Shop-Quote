@@ -10,6 +10,7 @@ import {
   BarChart3,
   X,
   MessageSquare,
+  Lightbulb,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FeedbackDialog } from "@/components/feedback-dialog";
@@ -205,15 +206,27 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             Beta v0.1
           </span>
         </div>
-        <button
-          type="button"
-          onClick={() => setFeedbackOpen(true)}
-          className="flex items-center gap-1.5 text-xs font-medium transition-opacity hover:opacity-80 w-full"
-          style={{ color: "hsl(220 5% 48%)" }}
-        >
-          <MessageSquare className="w-3.5 h-3.5" />
-          Send feedback
-        </button>
+        <div className="flex flex-col gap-1.5">
+          <button
+            type="button"
+            onClick={() => setFeedbackOpen(true)}
+            className="flex items-center gap-1.5 text-xs font-medium transition-opacity hover:opacity-80 w-full"
+            style={{ color: "hsl(220 5% 48%)" }}
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            Send feedback
+          </button>
+          <Link href="/ideas">
+            <button
+              type="button"
+              className="flex items-center gap-1.5 text-xs font-medium transition-opacity hover:opacity-80 w-full"
+              style={{ color: "hsl(220 5% 48%)" }}
+            >
+              <Lightbulb className="w-3.5 h-3.5" />
+              Share an idea
+            </button>
+          </Link>
+        </div>
       </div>
 
       <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />

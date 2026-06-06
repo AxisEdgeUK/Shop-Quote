@@ -43,6 +43,11 @@ export function CustomerView() {
     const wonValue = wonQ.reduce((s, q) => s + q.totalValue, 0);
     const closedCount = wonQ.length + lostQ.length;
     const winRate = closedCount > 0 ? (wonQ.length / closedCount) * 100 : 0;
+    const avgQuoteValue = quotes.length > 0 ? totalValue / quotes.length : 0;
+    const sortedByDate = [...quotes].sort(
+      (a, b) => new Date(b.quoteDate).getTime() - new Date(a.quoteDate).getTime(),
+    );
+    const lastQuote = sortedByDate[0] ?? null;
     return {
       totalQuotes: quotes.length,
       wonQuotes: wonQ.length,
@@ -50,6 +55,10 @@ export function CustomerView() {
       totalValue,
       wonValue,
       winRate,
+      avgQuoteValue,
+      lastQuoteDate: lastQuote?.quoteDate ?? null,
+      lastQuoteNumber: lastQuote?.quoteNumber ?? null,
+      lastQuoteStatus: lastQuote?.status ?? null,
     };
   }, [quotes]);
 
@@ -173,91 +182,61 @@ export function CustomerView() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div
-          className="rounded border p-3 flex flex-col gap-1"
-          style={{
-            background: "hsl(var(--card))",
-            borderColor: "hsl(var(--card-border))",
-          }}
-        >
-          <div
-            className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest"
-            style={{ color: "hsl(var(--muted-foreground))" }}
-          >
+        <div className="rounded border p-3 flex flex-col gap-1" style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--card-border))" }}>
+          <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest" style={{ color: "hsl(var(--muted-foreground))" }}>
             <FileText className="w-3.5 h-3.5" /> Total Quotes
           </div>
-          <div className="text-2xl font-bold tabular-nums">
-            {stats.totalQuotes}
-          </div>
-        </div>
-        <div
-          className="rounded border p-3 flex flex-col gap-1"
-          style={{
-            background: "hsl(var(--card))",
-            borderColor: "hsl(213 97% 58% / 0.4)",
-            boxShadow: "0 0 0 1px hsl(213 97% 58% / 0.15)",
-          }}
-        >
-          <div
-            className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest"
-            style={{ color: "hsl(var(--muted-foreground))" }}
-          >
-            <Trophy className="w-3.5 h-3.5" /> Won Value
-          </div>
-          <div
-            className="text-2xl font-bold tabular-nums"
-            style={{ color: "hsl(213 97% 58%)" }}
-          >
-            {cur}
-            {stats.wonValue.toLocaleString(undefined, {
-              maximumFractionDigits: 0,
-            })}
-          </div>
-        </div>
-        <div
-          className="rounded border p-3 flex flex-col gap-1"
-          style={{
-            background: "hsl(var(--card))",
-            borderColor: "hsl(var(--card-border))",
-          }}
-        >
-          <div
-            className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest"
-            style={{ color: "hsl(var(--muted-foreground))" }}
-          >
-            <TrendingUp className="w-3.5 h-3.5" /> Win Rate
-          </div>
-          <div className="text-2xl font-bold tabular-nums">
-            {stats.winRate.toFixed(0)}%
-          </div>
-          <div
-            className="text-xs"
-            style={{ color: "hsl(var(--muted-foreground))" }}
-          >
+          <div className="text-2xl font-bold tabular-nums">{stats.totalQuotes}</div>
+          <div className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
             {stats.wonQuotes}W · {stats.lostQuotes}L
           </div>
         </div>
-        <div
-          className="rounded border p-3 flex flex-col gap-1"
-          style={{
-            background: "hsl(var(--card))",
-            borderColor: "hsl(var(--card-border))",
-          }}
-        >
-          <div
-            className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest"
-            style={{ color: "hsl(var(--muted-foreground))" }}
-          >
+        <div className="rounded border p-3 flex flex-col gap-1" style={{ background: "hsl(var(--card))", borderColor: "hsl(213 97% 58% / 0.4)", boxShadow: "0 0 0 1px hsl(213 97% 58% / 0.15)" }}>
+          <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest" style={{ color: "hsl(var(--muted-foreground))" }}>
+            <Trophy className="w-3.5 h-3.5" /> Won Value
+          </div>
+          <div className="text-2xl font-bold tabular-nums" style={{ color: "hsl(213 97% 58%)" }}>
+            {cur}{stats.wonValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+          </div>
+          <div className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+            {stats.winRate.toFixed(0)}% win rate
+          </div>
+        </div>
+        <div className="rounded border p-3 flex flex-col gap-1" style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--card-border))" }}>
+          <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest" style={{ color: "hsl(var(--muted-foreground))" }}>
             Total Quoted
           </div>
           <div className="text-2xl font-bold tabular-nums">
-            {cur}
-            {stats.totalValue.toLocaleString(undefined, {
-              maximumFractionDigits: 0,
-            })}
+            {cur}{stats.totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+          </div>
+        </div>
+        <div className="rounded border p-3 flex flex-col gap-1" style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--card-border))" }}>
+          <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest" style={{ color: "hsl(var(--muted-foreground))" }}>
+            <TrendingUp className="w-3.5 h-3.5" /> Avg Quote
+          </div>
+          <div className="text-2xl font-bold tabular-nums">
+            {stats.totalQuotes > 0 ? `${cur}${stats.avgQuoteValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "—"}
           </div>
         </div>
       </div>
+      {stats.lastQuoteNumber && (
+        <div className="rounded border px-4 py-3 flex items-center justify-between gap-3 text-sm" style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--card-border))" }}>
+          <span style={{ color: "hsl(var(--muted-foreground))" }}>Last quote</span>
+          <div className="flex items-center gap-3">
+            <span className="font-mono font-semibold">{stats.lastQuoteNumber}</span>
+            {stats.lastQuoteDate && (
+              <span style={{ color: "hsl(var(--muted-foreground))" }}>
+                {format(new Date(stats.lastQuoteDate), "dd MMM yyyy")}
+              </span>
+            )}
+            {stats.lastQuoteStatus && (
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${STATUS_COLORS[stats.lastQuoteStatus] ?? STATUS_COLORS.Draft}`}>
+                {stats.lastQuoteStatus}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Quote history */}
       <div
@@ -286,11 +265,14 @@ export function CustomerView() {
               Quote History
             </span>
           </div>
-          <Link href={`/quotes/new`}>
-            <Button size="sm" variant="outline">
-              New Quote
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href={`/quotes/new`}>
+              <Button size="sm" variant="outline">Full Quote</Button>
+            </Link>
+            <Link href={`/quotes/quick`}>
+              <Button size="sm">Quick Quote</Button>
+            </Link>
+          </div>
         </div>
 
         {quotes.length === 0 ? (

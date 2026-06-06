@@ -27,6 +27,7 @@ import { EditQuote } from "@/pages/quotes/edit";
 import { ViewQuote } from "@/pages/quotes/view";
 import { QuickQuote } from "@/pages/quotes/quick";
 import { PresentQuote } from "@/pages/quotes/present";
+import { IdeasPage } from "@/pages/ideas";
 
 const queryClient = new QueryClient();
 
@@ -103,6 +104,9 @@ function Router() {
       </Route>
       <Route path="/quotes/:id">
         <AppRoute component={ViewQuote} />
+      </Route>
+      <Route path="/ideas">
+        <AppRoute component={IdeasPage} />
       </Route>
       <Route component={NotFound} />
     </Switch>

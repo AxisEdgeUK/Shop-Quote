@@ -716,39 +716,40 @@ export function LandingPage() {
           >
             Built for small machine shops. No per-user charges. No hidden fees.
           </p>
-          <div className="landing-pricing-grid">
-            <PricingCard
-              label="PAY MONTHLY FOUNDER"
-              price="£50"
-              period="per month for 12 months · then lifetime access"
-              contextNote="After 12 payments, the licence is owned. No further charges."
-              features={[
-                "Unlimited quotes",
-                "Unlimited customers",
-                "Unlimited machines",
-                "PDF exports",
-                "Email support",
-                "All future updates",
-              ]}
-              cta="Start Monthly"
-              href="/pricing"
-            />
-            <PricingCard
-              label="BETA FOUNDER LICENCE"
-              price="£499"
-              period="one-off payment · early-access pricing"
-              contextNote="This will not be the launch price. Founding members keep their terms permanently."
-              features={[
-                "Everything in Monthly",
-                "Pay once · never pay again",
-                "Priority support",
-                "All future updates included",
-                "Founder recognition",
-              ]}
-              cta="Buy Founder Access"
-              href="/pricing"
-              featured
-            />
+          <div
+            style={{
+              maxWidth: 560,
+              margin: "0 auto",
+              border: "1px solid #21262D",
+              padding: "48px 44px",
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.22em",
+                color: "#58A6FF",
+                textTransform: "uppercase",
+                marginBottom: 16,
+              }}
+            >
+              Beta Testing
+            </div>
+            <p
+              style={{
+                fontSize: "1rem",
+                color: "#C9D1D9",
+                lineHeight: 1.75,
+                marginBottom: 12,
+              }}
+            >
+              Pricing will be announced at general launch.
+            </p>
+            <p style={{ fontSize: "0.85rem", color: "#6b7280", lineHeight: 1.75 }}>
+              No hidden fees · No per-user charges · No ERP complexity.
+            </p>
           </div>
         </div>
       </section>

@@ -50,6 +50,7 @@ import {
   Zap,
   ScanLine,
   X,
+  ChevronDown,
 } from "lucide-react";
 import { Link } from "wouter";
 import { QUOTE_TEMPLATES, QuoteTemplate } from "./quote-templates";
@@ -999,6 +1000,7 @@ export function QuoteWizard({
   });
   const [activeLineItemIndex, setActiveLineItemIndex] = useState(0);
   const [customQtyInput, setCustomQtyInput] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Set defaults from settings once loaded
   useEffect(() => {
@@ -1372,32 +1374,34 @@ export function QuoteWizard({
                       )}
                     />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="quoteRevision"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Revision</FormLabel>
-                          <FormControl>
-                            <Input placeholder="A" {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="revisionNotes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Revision Notes</FormLabel>
-                          <FormControl>
-                            <Input placeholder="What changed?" {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  {showAdvanced && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="quoteRevision"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Revision</FormLabel>
+                            <FormControl>
+                              <Input placeholder="A" {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="revisionNotes"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Revision Notes</FormLabel>
+                            <FormControl>
+                              <Input placeholder="What changed?" {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -1573,37 +1577,53 @@ export function QuoteWizard({
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="internalNotes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Internal Notes{" "}
-                          <span className="text-muted-foreground text-xs font-normal">
-                            (not on PDF)
-                          </span>
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            rows={2}
-                            placeholder="Internal use only…"
-                            {...field}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                  {showAdvanced && (
+                    <FormField
+                      control={form.control}
+                      name="internalNotes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Internal Notes{" "}
+                            <span className="text-muted-foreground text-xs font-normal">
+                              (not on PDF)
+                            </span>
+                          </FormLabel>
+                          <FormControl>
+                            <Textarea
+                              rows={2}
+                              placeholder="Internal use only…"
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  )}
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Certification Requirements</CardTitle>
-                  <CardDescription>
-                    Which certificates are included with this quote?
-                  </CardDescription>
-                </CardHeader>
+              {/* Advanced Options toggle */}
+              <button
+                type="button"
+                onClick={() => setShowAdvanced((v) => !v)}
+                className="flex items-center gap-2 text-sm py-1 w-full transition-colors"
+                style={{ color: "hsl(var(--muted-foreground))" }}
+              >
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${showAdvanced ? "rotate-180" : ""}`}
+                />
+                {showAdvanced ? "Hide Advanced Options" : "Advanced Options"}
+              </button>
+
+              {showAdvanced && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Certification Requirements</CardTitle>
+                    <CardDescription>
+                      Which certificates are included with this quote?
+                    </CardDescription>
+                  </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
@@ -1643,6 +1663,7 @@ export function QuoteWizard({
                   </div>
                 </CardContent>
               </Card>
+              )}
 
               {/* Price break quantity selector */}
               <Card>
