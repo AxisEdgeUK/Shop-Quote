@@ -1,1 +1,2 @@
-- [Beta build decisions](beta-build.md) — pattern choices made for Beta v0.1 that future work should stay consistent with.
+- [API server zod subpath](api-server-zod.md) — esbuild can't resolve `zod/v4` subpath in the api-server bundle; use manual validation or import from `@workspace/api-zod`
+- [Drizzle query builder immutability](drizzle-query-builder.md) — `.where()` returns a new builder, never mutates; must be part of the chain, not conditionally applied after

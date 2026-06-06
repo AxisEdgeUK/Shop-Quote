@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db, customersTable } from "@workspace/db";
 import {
   CreateCustomerBody,
@@ -14,10 +14,21 @@ import {
 
 const router: IRouter = Router();
 
+function parseBulkIds(body: unknown): number[] | null {
+  if (!body || typeof body !== "object") return null;
+  const { ids } = body as Record<string, unknown>;
+  if (!Array.isArray(ids) || ids.length === 0) return null;
+  if (!ids.every((x) => typeof x === "number" && Number.isInteger(x) && x > 0))
+    return null;
+  return ids as number[];
+}
+
 router.get("/customers", async (req, res): Promise<void> => {
+  const showArchived = req.query.archived === "true";
   const customers = await db
     .select()
     .from(customersTable)
+    .where(showArchived ? undefined : eq(customersTable.active, true))
     .orderBy(customersTable.companyName);
   res.json(
     ListCustomersResponse.parse(
@@ -44,6 +55,7 @@ router.post("/customers", async (req, res): Promise<void> => {
       phone: parsed.data.phone ?? "",
       address: parsed.data.address ?? "",
       notes: parsed.data.notes ?? "",
+      active: true,
     })
     .returning();
   res.status(201).json(
@@ -52,6 +64,19 @@ router.post("/customers", async (req, res): Promise<void> => {
       createdAt: customer.createdAt.toISOString(),
     }),
   );
+});
+
+router.patch("/customers/bulk/archive", async (req, res): Promise<void> => {
+  const ids = parseBulkIds(req.body);
+  if (!ids) {
+    res.status(400).json({ error: "Invalid ids" });
+    return;
+  }
+  await db
+    .update(customersTable)
+    .set({ active: false })
+    .where(inArray(customersTable.id, ids));
+  res.json({ archived: ids.length });
 });
 
 router.get("/customers/:id", async (req, res): Promise<void> => {

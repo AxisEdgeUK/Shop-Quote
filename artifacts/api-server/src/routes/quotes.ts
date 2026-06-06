@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, inArray } from "drizzle-orm";
 import {
   db,
   quotesTable,
@@ -376,6 +376,44 @@ router.post("/quotes", async (req, res): Promise<void> => {
     .from(quoteLineItemsTable)
     .where(eq(quoteLineItemsTable.quoteId, quote.id));
   res.status(201).json(GetQuoteResponse.parse(parseQuote(quote, items)));
+});
+
+const VALID_STATUSES = ["Draft", "Sent", "Won", "Lost", "Expired"] as const;
+
+function parseBulkIds(body: unknown): number[] | null {
+  if (!body || typeof body !== "object") return null;
+  const { ids } = body as Record<string, unknown>;
+  if (!Array.isArray(ids) || ids.length === 0) return null;
+  if (!ids.every((x) => typeof x === "number" && Number.isInteger(x) && x > 0))
+    return null;
+  return ids as number[];
+}
+
+router.delete("/quotes/bulk", async (req, res): Promise<void> => {
+  const ids = parseBulkIds(req.body);
+  if (!ids) {
+    res.status(400).json({ error: "Invalid ids" });
+    return;
+  }
+  await db
+    .delete(quoteLineItemsTable)
+    .where(inArray(quoteLineItemsTable.quoteId, ids));
+  await db.delete(quotesTable).where(inArray(quotesTable.id, ids));
+  res.json({ deleted: ids.length });
+});
+
+router.patch("/quotes/bulk/status", async (req, res): Promise<void> => {
+  const ids = parseBulkIds(req.body);
+  const { status } = (req.body ?? {}) as { status?: string };
+  if (!ids || !status || !VALID_STATUSES.includes(status as typeof VALID_STATUSES[number])) {
+    res.status(400).json({ error: "Invalid ids or status" });
+    return;
+  }
+  await db
+    .update(quotesTable)
+    .set({ status: status as typeof VALID_STATUSES[number] })
+    .where(inArray(quotesTable.id, ids));
+  res.json({ updated: ids.length });
 });
 
 router.get("/quotes/:id", async (req, res): Promise<void> => {

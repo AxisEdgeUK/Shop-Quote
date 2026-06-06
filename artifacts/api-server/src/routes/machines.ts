@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db, machinesTable } from "@workspace/db";
 import {
   CreateMachineBody,
@@ -13,6 +13,15 @@ import {
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+
+function parseBulkIds(body: unknown): number[] | null {
+  if (!body || typeof body !== "object") return null;
+  const { ids } = body as Record<string, unknown>;
+  if (!Array.isArray(ids) || ids.length === 0) return null;
+  if (!ids.every((x) => typeof x === "number" && Number.isInteger(x) && x > 0))
+    return null;
+  return ids as number[];
+}
 
 router.get("/machines", async (req, res): Promise<void> => {
   const machines = await db
@@ -57,6 +66,19 @@ router.post("/machines", async (req, res): Promise<void> => {
       createdAt: machine.createdAt.toISOString(),
     }),
   );
+});
+
+router.patch("/machines/bulk/deactivate", async (req, res): Promise<void> => {
+  const ids = parseBulkIds(req.body);
+  if (!ids) {
+    res.status(400).json({ error: "Invalid ids" });
+    return;
+  }
+  await db
+    .update(machinesTable)
+    .set({ active: false })
+    .where(inArray(machinesTable.id, ids));
+  res.json({ deactivated: ids.length });
 });
 
 router.get("/machines/:id", async (req, res): Promise<void> => {

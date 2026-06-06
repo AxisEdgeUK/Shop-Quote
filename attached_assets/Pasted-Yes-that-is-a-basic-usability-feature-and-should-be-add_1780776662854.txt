@@ -1,0 +1,120 @@
+Yes, that is a basic usability feature and should be added before testing.
+
+Paste this into Replit:
+
+```text
+Add bulk select and bulk delete across SHOP Quote.
+
+Purpose:
+Users should not have to delete records one by one.
+
+Add bulk selection and bulk actions to these pages:
+- Quotes
+- Customers
+- Machines
+- Materials
+
+Requirements:
+
+1. Add checkbox selection
+
+Each row/card should have a checkbox.
+
+Also add:
+Select All
+
+2. Add bulk action bar
+
+When one or more items are selected, show a bulk action bar.
+
+Example:
+3 selected
+
+Actions:
+- Delete Selected
+- Clear Selection
+
+For Quotes also include:
+- Mark as Sent
+- Mark as Won
+- Mark as Lost
+
+3. Confirmation modal
+
+Before deleting, show confirmation:
+
+“Delete selected items?”
+
+Show count:
+“You are about to delete 7 records.”
+
+Buttons:
+- Cancel
+- Delete
+
+Make Delete a clearly destructive action.
+
+4. Safety rules
+
+For Quotes:
+If quote status is Won or Sent, warn:
+“Some selected quotes have already been sent or won.”
+
+Allow delete only after confirmation.
+
+For Customers:
+If customer has quotes attached, warn:
+“This customer has quotes linked to it.”
+
+Prefer soft delete or archive if possible.
+
+For Machines:
+If machine has been used in quotes, warn:
+“This machine has been used in previous quotes.”
+
+Prefer soft delete or inactive status rather than hard delete.
+
+For Materials:
+If material has been used in quotes, warn:
+“This material has been used in previous quotes.”
+
+Prefer soft delete or inactive status rather than hard delete.
+
+5. Soft delete preference
+
+Where possible, use soft delete/archive instead of permanent delete.
+
+Add:
+- Archived status
+- Hide archived by default
+- Show archived toggle
+
+This prevents losing quote history.
+
+6. Mobile behaviour
+
+On iPhone:
+- use long press or checkbox mode
+- bulk action bar should appear sticky at bottom
+- buttons must be large and easy to tap
+
+7. Design
+
+Keep it clean and premium.
+
+Avoid cluttering the tables.
+
+Only show bulk action bar when items are selected.
+
+8. Final checks
+
+Confirm bulk delete works for:
+- Quotes
+- Customers
+- Machines
+- Materials
+
+Confirm linked records are protected with warnings.
+```
+
+Important: for customers, machines and materials, I’d strongly prefer **archive/inactive** over permanent delete. You do not want users accidentally destroying quote history.

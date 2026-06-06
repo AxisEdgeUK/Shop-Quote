@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, inArray } from "drizzle-orm";
 import { db, materialsTable } from "@workspace/db";
 import {
   CreateMaterialBody,
@@ -13,6 +13,15 @@ import {
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+
+function parseBulkIds(body: unknown): number[] | null {
+  if (!body || typeof body !== "object") return null;
+  const { ids } = body as Record<string, unknown>;
+  if (!Array.isArray(ids) || ids.length === 0) return null;
+  if (!ids.every((x) => typeof x === "number" && Number.isInteger(x) && x > 0))
+    return null;
+  return ids as number[];
+}
 
 function parseMaterial(m: typeof materialsTable.$inferSelect) {
   return {
@@ -53,6 +62,22 @@ router.post("/materials", async (req, res): Promise<void> => {
     .returning();
   res.status(201).json(GetMaterialResponse.parse(parseMaterial(material)));
 });
+
+router.patch(
+  "/materials/bulk/deactivate",
+  async (req, res): Promise<void> => {
+    const ids = parseBulkIds(req.body);
+    if (!ids) {
+      res.status(400).json({ error: "Invalid ids" });
+      return;
+    }
+    await db
+      .update(materialsTable)
+      .set({ active: false })
+      .where(inArray(materialsTable.id, ids));
+    res.json({ deactivated: ids.length });
+  },
+);
 
 router.get("/materials/:id", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
