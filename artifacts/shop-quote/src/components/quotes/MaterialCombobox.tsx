@@ -103,9 +103,6 @@ export function MaterialCombobox({
                           </div>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             {m.supplier && <span>{m.supplier}</span>}
-                            {m.defaultStockAllowance > 0 && (
-                              <span>{m.defaultStockAllowance}% stock allowance</span>
-                            )}
                           </div>
                         </div>
                       </CommandItem>
