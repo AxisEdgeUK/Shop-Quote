@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import {
   useListCustomers,
   useListMachines,
+  useListMaterials,
   useGetSettings,
   useCreateQuote,
   getListQuotesQueryKey,
@@ -93,12 +94,14 @@ export function QuickQuote() {
 
   const { data: customers, isLoading: customersLoading } = useListCustomers();
   const { data: machines, isLoading: machinesLoading } = useListMachines();
+  const { data: materials, isLoading: materialsLoading } = useListMaterials();
   const { data: settings, isLoading: settingsLoading } = useGetSettings();
 
   const [customerId, setCustomerId] = useState(0);
   const [partName, setPartName] = useState("");
   const [qty, setQty] = useState(1);
   const [material, setMaterial] = useState("");
+  const [materialSelectValue, setMaterialSelectValue] = useState("");
   const [processType, setProcessType] = useState("Milling");
   const [machineId, setMachineId] = useState<number | null>(null);
   const [setupHours, setSetupHours] = useState(0);
@@ -112,13 +115,31 @@ export function QuickQuote() {
   const [includeDeliveryInTotal, setIncludeDeliveryInTotal] = useState(true);
   const [defaultsLoaded, setDefaultsLoaded] = useState(false);
 
+  const activeMaterials = useMemo(
+    () => (materials || []).filter((m) => m.active),
+    [materials],
+  );
+
+  const matLabel = (m: { material: string; grade: string }) =>
+    [m.material, m.grade].filter(Boolean).join(" ").trim();
+
   useEffect(() => {
-    if (settingsLoading || machinesLoading || defaultsLoaded) return;
+    if (settingsLoading || machinesLoading || materialsLoading || defaultsLoaded) return;
     const d = loadDefaults();
     if (d.lastMachineId && machines?.find((m) => m.id === d.lastMachineId)) {
       setMachineId(d.lastMachineId);
     }
-    if (d.lastMaterial) setMaterial(d.lastMaterial);
+    if (d.lastMaterial) {
+      const matchedLib = activeMaterials.find(
+        (m) => matLabel(m) === d.lastMaterial,
+      );
+      if (matchedLib) {
+        setMaterialSelectValue(String(matchedLib.id));
+      } else {
+        setMaterialSelectValue("__other__");
+      }
+      setMaterial(d.lastMaterial);
+    }
     if (d.defaultMargin != null) {
       setMargin(d.defaultMargin);
     } else if (settings?.defaultMarginPercentage) {
@@ -133,7 +154,9 @@ export function QuickQuote() {
   }, [
     settingsLoading,
     machinesLoading,
+    materialsLoading,
     machines,
+    activeMaterials,
     settings,
     defaultsLoaded,
     loadDefaults,
@@ -266,7 +289,7 @@ export function QuickQuote() {
       setLocation(`/quotes/${id}/edit`);
     });
 
-  const isLoading = customersLoading || machinesLoading || settingsLoading;
+  const isLoading = customersLoading || machinesLoading || materialsLoading || settingsLoading;
 
   if (isLoading) {
     return (
@@ -354,12 +377,48 @@ export function QuickQuote() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Material</Label>
-                <Input
-                  value={material}
-                  onChange={(e) => setMaterial(e.target.value)}
-                  placeholder="e.g. Aluminium 6082"
-                  className="h-11"
-                />
+                <Select
+                  value={materialSelectValue}
+                  onValueChange={(v) => {
+                    setMaterialSelectValue(v);
+                    if (v !== "__other__") {
+                      const found = activeMaterials.find(
+                        (m) => String(m.id) === v,
+                      );
+                      setMaterial(found ? matLabel(found) : "");
+                    } else {
+                      setMaterial("");
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Select material..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeMaterials.map((m) => (
+                      <SelectItem key={m.id} value={String(m.id)}>
+                        {matLabel(m)}
+                      </SelectItem>
+                    ))}
+                    {activeMaterials.length > 0 && (
+                      <SelectItem value="__other__">Other / custom…</SelectItem>
+                    )}
+                    {activeMaterials.length === 0 && (
+                      <SelectItem value="__other__">
+                        No library entries — type custom
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+                {materialSelectValue === "__other__" && (
+                  <Input
+                    value={material}
+                    onChange={(e) => setMaterial(e.target.value)}
+                    placeholder="e.g. Aluminium 6082"
+                    className="h-11 mt-2"
+                    autoFocus
+                  />
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label>Process</Label>
