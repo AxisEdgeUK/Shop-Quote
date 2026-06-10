@@ -161,11 +161,9 @@ const LEAD_TIME_PRESETS = [
 const DELIVERY_TERM_PRESETS = ["Ex Works", "Delivered", "Collection"];
 
 const STEPS = [
-  "Quote Info",
-  "Part Details",
-  "Assumptions",
-  "Review",
-  "Complete",
+  "Customer & Part",
+  "Cost Build-Up",
+  "Review & Output",
 ];
 
 /* ── Health indicator ────────────────────────────────────────── */
@@ -1090,18 +1088,15 @@ export function QuoteWizard({
   const handleNext = async () => {
     let isValid = false;
     if (currentStep === 0) {
-      isValid = await form.trigger(["customerId"]);
-    } else if (currentStep === 1) {
       isValid = await form.trigger([
+        "customerId",
         `lineItems.${activeLineItemIndex}.partName`,
         `lineItems.${activeLineItemIndex}.quantity`,
-        `lineItems.${activeLineItemIndex}.material`,
-        `lineItems.${activeLineItemIndex}.processType`,
       ]);
-    } else if (currentStep === 2) {
+    } else if (currentStep === 1) {
       isValid = await form.trigger();
     }
-    if (isValid || currentStep > 2) {
+    if (isValid || currentStep > 1) {
       setCurrentStep((p) => Math.min(p + 1, STEPS.length - 1));
     }
   };
@@ -1109,7 +1104,7 @@ export function QuoteWizard({
   const handlePrev = () => setCurrentStep((p) => Math.max(p - 1, 0));
   const handleFinalSubmit = (data: QuoteFormValues) => {
     onSubmit(data);
-    setCurrentStep(4);
+    setCurrentStep(3);
   };
 
   if (isLoadingCustomers || isLoadingMachines || isLoadingSettings) {
@@ -1274,7 +1269,7 @@ export function QuoteWizard({
                 <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-2.5">
                   <Check className="w-4 h-4 shrink-0" />
                   Template defaults applied. You can still edit everything in
-                  step 3.
+                  step 2.
                   <button
                     type="button"
                     className="ml-auto text-xs underline"
@@ -1972,8 +1967,8 @@ export function QuoteWizard({
             </div>
           )}
 
-          {/* ── STEP 2: PART DETAILS ────────────────────────────────── */}
-          {currentStep === 1 && (
+          {/* ── STEP 2: PART DETAILS (shown in step 0) ──────────────── */}
+          {currentStep === 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>Part Details</CardTitle>
@@ -2334,8 +2329,8 @@ export function QuoteWizard({
             </Card>
           )}
 
-          {/* ── STEP 3: ASSUMPTIONS ─────────────────────────────────── */}
-          {currentStep === 2 && (
+          {/* ── STEP 2: COST BUILD-UP ────────────────────────────────── */}
+          {currentStep === 1 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span
@@ -2374,6 +2369,40 @@ export function QuoteWizard({
 
               <PartTabs />
 
+              {/* Live cost summary */}
+              {fields.map((f, idx) => {
+                if (idx !== activeLineItemIndex) return null;
+                const liveC = calculateCosts(form.watch(`lineItems.${idx}`));
+                return (
+                  <div
+                    key={f.id}
+                    className="flex items-center justify-between rounded border px-4 py-2.5 text-sm"
+                    style={{
+                      background: "hsl(var(--muted))",
+                      borderColor: "hsl(var(--border))",
+                    }}
+                  >
+                    <span className="text-muted-foreground font-medium">
+                      Live sell price
+                    </span>
+                    <div className="text-right">
+                      <span
+                        className="text-lg font-bold"
+                        style={{ color: "hsl(213 97% 58%)" }}
+                      >
+                        {cur}
+                        {liveC.sellPrice.toFixed(2)}
+                      </span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        {cur}
+                        {liveC.pricePerPart.toFixed(2)} each ×{" "}
+                        {form.watch(`lineItems.${idx}.quantity`) || 1}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+
               {/* Hidden cost prompts */}
               {quoteMode === "advanced" && (
                 <CostCheckPanel
@@ -2383,7 +2412,7 @@ export function QuoteWizard({
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Machining Assumptions</CardTitle>
+                  <CardTitle>Cost Build-Up</CardTitle>
                   <CardDescription>
                     Time and effort estimates (adjust from template if needed)
                   </CardDescription>
@@ -2686,8 +2715,8 @@ export function QuoteWizard({
             </div>
           )}
 
-          {/* ── STEP 4: REVIEW ──────────────────────────────────────── */}
-          {currentStep === 3 && (
+          {/* ── STEP 3: REVIEW & OUTPUT ─────────────────────────────── */}
+          {currentStep === 2 && (
             <div className="space-y-4">
               <PartTabs />
 
@@ -2915,8 +2944,8 @@ export function QuoteWizard({
             </div>
           )}
 
-          {/* ── STEP 5: COMPLETE ────────────────────────────────────── */}
-          {currentStep === 4 &&
+          {/* ── STEP 4: COMPLETE ────────────────────────────────────── */}
+          {currentStep === 3 &&
             (() => {
               const customerId = form.getValues("customerId");
               const completedCustomer = customers?.find(
@@ -3058,7 +3087,7 @@ export function QuoteWizard({
             })()}
 
           {/* Navigation */}
-          {currentStep < 4 && (
+          {currentStep < 3 && (
             <div
               className="flex justify-between sticky bottom-0 py-3 mt-4 -mx-6 px-6 xl:-mx-8 xl:px-8"
               style={{
@@ -3074,7 +3103,7 @@ export function QuoteWizard({
               >
                 <ArrowLeft className="w-4 h-4 mr-2" /> Back
               </Button>
-              {currentStep < 3 ? (
+              {currentStep < 2 ? (
                 <Button type="button" onClick={handleNext}>
                   Next <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard,
@@ -9,13 +8,11 @@ import {
   Settings as SettingsIcon,
   BarChart3,
   X,
-  MessageSquare,
   Lightbulb,
   PlusCircle,
   Package,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { FeedbackDialog } from "@/components/feedback-dialog";
 
 const navGroups = [
   {
@@ -111,7 +108,6 @@ export { ShopQuoteLogo };
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {
   const [location] = useLocation();
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   return (
     <div
@@ -227,15 +223,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           </span>
         </div>
         <div className="flex flex-col gap-1.5">
-          <button
-            type="button"
-            onClick={() => setFeedbackOpen(true)}
-            className="flex items-center gap-1.5 text-xs font-medium transition-opacity hover:opacity-80 w-full"
-            style={{ color: "hsl(220 5% 48%)" }}
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-            Send feedback
-          </button>
           <Link href="/ideas">
             <button
               type="button"
@@ -248,8 +235,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           </Link>
         </div>
       </div>
-
-      <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </div>
   );
 }

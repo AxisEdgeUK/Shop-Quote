@@ -24,21 +24,31 @@ function KpiCard({
   value,
   sub,
   accent,
+  amber,
 }: {
   label: string;
   value: string | number;
   sub?: string;
   accent?: boolean;
+  amber?: boolean;
 }) {
   return (
     <div
       className="rounded border p-4 flex flex-col gap-1.5"
       style={{
-        background: "hsl(var(--card))",
-        borderColor: accent
-          ? "hsl(213 97% 58% / 0.4)"
-          : "hsl(var(--card-border))",
-        boxShadow: accent ? "0 0 0 1px hsl(213 97% 58% / 0.15)" : undefined,
+        background: amber
+          ? "hsl(38 92% 50% / 0.06)"
+          : "hsl(var(--card))",
+        borderColor: amber
+          ? "hsl(38 92% 50% / 0.45)"
+          : accent
+            ? "hsl(213 97% 58% / 0.4)"
+            : "hsl(var(--card-border))",
+        boxShadow: amber
+          ? "0 0 0 1px hsl(38 92% 50% / 0.12)"
+          : accent
+            ? "0 0 0 1px hsl(213 97% 58% / 0.15)"
+            : undefined,
       }}
     >
       <div
@@ -49,7 +59,13 @@ function KpiCard({
       </div>
       <div
         className="text-2xl md:text-3xl font-bold tracking-tight tabular-nums"
-        style={accent ? { color: "hsl(213 97% 58%)" } : undefined}
+        style={
+          amber
+            ? { color: "hsl(38 92% 42%)" }
+            : accent
+              ? { color: "hsl(213 97% 58%)" }
+              : undefined
+        }
       >
         {value}
       </div>
@@ -137,15 +153,20 @@ export function DashboardPage() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <KpiCard
+          label="Follow-up Needed"
+          value={stats.followUpNeeded}
+          sub="Sent, awaiting response"
+          amber={stats.followUpNeeded > 0}
+        />
+        <KpiCard
+          label="Total Quoted"
+          value={`${cur}${stats.totalQuotedValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          sub={`${stats.totalQuotes} quotes total`}
+        />
+        <KpiCard
           label="Open Quotes"
           value={stats.draftQuotes + stats.sentQuotes}
           sub={`${stats.draftQuotes} draft · ${stats.sentQuotes} sent`}
-        />
-        <KpiCard
-          label="Won This Month"
-          value={`${cur}${stats.wonValueThisMonth.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
-          sub={`${stats.wonThisMonth} order${stats.wonThisMonth === 1 ? "" : "s"} · avg ${cur}${Math.round(stats.avgWonValue).toLocaleString()}`}
-          accent
         />
         <KpiCard
           label="Win Rate"
@@ -153,14 +174,10 @@ export function DashboardPage() {
           sub={`${stats.wonQuotes} won · ${stats.lostQuotes} lost`}
         />
         <KpiCard
-          label="Follow-up Needed"
-          value={stats.followUpNeeded}
-          sub="Sent, awaiting response"
-        />
-        <KpiCard
-          label="Total Quoted"
-          value={`${cur}${stats.totalQuotedValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
-          sub={`${stats.totalQuotes} quotes total`}
+          label="Won This Month"
+          value={`${cur}${stats.wonValueThisMonth.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          sub={`${stats.wonThisMonth} order${stats.wonThisMonth === 1 ? "" : "s"} · avg ${cur}${Math.round(stats.avgWonValue).toLocaleString()}`}
+          accent
         />
       </div>
 

@@ -596,6 +596,77 @@ router.post("/quotes/:id/duplicate", async (req, res): Promise<void> => {
   res.status(201).json(GetQuoteResponse.parse(parseQuote(newQuote, items)));
 });
 
+// Clone: same as duplicate but appends " (Copy)" to the first part name.
+// Drawing files are not copied — clone starts with no drawings attached.
+router.post("/quotes/:id/clone", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const params = DuplicateQuoteParams.safeParse({ id: parseInt(raw, 10) });
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const [original] = await db
+    .select()
+    .from(quotesTable)
+    .where(eq(quotesTable.id, params.data.id));
+  if (!original) {
+    res.status(404).json({ error: "Quote not found" });
+    return;
+  }
+  const originalItems = await db
+    .select()
+    .from(quoteLineItemsTable)
+    .where(eq(quoteLineItemsTable.quoteId, original.id));
+
+  const quoteNumber = await generateQuoteNumber();
+  const today = new Date().toISOString().split("T")[0];
+  const [newQuote] = await db
+    .insert(quotesTable)
+    .values({
+      quoteNumber,
+      customerId: original.customerId,
+      status: "Draft",
+      lostReason: "",
+      quoteDate: today,
+      validUntil: original.validUntil,
+      quoteRevision: "A",
+      revisionNotes: "",
+      leadTime: original.leadTime,
+      deliveryTerms: original.deliveryTerms,
+      notes: original.notes,
+      internalNotes: original.internalNotes,
+      paymentTerms: original.paymentTerms,
+      termsAndConditions: original.termsAndConditions,
+      materialCertIncluded: original.materialCertIncluded,
+      inspectionReportIncluded: original.inspectionReportIncluded,
+      fairIncluded: original.fairIncluded,
+      cmmReportIncluded: original.cmmReportIncluded,
+      priceBreakQtys: original.priceBreakQtys,
+      deliveryMethod: original.deliveryMethod,
+      deliveryCost: original.deliveryCost,
+      includeDeliveryInTotal: original.includeDeliveryInTotal,
+    })
+    .returning();
+
+  for (let i = 0; i < originalItems.length; i++) {
+    const { id, quoteId, createdAt, ...rest } = originalItems[i];
+    await db.insert(quoteLineItemsTable).values({
+      ...rest,
+      quoteId: newQuote.id,
+      partName:
+        i === 0 && rest.partName ? `${rest.partName} (Copy)` : rest.partName,
+    });
+  }
+
+  const clonedItems = await db
+    .select()
+    .from(quoteLineItemsTable)
+    .where(eq(quoteLineItemsTable.quoteId, newQuote.id));
+  res
+    .status(201)
+    .json(GetQuoteResponse.parse(parseQuote(newQuote, clonedItems)));
+});
+
 router.get("/quotes/:id/drawings", async (req, res): Promise<void> => {
   const id = parseInt(
     Array.isArray(req.params.id) ? req.params.id[0] : req.params.id,

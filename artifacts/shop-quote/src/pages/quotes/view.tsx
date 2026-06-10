@@ -8,7 +8,7 @@ import {
   getGetCustomerQueryKey,
   getListQuotesQueryKey,
 } from "@workspace/api-client-react";
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -18,6 +18,7 @@ import {
   Lock,
   Eye,
   CopyPlus,
+  Copy,
   Trophy,
   ChevronDown,
   MoreHorizontal,
@@ -73,6 +74,7 @@ export function ViewQuote() {
   const id = Number(params.id);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
 
   const { data: quote, isLoading: isLoadingQuote } = useGetQuote(id, {
     query: { enabled: !!id, queryKey: getGetQuoteQueryKey(id) },
@@ -200,6 +202,17 @@ export function ViewQuote() {
     );
   };
 
+  const handleClone = async () => {
+    try {
+      const res = await fetch(`/api/quotes/${id}/clone`, { method: "POST" });
+      if (!res.ok) throw new Error();
+      const newQuote = await res.json();
+      navigate(`/quotes/${newQuote.id}/edit`);
+    } catch {
+      toast({ title: "Failed to clone quote", variant: "destructive" });
+    }
+  };
+
   const handleMarkSent = () => {
     if (!quote) return;
     updateQuote.mutate(
@@ -285,6 +298,12 @@ export function ViewQuote() {
                 >
                   <CopyPlus className="w-3.5 h-3.5" /> Quote Similar
                 </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleClone}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5" /> Clone & Edit
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground">

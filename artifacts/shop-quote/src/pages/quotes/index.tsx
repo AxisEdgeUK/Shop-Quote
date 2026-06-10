@@ -2,10 +2,9 @@ import { useState } from "react";
 import {
   useListQuotes,
   useDeleteQuote,
-  useDuplicateQuote,
   getListQuotesQueryKey,
 } from "@workspace/api-client-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -61,9 +60,9 @@ const STATUS_COLORS: Record<string, { dot: string; text: string; bg: string }> =
 export function QuotesList() {
   const { data: quotes, isLoading } = useListQuotes();
   const deleteQuote = useDeleteQuote();
-  const duplicateQuote = useDuplicateQuote();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
 
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -151,19 +150,16 @@ export function QuotesList() {
     );
   };
 
-  const handleDuplicate = (id: number) => {
-    duplicateQuote.mutate(
-      { id },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListQuotesQueryKey() });
-          toast({ title: "Quote duplicated" });
-        },
-        onError: () => {
-          toast({ title: "Failed to duplicate quote", variant: "destructive" });
-        },
-      },
-    );
+  const handleClone = async (id: number) => {
+    try {
+      const res = await fetch(`/api/quotes/${id}/clone`, { method: "POST" });
+      if (!res.ok) throw new Error();
+      const newQuote = await res.json();
+      queryClient.invalidateQueries({ queryKey: getListQuotesQueryKey() });
+      navigate(`/quotes/${newQuote.id}/edit`);
+    } catch {
+      toast({ title: "Failed to clone quote", variant: "destructive" });
+    }
   };
 
   const statusChip = (status: string) => {
@@ -321,10 +317,10 @@ export function QuotesList() {
                     variant="ghost"
                     size="sm"
                     className="h-10 px-3 text-xs gap-1.5"
-                    onClick={() => handleDuplicate(quote.id)}
-                    data-testid={`button-duplicate-quote-${quote.id}`}
+                    onClick={() => handleClone(quote.id)}
+                    data-testid={`button-clone-quote-${quote.id}`}
                   >
-                    <Copy className="w-3.5 h-3.5" /> Copy
+                    <Copy className="w-3.5 h-3.5" /> Clone
                   </Button>
                   {deleteDialog(quote.id, quote.quoteNumber)}
                 </div>
@@ -440,9 +436,9 @@ export function QuotesList() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          title="Duplicate"
-                          onClick={() => handleDuplicate(quote.id)}
-                          data-testid={`button-duplicate-quote-${quote.id}`}
+                          title="Clone"
+                          onClick={() => handleClone(quote.id)}
+                          data-testid={`button-clone-quote-${quote.id}`}
                         >
                           <Copy className="w-4 h-4" />
                         </Button>

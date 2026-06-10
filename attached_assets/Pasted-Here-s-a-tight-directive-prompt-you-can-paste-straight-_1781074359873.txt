@@ -1,0 +1,95 @@
+Here's a tight, directive prompt you can paste straight into Replit Agent:
+
+---
+
+```
+Review the current codebase and implement the following changes. Work through them in order. Do not add any new features — this is a refinement pass only.
+
+---
+
+## 1. FLATTEN THE QUOTE WIZARD: 5 steps → 3 steps
+
+Current steps: Customer → Part Details → Assumptions → Review → Complete
+
+New steps:
+- Step 1: Customer + Part Name (customer selector/quick-add, part name, quantity, drawing upload if available)
+- Step 2: Cost (machine selector, setup time, run time per part, material freetext, extras — all on one screen with a live running cost total visible at all times)
+- Step 3: Review + Output (margin/markup, lead time, notes, quote validity — then generate PDF)
+
+Rules:
+- The live cost total (sell price) must be visible and updating in real time throughout Step 2 as the user changes any value
+- Do NOT rename or restructure the database schema — only change the UI wizard steps
+- Rename the "Assumptions" label everywhere it appears in the UI to "Cost Build-Up"
+- The step indicator at the top should show 3 steps, not 5
+
+---
+
+## 2. REMOVE THE PRINT SAFETY CHECKLIST
+
+Currently, before window.print() is called, a dialog forces the user to tick 5 checkboxes.
+
+Remove this dialog entirely. Make the PDF/print action immediate — one click, no gate.
+
+---
+
+## 3. ADD "CLONE THIS QUOTE" 
+
+On the quote detail page and the quotes list (action menu), add a "Clone" option.
+
+Behaviour:
+- Copies all fields from the source quote into a new quote in Draft status
+- Appends " (Copy)" to the part name
+- Sets a new quote reference number
+- Opens the cloned quote in the wizard at Step 1 so the user can review/edit before saving
+- Does NOT copy the drawing file — leave drawing empty on the clone
+
+---
+
+## 4. REMOVE DEMO RESET FROM SETTINGS PAGE
+
+The "Reset demo data" button at the bottom of the Settings page — remove it from the UI entirely.
+
+Keep the backend route /api/settings/demo-reset in place (do not delete it), but it must no longer be accessible from the UI. Add a comment in the route file: // Beta-only: UI entry point removed for production
+
+---
+
+## 5. REMOVE THE FEEDBACK FORM FROM THE SIDEBAR
+
+Remove the "Send feedback" button and the feedback form from the sidebar footer.
+
+Keep the /api/feedback routes and the feedback DB table — do not delete them. Just remove the UI entry point.
+
+The sidebar footer should show only the version label (Beta v0.1).
+
+---
+
+## 6. PROMOTE "FOLLOW-UP NEEDED" ON THE DASHBOARD
+
+Currently the dashboard shows 4 stats in this order:
+Total Quotes / Win Rate / Total Quoted Value / Follow-up Needed
+
+Reorder to:
+Follow-up Needed / Total Quoted Value / Total Quotes / Win Rate
+
+Make the "Follow-up Needed" stat card visually distinct — use an amber/warning colour on the card or badge when the count is > 0, neutral when 0.
+
+---
+
+## RULES FOR THIS TASK
+
+- Do not add any new dependencies
+- Do not change the database schema or run any migrations
+- Do not modify the OpenAPI spec or run codegen unless a route change strictly requires it
+- After each numbered change above, confirm what was changed in a brief summary
+- If any change would require a schema migration or codegen run, flag it and stop — do not proceed with that change
+```
+
+---
+
+A few notes on using this:
+
+**Paste it as a single message.** Don't break it into separate Replit Agent sessions or it will lose context between changes.
+
+**Watch change 3 (Clone) most carefully.** That's the most complex — it touches the API, the route handler, the list UI, and the wizard. If Replit Agent starts suggesting schema changes to support it, stop it and tell it the clone must work by reading the existing quote fields and posting a new quote via the existing create endpoint only.
+
+**The codegen rule is important.** If Agent touches `openapi.yaml` it will then want to run codegen, which can cascade. The clone endpoint may need a new route — if so, instruct it to add the route directly in the Express handler and note it as an exception in the API spec comment, matching the pattern already used for the feedback submission.

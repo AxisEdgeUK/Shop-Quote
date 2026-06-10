@@ -101,6 +101,7 @@ router.patch("/settings", async (req, res): Promise<void> => {
   res.json(UpdateSettingsResponse.parse(parseSettings(settings)));
 });
 
+// Beta-only: UI entry point removed for production
 router.post("/settings/demo-reset", async (req, res): Promise<void> => {
   try {
     await db.delete(quoteDrawingsTable);
