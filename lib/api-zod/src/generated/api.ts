@@ -33,6 +33,7 @@ export const GetDashboardStatsResponse = zod.object({
   wonValueThisMonth: zod.number(),
   lostValueThisMonth: zod.number(),
   avgWonValue: zod.number(),
+  avgTurnaroundDays: zod.number(),
 });
 
 /**
@@ -47,6 +48,13 @@ export const ListCustomersResponseItem = zod.object({
   address: zod.string(),
   notes: zod.string(),
   createdAt: zod.string(),
+  materialCertRequired: zod.boolean(),
+  inspectionReportRequired: zod.boolean(),
+  fairRequired: zod.boolean(),
+  cocRequired: zod.boolean(),
+  specialPackagingRequired: zod.boolean(),
+  defaultPaymentTerms: zod.string(),
+  typicalMarginPct: zod.number().nullish(),
 });
 export const ListCustomersResponse = zod.array(ListCustomersResponseItem);
 
@@ -60,6 +68,13 @@ export const CreateCustomerBody = zod.object({
   phone: zod.string().optional(),
   address: zod.string().optional(),
   notes: zod.string().optional(),
+  materialCertRequired: zod.boolean().optional(),
+  inspectionReportRequired: zod.boolean().optional(),
+  fairRequired: zod.boolean().optional(),
+  cocRequired: zod.boolean().optional(),
+  specialPackagingRequired: zod.boolean().optional(),
+  defaultPaymentTerms: zod.string().optional(),
+  typicalMarginPct: zod.number().nullish(),
 });
 
 /**
@@ -78,6 +93,13 @@ export const GetCustomerResponse = zod.object({
   address: zod.string(),
   notes: zod.string(),
   createdAt: zod.string(),
+  materialCertRequired: zod.boolean(),
+  inspectionReportRequired: zod.boolean(),
+  fairRequired: zod.boolean(),
+  cocRequired: zod.boolean(),
+  specialPackagingRequired: zod.boolean(),
+  defaultPaymentTerms: zod.string(),
+  typicalMarginPct: zod.number().nullish(),
 });
 
 /**
@@ -94,6 +116,13 @@ export const UpdateCustomerBody = zod.object({
   phone: zod.string().optional(),
   address: zod.string().optional(),
   notes: zod.string().optional(),
+  materialCertRequired: zod.boolean().optional(),
+  inspectionReportRequired: zod.boolean().optional(),
+  fairRequired: zod.boolean().optional(),
+  cocRequired: zod.boolean().optional(),
+  specialPackagingRequired: zod.boolean().optional(),
+  defaultPaymentTerms: zod.string().optional(),
+  typicalMarginPct: zod.number().nullish(),
 });
 
 export const UpdateCustomerResponse = zod.object({
@@ -105,6 +134,13 @@ export const UpdateCustomerResponse = zod.object({
   address: zod.string(),
   notes: zod.string(),
   createdAt: zod.string(),
+  materialCertRequired: zod.boolean(),
+  inspectionReportRequired: zod.boolean(),
+  fairRequired: zod.boolean(),
+  cocRequired: zod.boolean(),
+  specialPackagingRequired: zod.boolean(),
+  defaultPaymentTerms: zod.string(),
+  typicalMarginPct: zod.number().nullish(),
 });
 
 /**
@@ -403,6 +439,13 @@ export const GetQuoteResponse = zod.object({
   deliveryMethod: zod.string(),
   deliveryCost: zod.number(),
   includeDeliveryInTotal: zod.boolean(),
+  rfqReceivedDate: zod.string().nullish(),
+  quoteSentDate: zod.string().nullish(),
+  followUpDate: zod.string().nullish(),
+  followUpNotes: zod.string(),
+  lastContactedDate: zod.string().nullish(),
+  nextAction: zod.string(),
+  customerFeedback: zod.string(),
   lineItems: zod.array(
     zod.object({
       id: zod.number(),
@@ -494,6 +537,13 @@ export const UpdateQuoteBody = zod.object({
   deliveryMethod: zod.string().optional(),
   deliveryCost: zod.number().optional(),
   includeDeliveryInTotal: zod.boolean().optional(),
+  rfqReceivedDate: zod.string().nullish(),
+  quoteSentDate: zod.string().nullish(),
+  followUpDate: zod.string().nullish(),
+  followUpNotes: zod.string().optional(),
+  lastContactedDate: zod.string().nullish(),
+  nextAction: zod.string().optional(),
+  customerFeedback: zod.string().optional(),
   lineItems: zod
     .array(
       zod.object({
@@ -563,6 +613,13 @@ export const UpdateQuoteResponse = zod.object({
   deliveryMethod: zod.string(),
   deliveryCost: zod.number(),
   includeDeliveryInTotal: zod.boolean(),
+  rfqReceivedDate: zod.string().nullish(),
+  quoteSentDate: zod.string().nullish(),
+  followUpDate: zod.string().nullish(),
+  followUpNotes: zod.string(),
+  lastContactedDate: zod.string().nullish(),
+  nextAction: zod.string(),
+  customerFeedback: zod.string(),
   lineItems: zod.array(
     zod.object({
       id: zod.number(),

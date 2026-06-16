@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   useListQuotes,
   useDeleteQuote,
@@ -8,6 +8,14 @@ import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -27,6 +35,8 @@ import {
   CheckCheck,
   Trophy,
   XCircle,
+  Search,
+  X,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -43,6 +53,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { BulkActionBar } from "@/components/ui/bulk-action-bar";
+
+const ALL_STATUSES = ["Draft", "Sent", "Won", "Lost", "Expired"];
 
 const STATUS_COLORS: Record<string, { dot: string; text: string; bg: string }> =
   {
@@ -68,8 +80,26 @@ export function QuotesList() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmStatus, setConfirmStatus] = useState<string | null>(null);
   const [isBulkLoading, setIsBulkLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const allIds = quotes?.map((q) => q.id) ?? [];
+  const filteredQuotes = useMemo(() => {
+    let list = quotes ?? [];
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (quote) =>
+          quote.quoteNumber.toLowerCase().includes(q) ||
+          quote.customerName.toLowerCase().includes(q),
+      );
+    }
+    if (statusFilter !== "all") {
+      list = list.filter((quote) => quote.status === statusFilter);
+    }
+    return list;
+  }, [quotes, searchQuery, statusFilter]);
+
+  const allIds = filteredQuotes.map((q) => q.id);
   const allSelected =
     allIds.length > 0 && allIds.every((id) => selectedIds.has(id));
   const someSelected = selectedIds.size > 0;
@@ -230,19 +260,53 @@ export function QuotesList() {
         </div>
       </div>
 
+      {/* Filter bar */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <Input
+            className="pl-9 h-10"
+            placeholder="Search by quote # or customer…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              onClick={() => setSearchQuery("")}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="h-10 w-full sm:w-[160px]">
+            <SelectValue placeholder="All statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            {ALL_STATUSES.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* ── Mobile cards ── */}
       <div className="md:hidden space-y-3">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-28 rounded-xl" />
           ))
-        ) : quotes?.length === 0 ? (
+        ) : filteredQuotes.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">
             <FileText className="w-10 h-10 mx-auto mb-3 opacity-40" />
-            <p className="text-sm">No quotes yet. Create your first one.</p>
+            <p className="text-sm">{searchQuery || statusFilter !== "all" ? "No quotes match your filters." : "No quotes yet. Create your first one."}</p>
           </div>
         ) : (
-          quotes?.map((quote) => {
+          filteredQuotes.map((quote) => {
             const sc = STATUS_COLORS[quote.status] ?? STATUS_COLORS.Draft;
             const isSelected = selectedIds.has(quote.id);
             return (
@@ -368,17 +432,17 @@ export function QuotesList() {
                   <TableCell><Skeleton className="h-8 w-[120px]" /></TableCell>
                 </TableRow>
               ))
-            ) : quotes?.length === 0 ? (
+            ) : filteredQuotes.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={8}
                   className="text-center py-8 text-muted-foreground"
                 >
-                  No quotes found. Create one to get started.
+                  {searchQuery || statusFilter !== "all" ? "No quotes match your filters." : "No quotes found. Create one to get started."}
                 </TableCell>
               </TableRow>
             ) : (
-              quotes?.map((quote) => {
+              filteredQuotes.map((quote) => {
                 const isSelected = selectedIds.has(quote.id);
                 return (
                   <TableRow

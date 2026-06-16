@@ -18,6 +18,8 @@ router.get("/dashboard/stats", async (req, res): Promise<void> => {
       id: quotesTable.id,
       wonDate: quotesTable.wonDate,
       lostDate: quotesTable.lostDate,
+      rfqReceivedDate: quotesTable.rfqReceivedDate,
+      quoteSentDate: quotesTable.quoteSentDate,
     })
     .from(quotesTable);
 
@@ -95,6 +97,25 @@ router.get("/dashboard/stats", async (req, res): Promise<void> => {
   const conversionRate = sentAndWon > 0 ? (wonQuotes / sentAndWon) * 100 : 0;
   const avgWonValue = wonQuotes > 0 ? wonValue / wonQuotes : 0;
 
+  const turnaroundDays: number[] = [];
+  for (const quote of quotes) {
+    if (
+      quote.rfqReceivedDate &&
+      quote.quoteSentDate &&
+      quote.rfqReceivedDate <= quote.quoteSentDate
+    ) {
+      const diff =
+        (new Date(quote.quoteSentDate).getTime() -
+          new Date(quote.rfqReceivedDate).getTime()) /
+        86400000;
+      if (diff >= 0 && diff < 365) turnaroundDays.push(diff);
+    }
+  }
+  const avgTurnaroundDays =
+    turnaroundDays.length > 0
+      ? turnaroundDays.reduce((a, b) => a + b, 0) / turnaroundDays.length
+      : 0;
+
   res.json(
     GetDashboardStatsResponse.parse({
       totalQuotes,
@@ -112,6 +133,7 @@ router.get("/dashboard/stats", async (req, res): Promise<void> => {
       wonValueThisMonth,
       lostValueThisMonth,
       avgWonValue,
+      avgTurnaroundDays,
     }),
   );
 });

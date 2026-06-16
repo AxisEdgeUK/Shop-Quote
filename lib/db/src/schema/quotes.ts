@@ -54,6 +54,13 @@ export const quotesTable = pgTable("quotes", {
   includeDeliveryInTotal: boolean("include_delivery_in_total")
     .notNull()
     .default(true),
+  rfqReceivedDate: text("rfq_received_date"),
+  quoteSentDate: text("quote_sent_date"),
+  followUpDate: text("follow_up_date"),
+  followUpNotes: text("follow_up_notes").notNull().default(""),
+  lastContactedDate: text("last_contacted_date"),
+  nextAction: text("next_action").notNull().default(""),
+  customerFeedback: text("customer_feedback").notNull().default(""),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

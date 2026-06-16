@@ -1,5 +1,6 @@
 import {
   boolean,
+  numeric,
   pgTable,
   serial,
   text,
@@ -17,6 +18,22 @@ export const customersTable = pgTable("customers", {
   address: text("address").notNull().default(""),
   notes: text("notes").notNull().default(""),
   active: boolean("active").notNull().default(true),
+  materialCertRequired: boolean("material_cert_required")
+    .notNull()
+    .default(false),
+  inspectionReportRequired: boolean("inspection_report_required")
+    .notNull()
+    .default(false),
+  fairRequired: boolean("fair_required").notNull().default(false),
+  cocRequired: boolean("coc_required").notNull().default(false),
+  specialPackagingRequired: boolean("special_packaging_required")
+    .notNull()
+    .default(false),
+  defaultPaymentTerms: text("default_payment_terms").notNull().default(""),
+  typicalMarginPct: numeric("typical_margin_pct", {
+    precision: 5,
+    scale: 2,
+  }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

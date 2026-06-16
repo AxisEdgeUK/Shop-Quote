@@ -487,6 +487,18 @@ router.patch("/quotes/:id", async (req, res): Promise<void> => {
     updateData.expectedDelivery = d.expectedDelivery;
   if (d.lostDate !== undefined) updateData.lostDate = d.lostDate;
   if (d.lostNotes !== undefined) updateData.lostNotes = d.lostNotes;
+  if (d.rfqReceivedDate !== undefined) updateData.rfqReceivedDate = d.rfqReceivedDate;
+  if (d.quoteSentDate !== undefined) updateData.quoteSentDate = d.quoteSentDate;
+  if (d.followUpDate !== undefined) updateData.followUpDate = d.followUpDate;
+  if (d.followUpNotes !== undefined) updateData.followUpNotes = d.followUpNotes;
+  if (d.lastContactedDate !== undefined) updateData.lastContactedDate = d.lastContactedDate;
+  if (d.nextAction !== undefined) updateData.nextAction = d.nextAction;
+  if (d.customerFeedback !== undefined) updateData.customerFeedback = d.customerFeedback;
+
+  if (d.status === "Sent" && updateData.status === "Sent") {
+    const today = new Date().toISOString().split("T")[0];
+    if (!updateData.quoteSentDate) updateData.quoteSentDate = today;
+  }
 
   const [quote] = await db
     .update(quotesTable)

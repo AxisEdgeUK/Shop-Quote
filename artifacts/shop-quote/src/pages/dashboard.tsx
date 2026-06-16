@@ -115,8 +115,8 @@ export function DashboardPage() {
   if (statsLoading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-          {Array.from({ length: 5 }).map((_, i) => (
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-24" />
           ))}
         </div>
@@ -151,7 +151,7 @@ export function DashboardPage() {
       </div>
 
       {/* KPI strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         <KpiCard
           label="Follow-up Needed"
           value={stats.followUpNeeded}
@@ -178,6 +178,11 @@ export function DashboardPage() {
           value={`${cur}${stats.wonValueThisMonth.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
           sub={`${stats.wonThisMonth} order${stats.wonThisMonth === 1 ? "" : "s"} · avg ${cur}${Math.round(stats.avgWonValue).toLocaleString()}`}
           accent
+        />
+        <KpiCard
+          label="Avg Turnaround"
+          value={stats.avgTurnaroundDays > 0 ? `${stats.avgTurnaroundDays.toFixed(1)}d` : "—"}
+          sub="RFQ received → quote sent"
         />
       </div>
 

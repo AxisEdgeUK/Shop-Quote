@@ -111,14 +111,26 @@ export function AnalyticsPage() {
       .sort((a, b) => b.wonValue - a.wonValue)
       .slice(0, 8);
 
-    const reasonMap = new Map<string, number>();
+    const avgLost = lostQuotes.length > 0 ? lostValue / lostQuotes.length : 0;
+    const valueWinRate =
+      wonValue + lostValue > 0
+        ? (wonValue / (wonValue + lostValue)) * 100
+        : 0;
+    const pipelineValue = quotes
+      .filter((q) => q.status === "Draft" || q.status === "Sent")
+      .reduce((s, q) => s + q.totalValue, 0);
+
+    const reasonMap = new Map<string, { count: number; value: number }>();
     for (const q of lostQuotes) {
       const reason = (q as any).lostReason || "Unknown";
-      reasonMap.set(reason, (reasonMap.get(reason) ?? 0) + 1);
+      const existing = reasonMap.get(reason) ?? { count: 0, value: 0 };
+      existing.count++;
+      existing.value += q.totalValue;
+      reasonMap.set(reason, existing);
     }
     const lostReasons = [...reasonMap.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .map(([reason, count]) => ({ reason, count }));
+      .sort((a, b) => b[1].count - a[1].count)
+      .map(([reason, data]) => ({ reason, ...data }));
 
     const monthMap = new Map<
       string,
@@ -162,7 +174,10 @@ export function AnalyticsPage() {
       lostValue,
       winRate,
       avgWon,
+      avgLost,
       avgQuote,
+      valueWinRate,
+      pipelineValue,
       topCustomers,
       lostReasons,
       monthlyTrend,
@@ -172,8 +187,8 @@ export function AnalyticsPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-24" />
           ))}
         </div>
@@ -207,7 +222,7 @@ export function AnalyticsPage() {
       </div>
 
       {/* KPI row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         <StatCard
           label="Total Quoted"
           value={`${cur}${stats.totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
@@ -228,10 +243,22 @@ export function AnalyticsPage() {
           icon={<TrendingUp className="w-3.5 h-3.5" />}
         />
         <StatCard
-          label="Avg Quote Value"
-          value={`${cur}${Math.round(stats.avgQuote).toLocaleString()}`}
-          sub={`Lost value ${cur}${stats.lostValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+          label="Value Win Rate"
+          value={`${stats.valueWinRate.toFixed(1)}%`}
+          sub="Of closed-deal value won"
+          icon={<TrendingUp className="w-3.5 h-3.5" />}
+        />
+        <StatCard
+          label="Lost Value"
+          value={`${cur}${stats.lostValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+          sub={`${stats.lostCount} lost · avg ${cur}${Math.round(stats.avgLost).toLocaleString()}`}
           icon={<TrendingDown className="w-3.5 h-3.5" />}
+        />
+        <StatCard
+          label="Pipeline"
+          value={`${cur}${stats.pipelineValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+          sub="Draft + Sent quotes"
+          icon={<BarChart3 className="w-3.5 h-3.5" />}
         />
       </div>
 
@@ -363,14 +390,20 @@ export function AnalyticsPage() {
                 className="divide-y"
                 style={{ borderColor: "hsl(var(--card-border))" }}
               >
-                {stats.lostReasons.map(({ reason, count }) => (
+                {stats.lostReasons.map(({ reason, count, value }) => (
                   <div
                     key={reason}
-                    className="flex items-center justify-between px-4 py-2.5"
+                    className="flex items-center justify-between px-4 py-2.5 gap-2"
                   >
-                    <span className="text-sm truncate">{reason}</span>
+                    <span className="text-sm truncate flex-1">{reason}</span>
                     <span
-                      className="text-xs font-mono font-bold ml-2 shrink-0 px-2 py-0.5 rounded-full"
+                      className="text-xs font-mono shrink-0"
+                      style={{ color: "hsl(var(--muted-foreground))" }}
+                    >
+                      {cur}{value.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </span>
+                    <span
+                      className="text-xs font-mono font-bold shrink-0 px-2 py-0.5 rounded-full"
                       style={{
                         background: "hsl(0 84% 95%)",
                         color: "hsl(0 72% 51%)",

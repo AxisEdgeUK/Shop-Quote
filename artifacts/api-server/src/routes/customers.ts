@@ -56,6 +56,16 @@ router.post("/customers", async (req, res): Promise<void> => {
       address: parsed.data.address ?? "",
       notes: parsed.data.notes ?? "",
       active: true,
+      materialCertRequired: parsed.data.materialCertRequired ?? false,
+      inspectionReportRequired: parsed.data.inspectionReportRequired ?? false,
+      fairRequired: parsed.data.fairRequired ?? false,
+      cocRequired: parsed.data.cocRequired ?? false,
+      specialPackagingRequired: parsed.data.specialPackagingRequired ?? false,
+      defaultPaymentTerms: parsed.data.defaultPaymentTerms ?? "",
+      typicalMarginPct:
+        parsed.data.typicalMarginPct != null
+          ? String(parsed.data.typicalMarginPct)
+          : null,
     })
     .returning();
   res.status(201).json(
@@ -114,9 +124,14 @@ router.patch("/customers/:id", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
+  const { typicalMarginPct, ...rest } = parsed.data;
+  const updateValues: Record<string, unknown> = { ...rest };
+  if (typicalMarginPct !== undefined) {
+    updateValues.typicalMarginPct = typicalMarginPct != null ? String(typicalMarginPct) : null;
+  }
   const [customer] = await db
     .update(customersTable)
-    .set(parsed.data)
+    .set(updateValues)
     .where(eq(customersTable.id, params.data.id))
     .returning();
   if (!customer) {

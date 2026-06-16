@@ -25,6 +25,7 @@ export interface DashboardStats {
   wonValueThisMonth: number;
   lostValueThisMonth: number;
   avgWonValue: number;
+  avgTurnaroundDays: number;
 }
 
 export interface Customer {
@@ -36,6 +37,14 @@ export interface Customer {
   address: string;
   notes: string;
   createdAt: string;
+  materialCertRequired: boolean;
+  inspectionReportRequired: boolean;
+  fairRequired: boolean;
+  cocRequired: boolean;
+  specialPackagingRequired: boolean;
+  defaultPaymentTerms: string;
+  /** @nullable */
+  typicalMarginPct?: number | null;
 }
 
 export interface CustomerInput {
@@ -45,6 +54,14 @@ export interface CustomerInput {
   phone?: string;
   address?: string;
   notes?: string;
+  materialCertRequired?: boolean;
+  inspectionReportRequired?: boolean;
+  fairRequired?: boolean;
+  cocRequired?: boolean;
+  specialPackagingRequired?: boolean;
+  defaultPaymentTerms?: string;
+  /** @nullable */
+  typicalMarginPct?: number | null;
 }
 
 export interface CustomerUpdate {
@@ -54,6 +71,14 @@ export interface CustomerUpdate {
   phone?: string;
   address?: string;
   notes?: string;
+  materialCertRequired?: boolean;
+  inspectionReportRequired?: boolean;
+  fairRequired?: boolean;
+  cocRequired?: boolean;
+  specialPackagingRequired?: boolean;
+  defaultPaymentTerms?: string;
+  /** @nullable */
+  typicalMarginPct?: number | null;
 }
 
 export interface Machine {
@@ -255,6 +280,17 @@ export interface Quote {
   deliveryMethod: string;
   deliveryCost: number;
   includeDeliveryInTotal: boolean;
+  /** @nullable */
+  rfqReceivedDate?: string | null;
+  /** @nullable */
+  quoteSentDate?: string | null;
+  /** @nullable */
+  followUpDate?: string | null;
+  followUpNotes: string;
+  /** @nullable */
+  lastContactedDate?: string | null;
+  nextAction: string;
+  customerFeedback: string;
   lineItems: QuoteLineItem[];
   createdAt: string;
   updatedAt: string;
@@ -315,6 +351,17 @@ export interface QuoteUpdate {
   deliveryMethod?: string;
   deliveryCost?: number;
   includeDeliveryInTotal?: boolean;
+  /** @nullable */
+  rfqReceivedDate?: string | null;
+  /** @nullable */
+  quoteSentDate?: string | null;
+  /** @nullable */
+  followUpDate?: string | null;
+  followUpNotes?: string;
+  /** @nullable */
+  lastContactedDate?: string | null;
+  nextAction?: string;
+  customerFeedback?: string;
   lineItems?: QuoteLineItemInput[];
 }
 

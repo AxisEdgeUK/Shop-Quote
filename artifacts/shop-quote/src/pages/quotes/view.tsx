@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   useGetQuote,
   useGetCustomer,
@@ -58,15 +58,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CalendarDays } from "lucide-react";
 
 const LOST_REASONS = [
   "Price too high",
   "Lead time too long",
-  "No response from customer",
-  "Customer changed design",
-  "Competitor won the job",
-  "Job cancelled",
+  "No response",
+  "Existing supplier",
+  "Capability issue",
+  "Quality requirement issue",
   "Other",
+];
+
+const COST_CHECKLIST = [
+  "Material confirmed — grade and specification checked",
+  "Quantities double-checked against drawing",
+  "Tolerances reviewed — achievable on selected machine",
+  "Lead time reviewed — realistic for current workload",
+  "Margin is acceptable — no underpriced line items",
 ];
 
 export function ViewQuote() {
@@ -100,8 +110,24 @@ export function ViewQuote() {
   const [wonNotesText, setWonNotesText] = useState("");
   const [showMoreSheet, setShowMoreSheet] = useState(false);
   const [viewMode, setViewMode] = useState<"customer" | "internal">("customer");
+  const [showCostChecklist, setShowCostChecklist] = useState(false);
+  const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
+  const [followUpEdit, setFollowUpEdit] = useState(false);
+  const [fuRfqDate, setFuRfqDate] = useState("");
+  const [fuSentDate, setFuSentDate] = useState("");
+  const [fuFollowUpDate, setFuFollowUpDate] = useState("");
+  const [fuFollowUpNotes, setFuFollowUpNotes] = useState("");
+  const [fuLastContacted, setFuLastContacted] = useState("");
+  const [fuNextAction, setFuNextAction] = useState("");
+  const [fuCustomerFeedback, setFuCustomerFeedback] = useState("");
 
   const handlePrint = () => {
+    setCheckedItems(new Set());
+    setShowCostChecklist(true);
+  };
+
+  const handleConfirmPrint = () => {
+    setShowCostChecklist(false);
     if (quote && customer) {
       const quoteNum = quote.quoteNumber.replace(/[^A-Za-z0-9\-]/g, "");
       const rev =
@@ -225,6 +251,45 @@ export function ViewQuote() {
         },
         onError: () =>
           toast({ title: "Failed to update quote", variant: "destructive" }),
+      },
+    );
+  };
+
+  useEffect(() => {
+    if (quote) {
+      setFuRfqDate((quote as any).rfqReceivedDate ?? "");
+      setFuSentDate((quote as any).quoteSentDate ?? "");
+      setFuFollowUpDate((quote as any).followUpDate ?? "");
+      setFuFollowUpNotes((quote as any).followUpNotes ?? "");
+      setFuLastContacted((quote as any).lastContactedDate ?? "");
+      setFuNextAction((quote as any).nextAction ?? "");
+      setFuCustomerFeedback((quote as any).customerFeedback ?? "");
+    }
+  }, [quote?.id]);
+
+  const handleSaveFollowUp = () => {
+    if (!quote) return;
+    updateQuote.mutate(
+      {
+        id: quote.id,
+        data: {
+          rfqReceivedDate: fuRfqDate || null,
+          quoteSentDate: fuSentDate || null,
+          followUpDate: fuFollowUpDate || null,
+          followUpNotes: fuFollowUpNotes,
+          lastContactedDate: fuLastContacted || null,
+          nextAction: fuNextAction,
+          customerFeedback: fuCustomerFeedback,
+        } as any,
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetQuoteQueryKey(id) });
+          toast({ title: "Follow-up saved" });
+          setFollowUpEdit(false);
+        },
+        onError: () =>
+          toast({ title: "Failed to save follow-up", variant: "destructive" }),
       },
     );
   };
@@ -665,6 +730,113 @@ export function ViewQuote() {
               </p>
             </div>
           )}
+
+          {/* Follow-up tracking card */}
+          <div className="rounded-lg border bg-card overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <div className="flex items-center gap-2">
+                <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Follow-up Tracking
+                </span>
+              </div>
+              {!followUpEdit ? (
+                <button
+                  className="text-xs font-medium text-blue-600 hover:underline"
+                  onClick={() => setFollowUpEdit(true)}
+                >
+                  Edit
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    className="text-xs font-medium text-muted-foreground hover:underline"
+                    onClick={() => setFollowUpEdit(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="text-xs font-semibold text-blue-600 hover:underline"
+                    onClick={handleSaveFollowUp}
+                    disabled={updateQuote.isPending}
+                  >
+                    {updateQuote.isPending ? "Saving…" : "Save"}
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="px-4 py-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+              {followUpEdit ? (
+                <>
+                  <div className="space-y-1">
+                    <Label className="text-xs">RFQ Received Date</Label>
+                    <Input type="date" value={fuRfqDate} onChange={(e) => setFuRfqDate(e.target.value)} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Quote Sent Date</Label>
+                    <Input type="date" value={fuSentDate} onChange={(e) => setFuSentDate(e.target.value)} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Follow-up Date</Label>
+                    <Input type="date" value={fuFollowUpDate} onChange={(e) => setFuFollowUpDate(e.target.value)} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Last Contacted Date</Label>
+                    <Input type="date" value={fuLastContacted} onChange={(e) => setFuLastContacted(e.target.value)} />
+                  </div>
+                  <div className="space-y-1 md:col-span-2">
+                    <Label className="text-xs">Next Action</Label>
+                    <Input placeholder="e.g. Call customer on Monday" value={fuNextAction} onChange={(e) => setFuNextAction(e.target.value)} />
+                  </div>
+                  <div className="space-y-1 md:col-span-2">
+                    <Label className="text-xs">Follow-up Notes</Label>
+                    <Textarea rows={2} value={fuFollowUpNotes} onChange={(e) => setFuFollowUpNotes(e.target.value)} />
+                  </div>
+                  <div className="space-y-1 md:col-span-2">
+                    <Label className="text-xs">Customer Feedback</Label>
+                    <Textarea rows={2} placeholder="Any feedback received from the customer…" value={fuCustomerFeedback} onChange={(e) => setFuCustomerFeedback(e.target.value)} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {[
+                    { label: "RFQ Received", value: fuRfqDate },
+                    { label: "Quote Sent", value: fuSentDate },
+                    { label: "Follow-up Date", value: fuFollowUpDate },
+                    { label: "Last Contacted", value: fuLastContacted },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <div className="text-xs text-muted-foreground">{label}</div>
+                      <div className="text-sm font-medium mt-0.5">{value || "—"}</div>
+                    </div>
+                  ))}
+                  {fuNextAction && (
+                    <div className="md:col-span-2">
+                      <div className="text-xs text-muted-foreground">Next Action</div>
+                      <div className="text-sm mt-0.5">{fuNextAction}</div>
+                    </div>
+                  )}
+                  {fuFollowUpNotes && (
+                    <div className="md:col-span-2">
+                      <div className="text-xs text-muted-foreground">Follow-up Notes</div>
+                      <div className="text-sm mt-0.5 whitespace-pre-wrap">{fuFollowUpNotes}</div>
+                    </div>
+                  )}
+                  {fuCustomerFeedback && (
+                    <div className="md:col-span-2">
+                      <div className="text-xs text-muted-foreground">Customer Feedback</div>
+                      <div className="text-sm mt-0.5 whitespace-pre-wrap">{fuCustomerFeedback}</div>
+                    </div>
+                  )}
+                  {!fuRfqDate && !fuSentDate && !fuFollowUpDate && !fuLastContacted && !fuNextAction && !fuFollowUpNotes && !fuCustomerFeedback && (
+                    <div className="md:col-span-2 text-sm text-muted-foreground py-2">
+                      No follow-up data yet. Click Edit to add tracking details.
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -877,6 +1049,58 @@ export function ViewQuote() {
               disabled={updateQuote.isPending}
             >
               <Trophy className="w-4 h-4 mr-1.5" /> Confirm Won
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cost checklist dialog */}
+      <Dialog open={showCostChecklist} onOpenChange={setShowCostChecklist}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Pre-PDF Checklist</DialogTitle>
+          </DialogHeader>
+          <div className="py-2 space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Tick all items before generating the PDF.
+            </p>
+            {COST_CHECKLIST.map((item, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <Checkbox
+                  id={`checklist-${i}`}
+                  checked={checkedItems.has(i)}
+                  onCheckedChange={(checked) => {
+                    setCheckedItems((prev) => {
+                      const next = new Set(prev);
+                      if (checked) next.add(i);
+                      else next.delete(i);
+                      return next;
+                    });
+                  }}
+                  className="mt-0.5"
+                />
+                <label
+                  htmlFor={`checklist-${i}`}
+                  className="text-sm cursor-pointer leading-snug"
+                >
+                  {item}
+                </label>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCostChecklist(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmPrint}
+              disabled={checkedItems.size < COST_CHECKLIST.length}
+              className="gap-1.5"
+            >
+              Generate PDF
             </Button>
           </DialogFooter>
         </DialogContent>
