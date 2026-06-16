@@ -365,6 +365,13 @@ export const CreateQuoteBody = zod.object({
   deliveryMethod: zod.string().optional(),
   deliveryCost: zod.number().optional(),
   includeDeliveryInTotal: zod.boolean().optional(),
+  rfqReceivedDate: zod.string().nullish(),
+  quoteSentDate: zod.string().nullish(),
+  followUpDate: zod.string().nullish(),
+  followUpNotes: zod.string().optional(),
+  lastContactedDate: zod.string().nullish(),
+  nextAction: zod.string().optional(),
+  customerFeedback: zod.string().optional(),
   lineItems: zod.array(
     zod.object({
       partName: zod.string(),

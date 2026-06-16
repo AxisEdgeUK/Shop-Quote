@@ -318,6 +318,17 @@ export interface QuoteInput {
   deliveryMethod?: string;
   deliveryCost?: number;
   includeDeliveryInTotal?: boolean;
+  /** @nullable */
+  rfqReceivedDate?: string | null;
+  /** @nullable */
+  quoteSentDate?: string | null;
+  /** @nullable */
+  followUpDate?: string | null;
+  followUpNotes?: string;
+  /** @nullable */
+  lastContactedDate?: string | null;
+  nextAction?: string;
+  customerFeedback?: string;
   lineItems: QuoteLineItemInput[];
 }
 

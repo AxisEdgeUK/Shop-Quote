@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   useGetQuote,
   useGetCustomer,
@@ -7,14 +8,33 @@ import {
 } from "@workspace/api-client-react";
 import { useParams, Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ArrowLeft, FileDown, Eye } from "lucide-react";
 
 const CUR = "£";
 
+const COST_CHECKLIST = [
+  "Material confirmed — grade and specification checked",
+  "Quantities double-checked against drawing",
+  "Tolerances reviewed — achievable on selected machine",
+  "Lead time reviewed — realistic for current workload",
+  "Margin is acceptable — no underpriced line items",
+];
+
 export function PresentQuote() {
   const params = useParams();
   const id = Number(params.id);
+
+  const [showCostChecklist, setShowCostChecklist] = useState(false);
+  const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
 
   const { data: quote, isLoading: isLoadingQuote } = useGetQuote(id, {
     query: { enabled: !!id, queryKey: getGetQuoteQueryKey(id) },
@@ -30,7 +50,15 @@ export function PresentQuote() {
   );
   const { data: settings, isLoading: isLoadingSettings } = useGetSettings();
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    setCheckedItems(new Set());
+    setShowCostChecklist(true);
+  };
+
+  const handleConfirmPrint = () => {
+    setShowCostChecklist(false);
+    window.print();
+  };
 
   if (isLoadingQuote || isLoadingCustomer || isLoadingSettings) {
     return <Skeleton className="h-[800px] w-full max-w-4xl mx-auto" />;
@@ -415,6 +443,58 @@ export function PresentQuote() {
           <span>{settings.companyName}</span>
         </div>
       </div>
+
+      {/* Cost checklist dialog */}
+      <Dialog open={showCostChecklist} onOpenChange={setShowCostChecklist}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Pre-PDF Checklist</DialogTitle>
+          </DialogHeader>
+          <div className="py-2 space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Tick all items before generating the PDF.
+            </p>
+            {COST_CHECKLIST.map((item, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <Checkbox
+                  id={`pchk-${i}`}
+                  checked={checkedItems.has(i)}
+                  onCheckedChange={(checked) => {
+                    setCheckedItems((prev) => {
+                      const next = new Set(prev);
+                      if (checked) next.add(i);
+                      else next.delete(i);
+                      return next;
+                    });
+                  }}
+                  className="mt-0.5"
+                />
+                <label
+                  htmlFor={`pchk-${i}`}
+                  className="text-sm cursor-pointer leading-snug"
+                >
+                  {item}
+                </label>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCostChecklist(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmPrint}
+              disabled={checkedItems.size < COST_CHECKLIST.length}
+              className="gap-1.5"
+            >
+              Generate PDF
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

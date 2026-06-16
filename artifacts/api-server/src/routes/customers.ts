@@ -14,6 +14,15 @@ import {
 
 const router: IRouter = Router();
 
+function parseCustomer(c: typeof customersTable.$inferSelect) {
+  return {
+    ...c,
+    createdAt: c.createdAt.toISOString(),
+    typicalMarginPct:
+      c.typicalMarginPct != null ? parseFloat(c.typicalMarginPct) : null,
+  };
+}
+
 function parseBulkIds(body: unknown): number[] | null {
   if (!body || typeof body !== "object") return null;
   const { ids } = body as Record<string, unknown>;
@@ -30,14 +39,7 @@ router.get("/customers", async (req, res): Promise<void> => {
     .from(customersTable)
     .where(showArchived ? undefined : eq(customersTable.active, true))
     .orderBy(customersTable.companyName);
-  res.json(
-    ListCustomersResponse.parse(
-      customers.map((c) => ({
-        ...c,
-        createdAt: c.createdAt.toISOString(),
-      })),
-    ),
-  );
+  res.json(ListCustomersResponse.parse(customers.map(parseCustomer)));
 });
 
 router.post("/customers", async (req, res): Promise<void> => {
@@ -68,12 +70,7 @@ router.post("/customers", async (req, res): Promise<void> => {
           : null,
     })
     .returning();
-  res.status(201).json(
-    GetCustomerResponse.parse({
-      ...customer,
-      createdAt: customer.createdAt.toISOString(),
-    }),
-  );
+  res.status(201).json(GetCustomerResponse.parse(parseCustomer(customer)));
 });
 
 router.patch("/customers/bulk/archive", async (req, res): Promise<void> => {
@@ -104,12 +101,7 @@ router.get("/customers/:id", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Customer not found" });
     return;
   }
-  res.json(
-    GetCustomerResponse.parse({
-      ...customer,
-      createdAt: customer.createdAt.toISOString(),
-    }),
-  );
+  res.json(GetCustomerResponse.parse(parseCustomer(customer)));
 });
 
 router.patch("/customers/:id", async (req, res): Promise<void> => {
@@ -138,12 +130,7 @@ router.patch("/customers/:id", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Customer not found" });
     return;
   }
-  res.json(
-    UpdateCustomerResponse.parse({
-      ...customer,
-      createdAt: customer.createdAt.toISOString(),
-    }),
-  );
+  res.json(UpdateCustomerResponse.parse(parseCustomer(customer)));
 });
 
 router.delete("/customers/:id", async (req, res): Promise<void> => {

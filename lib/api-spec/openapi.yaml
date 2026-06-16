@@ -1298,6 +1298,20 @@ components:
           type: number
         includeDeliveryInTotal:
           type: boolean
+        rfqReceivedDate:
+          type: ["string", "null"]
+        quoteSentDate:
+          type: ["string", "null"]
+        followUpDate:
+          type: ["string", "null"]
+        followUpNotes:
+          type: string
+        lastContactedDate:
+          type: ["string", "null"]
+        nextAction:
+          type: string
+        customerFeedback:
+          type: string
         lineItems:
           type: array
           items:

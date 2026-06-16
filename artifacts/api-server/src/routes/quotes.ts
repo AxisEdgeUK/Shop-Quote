@@ -364,6 +364,13 @@ router.post("/quotes", async (req, res): Promise<void> => {
       deliveryMethod: parsed.data.deliveryMethod ?? "",
       deliveryCost: String(parsed.data.deliveryCost ?? 0),
       includeDeliveryInTotal: parsed.data.includeDeliveryInTotal ?? true,
+      rfqReceivedDate: parsed.data.rfqReceivedDate ?? null,
+      quoteSentDate: parsed.data.quoteSentDate ?? null,
+      followUpDate: parsed.data.followUpDate ?? null,
+      followUpNotes: parsed.data.followUpNotes ?? "",
+      lastContactedDate: parsed.data.lastContactedDate ?? null,
+      nextAction: parsed.data.nextAction ?? "",
+      customerFeedback: parsed.data.customerFeedback ?? "",
     })
     .returning();
 
