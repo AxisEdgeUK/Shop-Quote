@@ -72,11 +72,19 @@ const LOST_REASONS = [
 ];
 
 const COST_CHECKLIST = [
-  "Material confirmed — grade and specification checked",
-  "Quantities double-checked against drawing",
-  "Tolerances reviewed — achievable on selected machine",
-  "Lead time reviewed — realistic for current workload",
-  "Margin is acceptable — no underpriced line items",
+  "Material confirmed — grade and specification verified",
+  "Material availability verified with supplier",
+  "Drawing revision confirmed — latest version used",
+  "Quantities match the customer's enquiry/PO",
+  "All tolerances achievable on selected machine",
+  "Surface finish requirements reviewed and costed",
+  "Lead time is realistic for current workload",
+  "Setup hours are reasonable for part complexity",
+  "Special tooling included if required",
+  "Outside processing (heat treatment, plating, etc.) included",
+  "Delivery cost included or excluded as agreed",
+  "Effective margin is acceptable — no underpriced line items",
+  "Payment terms and quote validity date correct",
 ];
 
 export function ViewQuote() {
@@ -104,10 +112,13 @@ export function ViewQuote() {
   const [showLostDialog, setShowLostDialog] = useState(false);
   const [lostReason, setLostReason] = useState("");
   const [lostNotes, setLostNotes] = useState("");
+  const [lostCustomerFeedback, setLostCustomerFeedback] = useState("");
+  const [lostDateInput, setLostDateInput] = useState("");
   const [showWonDialog, setShowWonDialog] = useState(false);
   const [wonPoNumber, setWonPoNumber] = useState("");
   const [wonExpectedDelivery, setWonExpectedDelivery] = useState("");
   const [wonNotesText, setWonNotesText] = useState("");
+  const [wonDateInput, setWonDateInput] = useState("");
   const [showMoreSheet, setShowMoreSheet] = useState(false);
   const [viewMode, setViewMode] = useState<"customer" | "internal">("customer");
   const [showCostChecklist, setShowCostChecklist] = useState(false);
@@ -181,7 +192,13 @@ export function ViewQuote() {
     updateQuote.mutate(
       {
         id: quote.id,
-        data: { status: "Lost", lostReason, lostNotes, lostDate: today } as any,
+        data: {
+          status: "Lost",
+          lostReason,
+          lostNotes,
+          lostDate: lostDateInput || today,
+          customerFeedback: lostCustomerFeedback || undefined,
+        } as any,
       },
       {
         onSuccess: () => {
@@ -191,6 +208,8 @@ export function ViewQuote() {
           setShowLostDialog(false);
           setLostReason("");
           setLostNotes("");
+          setLostCustomerFeedback("");
+          setLostDateInput("");
         },
         onError: () =>
           toast({ title: "Failed to update quote", variant: "destructive" }),
@@ -206,7 +225,7 @@ export function ViewQuote() {
         id: quote.id,
         data: {
           status: "Won",
-          wonDate: today,
+          wonDate: wonDateInput || today,
           wonNotes: wonNotesText,
           poNumber: wonPoNumber,
           expectedDelivery: wonExpectedDelivery,
@@ -221,6 +240,7 @@ export function ViewQuote() {
           setWonPoNumber("");
           setWonExpectedDelivery("");
           setWonNotesText("");
+          setWonDateInput("");
         },
         onError: () =>
           toast({ title: "Failed to update quote", variant: "destructive" }),
@@ -833,6 +853,74 @@ export function ViewQuote() {
                       No follow-up data yet. Click Edit to add tracking details.
                     </div>
                   )}
+                  {/* Quick action buttons */}
+                  <div className="md:col-span-2 flex flex-wrap gap-2 pt-1 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 text-xs"
+                      disabled={updateQuote.isPending}
+                      onClick={() => {
+                        const today = new Date().toISOString().split("T")[0];
+                        setFuLastContacted(today);
+                        updateQuote.mutate(
+                          { id: quote.id, data: { lastContactedDate: today } as any },
+                          {
+                            onSuccess: () => {
+                              queryClient.invalidateQueries({ queryKey: getGetQuoteQueryKey(id) });
+                              toast({ title: "Logged call — last contacted date updated" });
+                            },
+                          },
+                        );
+                      }}
+                    >
+                      📞 Log Call
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 text-xs"
+                      disabled={updateQuote.isPending}
+                      onClick={() => {
+                        const today = new Date().toISOString().split("T")[0];
+                        const action = "Follow-up email sent";
+                        setFuNextAction(action);
+                        setFuLastContacted(today);
+                        updateQuote.mutate(
+                          { id: quote.id, data: { nextAction: action, lastContactedDate: today } as any },
+                          {
+                            onSuccess: () => {
+                              queryClient.invalidateQueries({ queryKey: getGetQuoteQueryKey(id) });
+                              toast({ title: "Follow-up logged" });
+                            },
+                          },
+                        );
+                      }}
+                    >
+                      ✉️ Send Follow-up
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 text-xs"
+                      disabled={updateQuote.isPending}
+                      onClick={() => {
+                        const action = "Waiting for customer response";
+                        setFuNextAction(action);
+                        updateQuote.mutate(
+                          { id: quote.id, data: { nextAction: action } as any },
+                          {
+                            onSuccess: () => {
+                              queryClient.invalidateQueries({ queryKey: getGetQuoteQueryKey(id) });
+                              toast({ title: "Status updated — waiting for response" });
+                            },
+                          },
+                        );
+                      }}
+                    >
+                      ⏳ Waiting Response
+                    </Button>
+                  </div>
                 </>
               )}
             </div>
@@ -976,13 +1064,32 @@ export function ViewQuote() {
               </Select>
             </div>
             <div>
+              <Label>Lost Date</Label>
+              <Input
+                type="date"
+                className="mt-1.5"
+                value={lostDateInput}
+                onChange={(e) => setLostDateInput(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Customer Feedback</Label>
+              <Textarea
+                className="mt-1.5"
+                placeholder="What did the customer say? (price, timing, competitor, etc.)"
+                value={lostCustomerFeedback}
+                onChange={(e) => setLostCustomerFeedback(e.target.value)}
+                rows={2}
+              />
+            </div>
+            <div>
               <Label>Additional notes</Label>
               <Textarea
                 className="mt-1.5"
                 placeholder="Any additional context about why this was lost..."
                 value={lostNotes}
                 onChange={(e) => setLostNotes(e.target.value)}
-                rows={3}
+                rows={2}
               />
             </div>
           </div>
@@ -1011,6 +1118,16 @@ export function ViewQuote() {
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div>
+              <Label>Won Date</Label>
+              <Input
+                type="date"
+                className="mt-1.5"
+                value={wonDateInput}
+                onChange={(e) => setWonDateInput(e.target.value)}
+                placeholder={new Date().toISOString().split("T")[0]}
+              />
+            </div>
+            <div>
               <Label>PO Number</Label>
               <Input
                 className="mt-1.5"
@@ -1035,7 +1152,7 @@ export function ViewQuote() {
                 placeholder="Any notes about this order..."
                 value={wonNotesText}
                 onChange={(e) => setWonNotesText(e.target.value)}
-                rows={3}
+                rows={2}
               />
             </div>
           </div>
@@ -1056,13 +1173,13 @@ export function ViewQuote() {
 
       {/* Cost checklist dialog */}
       <Dialog open={showCostChecklist} onOpenChange={setShowCostChecklist}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Pre-PDF Checklist</DialogTitle>
           </DialogHeader>
-          <div className="py-2 space-y-3">
+          <div className="py-2 space-y-2.5">
             <p className="text-sm text-muted-foreground">
-              Tick all items before generating the PDF.
+              Review all items before generating the PDF. You can proceed at any time.
             </p>
             {COST_CHECKLIST.map((item, i) => (
               <div key={i} className="flex items-start gap-3">
@@ -1087,14 +1204,28 @@ export function ViewQuote() {
                 </label>
               </div>
             ))}
+            {checkedItems.size < COST_CHECKLIST.length && (
+              <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+                {COST_CHECKLIST.length - checkedItems.size} item{COST_CHECKLIST.length - checkedItems.size !== 1 ? "s" : ""} unchecked — review before sending to customer.
+              </div>
+            )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2 flex-wrap">
             <Button
               variant="outline"
               onClick={() => setShowCostChecklist(false)}
             >
               Cancel
             </Button>
+            {checkedItems.size < COST_CHECKLIST.length && (
+              <Button
+                variant="outline"
+                onClick={handleConfirmPrint}
+                className="border-amber-300 text-amber-700 hover:bg-amber-50"
+              >
+                Generate PDF anyway
+              </Button>
+            )}
             <Button
               onClick={handleConfirmPrint}
               disabled={checkedItems.size < COST_CHECKLIST.length}

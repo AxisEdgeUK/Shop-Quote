@@ -564,7 +564,8 @@ components:
         - wonValueThisMonth
         - lostValueThisMonth
         - avgWonValue
-        - avgTurnaroundDays
+        - avgTurnaroundDaysThisMonth
+        - avgTurnaroundDaysLastMonth
       properties:
         totalQuotes:
           type: integer
@@ -596,7 +597,9 @@ components:
           type: number
         avgWonValue:
           type: number
-        avgTurnaroundDays:
+        avgTurnaroundDaysThisMonth:
+          type: number
+        avgTurnaroundDaysLastMonth:
           type: number
 
     Customer:
@@ -1129,6 +1132,8 @@ components:
           type: string
         lostReason:
           type: string
+        followUpDate:
+          type: ["string", "null"]
 
     Quote:
       type: object

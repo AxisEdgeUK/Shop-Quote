@@ -97,7 +97,12 @@ router.get("/dashboard/stats", async (req, res): Promise<void> => {
   const conversionRate = sentAndWon > 0 ? (wonQuotes / sentAndWon) * 100 : 0;
   const avgWonValue = wonQuotes > 0 ? wonValue / wonQuotes : 0;
 
-  const turnaroundDays: number[] = [];
+  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthStart = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, "0")}-01`;
+  const lastMonthEnd = monthStart;
+
+  const turnaroundThisMonth: number[] = [];
+  const turnaroundLastMonth: number[] = [];
   for (const quote of quotes) {
     if (
       quote.rfqReceivedDate &&
@@ -108,13 +113,19 @@ router.get("/dashboard/stats", async (req, res): Promise<void> => {
         (new Date(quote.quoteSentDate).getTime() -
           new Date(quote.rfqReceivedDate).getTime()) /
         86400000;
-      if (diff >= 0 && diff < 365) turnaroundDays.push(diff);
+      if (diff < 0 || diff >= 365) continue;
+      const sentFull = quote.quoteSentDate;
+      if (sentFull >= monthStart && sentFull < monthEnd) {
+        turnaroundThisMonth.push(diff);
+      } else if (sentFull >= lastMonthStart && sentFull < lastMonthEnd) {
+        turnaroundLastMonth.push(diff);
+      }
     }
   }
-  const avgTurnaroundDays =
-    turnaroundDays.length > 0
-      ? turnaroundDays.reduce((a, b) => a + b, 0) / turnaroundDays.length
-      : 0;
+  const avg = (arr: number[]) =>
+    arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+  const avgTurnaroundDaysThisMonth = avg(turnaroundThisMonth);
+  const avgTurnaroundDaysLastMonth = avg(turnaroundLastMonth);
 
   res.json(
     GetDashboardStatsResponse.parse({
@@ -133,7 +144,8 @@ router.get("/dashboard/stats", async (req, res): Promise<void> => {
       wonValueThisMonth,
       lostValueThisMonth,
       avgWonValue,
-      avgTurnaroundDays,
+      avgTurnaroundDaysThisMonth,
+      avgTurnaroundDaysLastMonth,
     }),
   );
 });

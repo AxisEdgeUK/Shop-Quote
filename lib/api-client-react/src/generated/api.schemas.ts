@@ -25,7 +25,8 @@ export interface DashboardStats {
   wonValueThisMonth: number;
   lostValueThisMonth: number;
   avgWonValue: number;
-  avgTurnaroundDays: number;
+  avgTurnaroundDaysThisMonth: number;
+  avgTurnaroundDaysLastMonth: number;
 }
 
 export interface Customer {
@@ -246,6 +247,8 @@ export interface QuoteSummary {
   totalValue: number;
   createdAt: string;
   lostReason?: string;
+  /** @nullable */
+  followUpDate?: string | null;
 }
 
 export interface Quote {

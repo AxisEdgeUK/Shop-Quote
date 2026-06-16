@@ -37,6 +37,9 @@ import {
   XCircle,
   Search,
   X,
+  Filter,
+  ChevronDown,
+  AlertTriangle,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -82,6 +85,25 @@ export function QuotesList() {
   const [isBulkLoading, setIsBulkLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [customerFilter, setCustomerFilter] = useState<string>("all");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const uniqueCustomers = useMemo(() => {
+    const seen = new Set<string>();
+    return (quotes ?? [])
+      .map((q) => ({ id: q.customerId, name: q.customerName }))
+      .filter((c) => {
+        if (seen.has(c.name)) return false;
+        seen.add(c.name);
+        return true;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [quotes]);
+
+  const isFollowUpOverdue = (quote: { status: string; followUpDate?: string | null }) =>
+    quote.followUpDate && quote.followUpDate < today && quote.status === "Sent";
 
   const filteredQuotes = useMemo(() => {
     let list = quotes ?? [];
@@ -93,11 +115,16 @@ export function QuotesList() {
           quote.customerName.toLowerCase().includes(q),
       );
     }
-    if (statusFilter !== "all") {
+    if (statusFilter === "overdue") {
+      list = list.filter((quote) => isFollowUpOverdue(quote));
+    } else if (statusFilter !== "all") {
       list = list.filter((quote) => quote.status === statusFilter);
     }
+    if (customerFilter !== "all") {
+      list = list.filter((quote) => quote.customerName === customerFilter);
+    }
     return list;
-  }, [quotes, searchQuery, statusFilter]);
+  }, [quotes, searchQuery, statusFilter, customerFilter]);
 
   const allIds = filteredQuotes.map((q) => q.id);
   const allSelected =
@@ -261,37 +288,80 @@ export function QuotesList() {
       </div>
 
       {/* Filter bar */}
-      <div className="flex flex-col sm:flex-row gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-          <Input
-            className="pl-9 h-10"
-            placeholder="Search by quote # or customer…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <button
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              onClick={() => setSearchQuery("")}
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
+      <div className="space-y-2">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Input
+              className="pl-9 h-10"
+              placeholder="Search by quote # or customer…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                onClick={() => setSearchQuery("")}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="h-10 w-full sm:w-[160px]">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              {ALL_STATUSES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+              <SelectItem value="overdue">Overdue follow-up</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="sm"
+            className={`h-10 gap-1.5 shrink-0 ${showAdvancedFilters ? "border-primary text-primary" : ""}`}
+            onClick={() => setShowAdvancedFilters((v) => !v)}
+          >
+            <Filter className="w-4 h-4" />
+            Filters
+            <ChevronDown className={`w-3 h-3 transition-transform ${showAdvancedFilters ? "rotate-180" : ""}`} />
+          </Button>
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="h-10 w-full sm:w-[160px]">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            {ALL_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {showAdvancedFilters && (
+          <div className="flex flex-wrap gap-2 p-3 rounded-lg border bg-muted/30">
+            <div className="flex items-center gap-2 min-w-[200px]">
+              <span className="text-xs font-medium text-muted-foreground w-20 shrink-0">Customer</span>
+              <Select value={customerFilter} onValueChange={setCustomerFilter}>
+                <SelectTrigger className="h-9 flex-1">
+                  <SelectValue placeholder="All customers" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All customers</SelectItem>
+                  {uniqueCustomers.map((c) => (
+                    <SelectItem key={c.name} value={c.name}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {(customerFilter !== "all") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 text-xs text-muted-foreground"
+                onClick={() => { setCustomerFilter("all"); }}
+              >
+                <X className="w-3 h-3 mr-1" /> Clear filters
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Mobile cards ── */}
@@ -329,6 +399,11 @@ export function QuotesList() {
                         {quote.quoteNumber}
                       </span>
                       {statusChip(quote.status)}
+                      {isFollowUpOverdue(quote) && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                          <AlertTriangle className="w-3 h-3" /> Overdue
+                        </span>
+                      )}
                     </div>
                     <div className="font-semibold text-base mt-1 truncate">
                       {quote.customerName}
@@ -474,7 +549,16 @@ export function QuotesList() {
                         maximumFractionDigits: 2,
                       })}
                     </TableCell>
-                    <TableCell>{statusChip(quote.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        {statusChip(quote.status)}
+                        {isFollowUpOverdue(quote) && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                            <AlertTriangle className="w-3 h-3" /> Follow-up overdue
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Link href={`/quotes/${quote.id}`}>

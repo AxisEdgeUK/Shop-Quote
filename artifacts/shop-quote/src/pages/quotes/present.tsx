@@ -22,11 +22,19 @@ import { ArrowLeft, FileDown, Eye } from "lucide-react";
 const CUR = "£";
 
 const COST_CHECKLIST = [
-  "Material confirmed — grade and specification checked",
-  "Quantities double-checked against drawing",
-  "Tolerances reviewed — achievable on selected machine",
-  "Lead time reviewed — realistic for current workload",
-  "Margin is acceptable — no underpriced line items",
+  "Material confirmed — grade and specification verified",
+  "Material availability verified with supplier",
+  "Drawing revision confirmed — latest version used",
+  "Quantities match the customer's enquiry/PO",
+  "All tolerances achievable on selected machine",
+  "Surface finish requirements reviewed and costed",
+  "Lead time is realistic for current workload",
+  "Setup hours are reasonable for part complexity",
+  "Special tooling included if required",
+  "Outside processing (heat treatment, plating, etc.) included",
+  "Delivery cost included or excluded as agreed",
+  "Effective margin is acceptable — no underpriced line items",
+  "Payment terms and quote validity date correct",
 ];
 
 export function PresentQuote() {
@@ -446,13 +454,13 @@ export function PresentQuote() {
 
       {/* Cost checklist dialog */}
       <Dialog open={showCostChecklist} onOpenChange={setShowCostChecklist}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Pre-PDF Checklist</DialogTitle>
           </DialogHeader>
-          <div className="py-2 space-y-3">
+          <div className="py-2 space-y-2.5">
             <p className="text-sm text-muted-foreground">
-              Tick all items before generating the PDF.
+              Review all items before generating the PDF. You can proceed at any time.
             </p>
             {COST_CHECKLIST.map((item, i) => (
               <div key={i} className="flex items-start gap-3">
@@ -477,14 +485,28 @@ export function PresentQuote() {
                 </label>
               </div>
             ))}
+            {checkedItems.size < COST_CHECKLIST.length && (
+              <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+                {COST_CHECKLIST.length - checkedItems.size} item{COST_CHECKLIST.length - checkedItems.size !== 1 ? "s" : ""} unchecked — review before sending to customer.
+              </div>
+            )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2 flex-wrap">
             <Button
               variant="outline"
               onClick={() => setShowCostChecklist(false)}
             >
               Cancel
             </Button>
+            {checkedItems.size < COST_CHECKLIST.length && (
+              <Button
+                variant="outline"
+                onClick={handleConfirmPrint}
+                className="border-amber-300 text-amber-700 hover:bg-amber-50"
+              >
+                Generate PDF anyway
+              </Button>
+            )}
             <Button
               onClick={handleConfirmPrint}
               disabled={checkedItems.size < COST_CHECKLIST.length}

@@ -1000,6 +1000,9 @@ export function QuoteWizard({
   const [customQtyInput, setCustomQtyInput] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
 
+  const [customerDefaultsMsg, setCustomerDefaultsMsg] = useState<string | null>(null);
+  const watchedCustomerId = form.watch("customerId");
+
   // Set defaults from settings once loaded
   useEffect(() => {
     if (settings && !initialValues?.quoteDate) {
@@ -1027,6 +1030,53 @@ export function QuoteWizard({
       }
     }
   }, [settings, initialValues, form]);
+
+  // Auto-populate from customer quality defaults when customer changes (new quotes only)
+  useEffect(() => {
+    if (!isNewQuote || !watchedCustomerId || !customers) return;
+    const customer = customers.find((c) => c.id === watchedCustomerId);
+    if (!customer) return;
+
+    const applied: string[] = [];
+
+    if (customer.defaultPaymentTerms && !form.getValues("paymentTerms")) {
+      form.setValue("paymentTerms", customer.defaultPaymentTerms);
+      applied.push("payment terms");
+    }
+
+    if (customer.typicalMarginPct != null) {
+      const settingsMargin = settings?.defaultMarginPercentage ?? 30;
+      const items = form.getValues("lineItems");
+      const allAtDefault = items.every(
+        (i) => i.profitMarginPercentage === 30 || i.profitMarginPercentage === settingsMargin,
+      );
+      if (allAtDefault) {
+        items.forEach((_, idx) => {
+          form.setValue(`lineItems.${idx}.profitMarginPercentage`, customer.typicalMarginPct!);
+        });
+        applied.push(`margin (${customer.typicalMarginPct}%)`);
+      }
+    }
+
+    if (customer.materialCertRequired && !form.getValues("materialCertIncluded")) {
+      form.setValue("materialCertIncluded", true);
+      applied.push("material cert");
+    }
+    if (customer.inspectionReportRequired && !form.getValues("inspectionReportIncluded")) {
+      form.setValue("inspectionReportIncluded", true);
+      applied.push("inspection report");
+    }
+    if (customer.fairRequired && !form.getValues("fairIncluded")) {
+      form.setValue("fairIncluded", true);
+      applied.push("FAIR");
+    }
+
+    if (applied.length > 0) {
+      setCustomerDefaultsMsg(`Defaults applied from customer: ${applied.join(", ")}.`);
+    } else {
+      setCustomerDefaultsMsg(null);
+    }
+  }, [watchedCustomerId, customers, isNewQuote, settings, form]);
 
   const applyTemplate = (t: QuoteTemplate) => {
     const d = t.defaults;
@@ -1315,6 +1365,12 @@ export function QuoteWizard({
                       </FormItem>
                     )}
                   />
+                  {customerDefaultsMsg && (
+                    <div className="flex items-start gap-2 rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-sm text-blue-800">
+                      <span className="mt-0.5">ℹ️</span>
+                      <span>{customerDefaultsMsg}</span>
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField
                       control={form.control}

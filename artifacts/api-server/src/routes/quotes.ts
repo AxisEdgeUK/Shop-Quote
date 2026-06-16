@@ -286,6 +286,8 @@ router.get("/quotes", async (req, res): Promise<void> => {
       validUntil: quotesTable.validUntil,
       createdAt: quotesTable.createdAt,
       customerName: customersTable.companyName,
+      lostReason: quotesTable.lostReason,
+      followUpDate: quotesTable.followUpDate,
     })
     .from(quotesTable)
     .leftJoin(customersTable, eq(quotesTable.customerId, customersTable.id))
@@ -314,6 +316,8 @@ router.get("/quotes", async (req, res): Promise<void> => {
     validUntil: q.validUntil,
     totalValue: quoteTotals.get(q.id) ?? 0,
     createdAt: q.createdAt.toISOString(),
+    lostReason: q.lostReason ?? undefined,
+    followUpDate: q.followUpDate ?? null,
   }));
 
   res.json(ListQuotesResponse.parse(result));
