@@ -391,6 +391,7 @@ router.post("/quotes", async (req, res): Promise<void> => {
       inspectionReportIncluded: parsed.data.inspectionReportIncluded ?? false,
       fairIncluded: parsed.data.fairIncluded ?? false,
       cmmReportIncluded: parsed.data.cmmReportIncluded ?? false,
+      specialPackagingIncluded: parsed.data.specialPackagingIncluded ?? false,
       priceBreakQtys: parsed.data.priceBreakQtys ?? "",
       deliveryMethod: parsed.data.deliveryMethod ?? "",
       deliveryCost: String(parsed.data.deliveryCost ?? 0),

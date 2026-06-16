@@ -389,33 +389,54 @@ export function AnalyticsPage() {
                 No lost quotes yet
               </div>
             ) : (
-              <div
-                className="divide-y"
-                style={{ borderColor: "hsl(var(--card-border))" }}
-              >
-                {stats.lostReasons.map(({ reason, count, value }) => (
-                  <div
-                    key={reason}
-                    className="flex items-center justify-between px-4 py-2.5 gap-2"
-                  >
-                    <span className="text-sm truncate flex-1">{reason}</span>
-                    <span
-                      className="text-xs font-mono shrink-0"
-                      style={{ color: "hsl(var(--muted-foreground))" }}
-                    >
-                      {cur}{value.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                    </span>
-                    <span
-                      className="text-xs font-mono font-bold shrink-0 px-2 py-0.5 rounded-full"
-                      style={{
-                        background: "hsl(0 84% 95%)",
-                        color: "hsl(0 72% 51%)",
-                      }}
-                    >
-                      {count}
-                    </span>
-                  </div>
-                ))}
+              <div className="px-4 py-3 space-y-3">
+                {(() => {
+                  const maxCount = Math.max(...stats.lostReasons.map((r) => r.count), 1);
+                  return stats.lostReasons.map(({ reason, count, value }) => {
+                    const pct = Math.round((count / maxCount) * 100);
+                    return (
+                      <div key={reason} className="space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs truncate flex-1 font-medium">{reason}</span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span
+                              className="text-xs font-mono"
+                              style={{ color: "hsl(var(--muted-foreground))" }}
+                            >
+                              {cur}{value.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                            </span>
+                            <span
+                              className="text-xs font-mono font-bold px-1.5 py-0.5 rounded-full"
+                              style={{
+                                background: "hsl(0 84% 95%)",
+                                color: "hsl(0 72% 51%)",
+                                minWidth: "1.5rem",
+                                textAlign: "center",
+                              }}
+                            >
+                              {count}
+                            </span>
+                          </div>
+                        </div>
+                        <div
+                          className="w-full rounded-full overflow-hidden"
+                          style={{
+                            height: "6px",
+                            background: "hsl(var(--muted))",
+                          }}
+                        >
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${pct}%`,
+                              background: "hsl(0 72% 51%)",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             )}
           </div>
