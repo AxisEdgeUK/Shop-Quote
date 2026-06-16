@@ -1,0 +1,267 @@
+Having looked at what SHOP Quote already does, I would **not** implement most of that prompt right now.
+
+The prompt is drifting towards a lightweight ERP.
+
+Here's what I would keep, remove, and defer.
+
+### Keep Now (High Value)
+
+**1. Missing Cost Checklist**
+This directly prevents under-quoting.
+
+**2. Quote Follow-Up**
+Huge value.
+Most small shops never systematically follow up quotations.
+
+**3. Won/Lost Analysis**
+You already have some of this.
+Expand it slightly.
+
+**4. Customer Quality Defaults**
+Very useful.
+Material certs, FAIR, inspection reports, payment terms.
+
+**5. Better Similar Quote Search**
+This is probably one of the most valuable features in the entire system.
+
+---
+
+### Defer Until After Testing
+
+**Quote vs Actual Tracker**
+
+Good idea.
+
+But you need:
+
+* users
+* won jobs
+* completed jobs
+
+before it becomes valuable.
+
+Build after beta.
+
+---
+
+### Remove Completely (For Now)
+
+**Buyer RFQ Portal**
+
+Sounds attractive.
+
+But:
+
+* adds complexity
+* adds support burden
+* adds customer-facing infrastructure
+
+Not needed for first revenue.
+
+---
+
+**Outside Process Supplier Library**
+
+Useful later.
+
+Not required to prove the business.
+
+A simple chargeable extras system already covers 80% of the value.
+
+---
+
+**AI Drawing Scan Expansion**
+
+I would actually leave this alone.
+
+Your biggest risk is becoming:
+
+> "AI quoting software"
+
+instead of
+
+> "the easiest way to quote machining work."
+
+---
+
+### What I Think Is Missing
+
+One thing not in that prompt:
+
+## Quote Turnaround KPI
+
+Every quote should record:
+
+* RFQ received date
+* Quote sent date
+
+Dashboard:
+
+```text
+Average Quote Turnaround
+
+This Month:
+1.8 days
+
+Last Month:
+2.4 days
+```
+
+This is something owners actually care about.
+
+---
+
+## My Final Prompt
+
+Review SHOP Quote and add only the highest-value features before beta testing.
+
+Do not add ERP functionality.
+
+Do not add stock control.
+
+Do not add scheduling.
+
+Do not add accounting features.
+
+Keep the software focused on quoting.
+
+1. Missing Cost Checklist
+
+Before generating a customer PDF, display:
+
+Quote Review Checklist
+
+* Material included
+* Setup included
+* Programming included
+* Machining time included
+* Inspection included
+* Tooling/NRE included
+* Deburring included
+* Finishing included
+* Outside process included
+* Delivery included
+* Margin reviewed
+* Quantity breaks reviewed
+* Drawing revision checked
+
+If items remain unticked:
+show warning only.
+
+Do not block PDF generation.
+
+2. Quote Follow-Up
+
+Add:
+
+* Follow-up date
+* Follow-up notes
+* Last contacted date
+* Next action
+
+Add quick actions:
+
+* Call Customer
+* Send Follow-Up
+* Waiting Response
+* Won
+* Lost
+
+3. Won/Lost Analysis
+
+Expand existing quote status reporting.
+
+Track:
+
+* Won date
+* Lost date
+* Lost reason
+* Customer feedback
+
+Lost reasons:
+
+* Price too high
+* Lead time too long
+* No response
+* Existing supplier
+* Capability issue
+* Quality requirement issue
+* Other
+
+Dashboard:
+
+* Quotes sent
+* Quotes won
+* Quotes lost
+* Win rate
+* Total quoted value
+* Total won value
+
+4. Customer Quality Defaults
+
+Allow customer defaults:
+
+* Material Cert Required
+* Inspection Report Required
+* FAIR Required
+* Certificate of Conformity Required
+* Special Packaging Required
+* Payment Terms
+* Typical Margin
+* Notes
+
+When customer is selected:
+auto-populate these defaults.
+
+5. Similar Quote Search
+
+Improve quote search.
+
+Allow search by:
+
+* Customer
+* Material
+* Drawing Number
+* Part Name
+* Quote Number
+* Process
+* Quantity Range
+
+Goal:
+
+Have we quoted this before?
+
+Improve duplicate / quote similar workflow.
+
+6. Quote Turnaround KPI
+
+Track:
+
+* RFQ Received Date
+* Quote Sent Date
+
+Dashboard:
+
+Average Quote Turnaround
+
+This Month
+Last Month
+
+7. Product Rule
+
+Do not add:
+
+* ERP features
+* Stock control
+* Scheduling
+* Shop floor control
+* Inventory management
+* Purchasing systems
+
+The goal is to remain the fastest and simplest quoting system for small CNC machine shops.
+
+After implementation:
+
+Run full quote flow testing and confirm nothing has broken.
+
+If it were my money, I'd stop after that and start getting it in front of shops. The next meaningful improvements should come from real users, not us guessing.
