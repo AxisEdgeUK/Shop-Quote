@@ -343,6 +343,7 @@ export const ListQuotesResponseItem = zod.object({
   material: zod.string().optional(),
   processType: zod.string().optional(),
   drawingNumber: zod.string().optional(),
+  quantity: zod.number().optional(),
 });
 export const ListQuotesResponse = zod.array(ListQuotesResponseItem);
 
@@ -367,6 +368,7 @@ export const CreateQuoteBody = zod.object({
   inspectionReportIncluded: zod.boolean().optional(),
   fairIncluded: zod.boolean().optional(),
   cmmReportIncluded: zod.boolean().optional(),
+  specialPackagingIncluded: zod.boolean().optional(),
   priceBreakQtys: zod.string().optional(),
   deliveryMethod: zod.string().optional(),
   deliveryCost: zod.number().optional(),
@@ -448,6 +450,7 @@ export const GetQuoteResponse = zod.object({
   inspectionReportIncluded: zod.boolean(),
   fairIncluded: zod.boolean(),
   cmmReportIncluded: zod.boolean(),
+  specialPackagingIncluded: zod.boolean(),
   priceBreakQtys: zod.string(),
   deliveryMethod: zod.string(),
   deliveryCost: zod.number(),
@@ -546,6 +549,7 @@ export const UpdateQuoteBody = zod.object({
   inspectionReportIncluded: zod.boolean().optional(),
   fairIncluded: zod.boolean().optional(),
   cmmReportIncluded: zod.boolean().optional(),
+  specialPackagingIncluded: zod.boolean().optional(),
   priceBreakQtys: zod.string().optional(),
   deliveryMethod: zod.string().optional(),
   deliveryCost: zod.number().optional(),
@@ -622,6 +626,7 @@ export const UpdateQuoteResponse = zod.object({
   inspectionReportIncluded: zod.boolean(),
   fairIncluded: zod.boolean(),
   cmmReportIncluded: zod.boolean(),
+  specialPackagingIncluded: zod.boolean(),
   priceBreakQtys: zod.string(),
   deliveryMethod: zod.string(),
   deliveryCost: zod.number(),

@@ -302,10 +302,11 @@ router.get("/quotes", async (req, res): Promise<void> => {
       material: quoteLineItemsTable.material,
       processType: quoteLineItemsTable.processType,
       drawingNumber: quoteLineItemsTable.drawingNumber,
+      quantity: quoteLineItemsTable.quantity,
     })
     .from(quoteLineItemsTable);
 
-  type FirstItem = { minId: number; partName: string; material: string; processType: string; drawingNumber: string };
+  type FirstItem = { minId: number; partName: string; material: string; processType: string; drawingNumber: string; quantity: number };
   const quoteTotals = new Map<number, number>();
   const quoteFirstItem = new Map<number, FirstItem>();
   for (const item of lineItems) {
@@ -319,6 +320,7 @@ router.get("/quotes", async (req, res): Promise<void> => {
         material: item.material,
         processType: item.processType,
         drawingNumber: item.drawingNumber,
+        quantity: item.quantity,
       });
     }
   }
@@ -341,6 +343,7 @@ router.get("/quotes", async (req, res): Promise<void> => {
       material: first?.material ?? "",
       processType: first?.processType ?? "",
       drawingNumber: first?.drawingNumber ?? "",
+      quantity: first?.quantity ?? undefined,
     };
   });
 
@@ -529,10 +532,28 @@ router.patch("/quotes/:id", async (req, res): Promise<void> => {
   if (d.lastContactedDate !== undefined) updateData.lastContactedDate = d.lastContactedDate;
   if (d.nextAction !== undefined) updateData.nextAction = d.nextAction;
   if (d.customerFeedback !== undefined) updateData.customerFeedback = d.customerFeedback;
+  if (d.specialPackagingIncluded !== undefined)
+    updateData.specialPackagingIncluded = d.specialPackagingIncluded;
 
-  if (d.status === "Sent" && updateData.status === "Sent") {
-    const today = new Date().toISOString().split("T")[0];
-    if (!updateData.quoteSentDate) updateData.quoteSentDate = today;
+  // Fetch the current row so we can check for Sent transition before writing
+  const [currentRow] = await db
+    .select({ status: quotesTable.status, quoteSentDate: quotesTable.quoteSentDate })
+    .from(quotesTable)
+    .where(eq(quotesTable.id, params.data.id))
+    .limit(1);
+  if (!currentRow) {
+    res.status(404).json({ error: "Quote not found" });
+    return;
+  }
+
+  // Only auto-fill quoteSentDate when status is actually transitioning TO Sent
+  if (
+    d.status === "Sent" &&
+    currentRow.status !== "Sent" &&
+    !currentRow.quoteSentDate &&
+    !updateData.quoteSentDate
+  ) {
+    updateData.quoteSentDate = new Date().toISOString().split("T")[0];
   }
 
   const [quote] = await db

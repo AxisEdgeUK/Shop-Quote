@@ -46,6 +46,9 @@ export const quotesTable = pgTable("quotes", {
     .default(false),
   fairIncluded: boolean("fair_included").notNull().default(false),
   cmmReportIncluded: boolean("cmm_report_included").notNull().default(false),
+  specialPackagingIncluded: boolean("special_packaging_included")
+    .notNull()
+    .default(false),
   priceBreakQtys: text("price_break_qtys").notNull().default(""),
   deliveryMethod: text("delivery_method").notNull().default(""),
   deliveryCost: numeric("delivery_cost", { precision: 10, scale: 2 })

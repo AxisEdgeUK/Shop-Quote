@@ -255,6 +255,7 @@ export interface QuoteSummary {
   material?: string;
   processType?: string;
   drawingNumber?: string;
+  quantity?: number;
 }
 
 export interface Quote {
@@ -285,6 +286,7 @@ export interface Quote {
   inspectionReportIncluded: boolean;
   fairIncluded: boolean;
   cmmReportIncluded: boolean;
+  specialPackagingIncluded: boolean;
   priceBreakQtys: string;
   deliveryMethod: string;
   deliveryCost: number;
@@ -323,6 +325,7 @@ export interface QuoteInput {
   inspectionReportIncluded?: boolean;
   fairIncluded?: boolean;
   cmmReportIncluded?: boolean;
+  specialPackagingIncluded?: boolean;
   priceBreakQtys?: string;
   deliveryMethod?: string;
   deliveryCost?: number;
@@ -367,6 +370,7 @@ export interface QuoteUpdate {
   inspectionReportIncluded?: boolean;
   fairIncluded?: boolean;
   cmmReportIncluded?: boolean;
+  specialPackagingIncluded?: boolean;
   priceBreakQtys?: string;
   deliveryMethod?: string;
   deliveryCost?: number;

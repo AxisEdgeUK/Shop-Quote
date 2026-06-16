@@ -1142,6 +1142,8 @@ components:
           type: string
         drawingNumber:
           type: string
+        quantity:
+          type: number
 
     Quote:
       type: object
@@ -1171,6 +1173,7 @@ components:
         - inspectionReportIncluded
         - fairIncluded
         - cmmReportIncluded
+        - specialPackagingIncluded
         - priceBreakQtys
         - deliveryMethod
         - deliveryCost
@@ -1231,6 +1234,8 @@ components:
         fairIncluded:
           type: boolean
         cmmReportIncluded:
+          type: boolean
+        specialPackagingIncluded:
           type: boolean
         priceBreakQtys:
           type: string
@@ -1302,6 +1307,8 @@ components:
         fairIncluded:
           type: boolean
         cmmReportIncluded:
+          type: boolean
+        specialPackagingIncluded:
           type: boolean
         priceBreakQtys:
           type: string
@@ -1378,6 +1385,8 @@ components:
         fairIncluded:
           type: boolean
         cmmReportIncluded:
+          type: boolean
+        specialPackagingIncluded:
           type: boolean
         priceBreakQtys:
           type: string

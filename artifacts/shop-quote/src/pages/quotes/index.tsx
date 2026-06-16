@@ -90,6 +90,8 @@ export function QuotesList() {
   const [materialFilter, setMaterialFilter] = useState("");
   const [processFilter, setProcessFilter] = useState("");
   const [drawingFilter, setDrawingFilter] = useState("");
+  const [qtyMin, setQtyMin] = useState("");
+  const [qtyMax, setQtyMax] = useState("");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
@@ -146,8 +148,22 @@ export function QuotesList() {
       const df = drawingFilter.trim().toLowerCase();
       list = list.filter((quote) => ((quote as any).drawingNumber ?? "").toLowerCase().includes(df));
     }
+    const qtyMinNum = qtyMin.trim() !== "" ? parseFloat(qtyMin) : null;
+    const qtyMaxNum = qtyMax.trim() !== "" ? parseFloat(qtyMax) : null;
+    if (qtyMinNum !== null && !isNaN(qtyMinNum)) {
+      list = list.filter((quote) => {
+        const q = (quote as any).quantity;
+        return q != null && q >= qtyMinNum;
+      });
+    }
+    if (qtyMaxNum !== null && !isNaN(qtyMaxNum)) {
+      list = list.filter((quote) => {
+        const q = (quote as any).quantity;
+        return q != null && q <= qtyMaxNum;
+      });
+    }
     return list;
-  }, [quotes, searchQuery, statusFilter, customerFilter, partFilter, materialFilter, processFilter, drawingFilter]);
+  }, [quotes, searchQuery, statusFilter, customerFilter, partFilter, materialFilter, processFilter, drawingFilter, qtyMin, qtyMax]);
 
   const allIds = filteredQuotes.map((q) => q.id);
   const allSelected =
@@ -409,7 +425,27 @@ export function QuotesList() {
                 onChange={(e) => setDrawingFilter(e.target.value)}
               />
             </div>
-            {(customerFilter !== "all" || partFilter || materialFilter || processFilter || drawingFilter) && (
+            <div className="flex items-center gap-2 min-w-[200px]">
+              <span className="text-xs font-medium text-muted-foreground w-16 shrink-0">Qty Range</span>
+              <Input
+                className="h-9 w-20"
+                placeholder="Min"
+                type="number"
+                min={0}
+                value={qtyMin}
+                onChange={(e) => setQtyMin(e.target.value)}
+              />
+              <span className="text-xs text-muted-foreground">–</span>
+              <Input
+                className="h-9 w-20"
+                placeholder="Max"
+                type="number"
+                min={0}
+                value={qtyMax}
+                onChange={(e) => setQtyMax(e.target.value)}
+              />
+            </div>
+            {(customerFilter !== "all" || partFilter || materialFilter || processFilter || drawingFilter || qtyMin || qtyMax) && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -420,6 +456,8 @@ export function QuotesList() {
                   setMaterialFilter("");
                   setProcessFilter("");
                   setDrawingFilter("");
+                  setQtyMin("");
+                  setQtyMax("");
                 }}
               >
                 <X className="w-3 h-3 mr-1" /> Clear filters

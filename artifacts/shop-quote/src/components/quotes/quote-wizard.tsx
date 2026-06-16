@@ -108,6 +108,7 @@ const quoteSchema = z.object({
   inspectionReportIncluded: z.boolean().default(false),
   fairIncluded: z.boolean().default(false),
   cmmReportIncluded: z.boolean().default(false),
+  specialPackagingIncluded: z.boolean().default(false),
   priceBreakQtys: z.string().default(""),
   deliveryMethod: z.string().optional(),
   deliveryCost: z.coerce.number().default(0),
@@ -970,6 +971,7 @@ export function QuoteWizard({
         initialValues?.inspectionReportIncluded || false,
       fairIncluded: initialValues?.fairIncluded || false,
       cmmReportIncluded: initialValues?.cmmReportIncluded || false,
+      specialPackagingIncluded: initialValues?.specialPackagingIncluded || false,
       priceBreakQtys: initialValues?.priceBreakQtys || "",
       deliveryMethod: initialValues?.deliveryMethod || "",
       deliveryCost: parseFloat(String(initialValues?.deliveryCost || 0)),
@@ -1085,6 +1087,17 @@ export function QuoteWizard({
     if (customer.fairRequired && !form.getValues("fairIncluded")) {
       form.setValue("fairIncluded", true);
       applied.push("FAIR");
+    }
+    if (customer.cocRequired && !form.getValues("cmmReportIncluded")) {
+      form.setValue("cmmReportIncluded", true);
+      applied.push("CMM report (CoC)");
+    }
+    if (
+      customer.specialPackagingRequired &&
+      !form.getValues("specialPackagingIncluded")
+    ) {
+      form.setValue("specialPackagingIncluded", true);
+      applied.push("special packaging");
     }
 
     if (applied.length > 0) {
@@ -1768,6 +1781,10 @@ export function QuoteWizard({
                       {
                         name: "cmmReportIncluded" as const,
                         label: "CMM Report",
+                      },
+                      {
+                        name: "specialPackagingIncluded" as const,
+                        label: "Special Packaging",
                       },
                     ].map(({ name, label }) => (
                       <FormField
