@@ -181,8 +181,8 @@ export function DashboardPage() {
         />
         <KpiCard
           label="Avg Turnaround"
-          value={stats.avgTurnaroundDaysThisMonth > 0 ? `${stats.avgTurnaroundDaysThisMonth.toFixed(1)}d` : "—"}
-          sub={stats.avgTurnaroundDaysLastMonth > 0 ? `Last month: ${stats.avgTurnaroundDaysLastMonth.toFixed(1)}d` : "RFQ received → quote sent"}
+          value={stats.avgTurnaroundDaysThisMonth != null ? `${stats.avgTurnaroundDaysThisMonth.toFixed(1)}d` : "—"}
+          sub={stats.avgTurnaroundDaysLastMonth != null ? `Last month: ${stats.avgTurnaroundDaysLastMonth.toFixed(1)}d` : "RFQ received → quote sent"}
         />
       </div>
 

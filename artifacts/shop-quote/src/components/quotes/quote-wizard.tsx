@@ -112,6 +112,11 @@ const quoteSchema = z.object({
   deliveryMethod: z.string().optional(),
   deliveryCost: z.coerce.number().default(0),
   includeDeliveryInTotal: z.boolean().default(true),
+  rfqReceivedDate: z.string().optional(),
+  followUpDate: z.string().optional(),
+  followUpNotes: z.string().optional(),
+  nextAction: z.string().optional(),
+  lastContactedDate: z.string().optional(),
   lineItems: z.array(lineItemSchema).min(1, "At least one part is required"),
 });
 
@@ -898,7 +903,13 @@ function ScanAssistPanel({
 
 /* ── Props ───────────────────────────────────────────────────── */
 interface QuoteWizardProps {
-  initialValues?: Partial<QuoteFormValues>;
+  initialValues?: Partial<Omit<QuoteFormValues, "rfqReceivedDate" | "followUpDate" | "followUpNotes" | "nextAction" | "lastContactedDate">> & {
+    rfqReceivedDate?: string | null;
+    followUpDate?: string | null;
+    followUpNotes?: string | null;
+    nextAction?: string | null;
+    lastContactedDate?: string | null;
+  };
   onSubmit: (values: QuoteFormValues) => void;
   isSubmitting?: boolean;
   savedQuoteId?: number;
@@ -963,6 +974,11 @@ export function QuoteWizard({
       deliveryMethod: initialValues?.deliveryMethod || "",
       deliveryCost: parseFloat(String(initialValues?.deliveryCost || 0)),
       includeDeliveryInTotal: initialValues?.includeDeliveryInTotal ?? true,
+      rfqReceivedDate: (initialValues as any)?.rfqReceivedDate || "",
+      followUpDate: (initialValues as any)?.followUpDate || "",
+      followUpNotes: (initialValues as any)?.followUpNotes || "",
+      nextAction: (initialValues as any)?.nextAction || "",
+      lastContactedDate: (initialValues as any)?.lastContactedDate || "",
       lineItems: initialValues?.lineItems?.length
         ? (initialValues.lineItems as any)
         : [
@@ -1371,7 +1387,7 @@ export function QuoteWizard({
                       <span>{customerDefaultsMsg}</span>
                     </div>
                   )}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <FormField
                       control={form.control}
                       name="status"
@@ -1424,7 +1440,69 @@ export function QuoteWizard({
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={form.control}
+                      name="rfqReceivedDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>RFQ Received</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
                   </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="followUpDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Follow-up Date</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="lastContactedDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Contacted</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="nextAction"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Next Action</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. Call to confirm receipt, chase for PO…" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="followUpNotes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Follow-up Notes</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Internal follow-up notes…" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
                   {showAdvanced && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField

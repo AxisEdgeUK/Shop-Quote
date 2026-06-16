@@ -66,6 +66,7 @@ export function AnalyticsPage() {
 
   const stats = useMemo(() => {
     const quotes = allQuotes ?? [];
+    const sentQuotes = quotes.filter((q) => q.status === "Sent" || q.status === "Won" || q.status === "Lost");
     const wonQuotes = quotes.filter((q) => q.status === "Won");
     const lostQuotes = quotes.filter((q) => q.status === "Lost");
 
@@ -167,6 +168,7 @@ export function AnalyticsPage() {
 
     return {
       totalQuotes: quotes.length,
+      sentCount: sentQuotes.length,
       wonCount: wonQuotes.length,
       lostCount: lostQuotes.length,
       totalValue,
@@ -224,41 +226,42 @@ export function AnalyticsPage() {
       {/* KPI row */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         <StatCard
-          label="Total Quoted"
+          label="Quotes Sent"
+          value={stats.sentCount}
+          sub={`${stats.totalQuotes} total`}
+          icon={<BarChart3 className="w-3.5 h-3.5" />}
+        />
+        <StatCard
+          label="Quotes Won"
+          value={stats.wonCount}
+          sub={`avg ${cur}${Math.round(stats.avgWon).toLocaleString()}`}
+          accent
+          icon={<Trophy className="w-3.5 h-3.5" />}
+        />
+        <StatCard
+          label="Quotes Lost"
+          value={stats.lostCount}
+          sub={`avg ${cur}${Math.round(stats.avgLost).toLocaleString()}`}
+          icon={<TrendingDown className="w-3.5 h-3.5" />}
+        />
+        <StatCard
+          label="Win Rate"
+          value={`${stats.winRate.toFixed(1)}%`}
+          sub={`${stats.wonCount} won of ${stats.wonCount + stats.lostCount} closed`}
+          icon={<TrendingUp className="w-3.5 h-3.5" />}
+        />
+        <StatCard
+          label="Total Quoted Value"
           value={`${cur}${stats.totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
           sub={`${stats.totalQuotes} quotes`}
           icon={<BarChart3 className="w-3.5 h-3.5" />}
         />
         <StatCard
-          label="Won Value"
+          label="Total Won Value"
           value={`${cur}${stats.wonValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
-          sub={`${stats.wonCount} won · avg ${cur}${Math.round(stats.avgWon).toLocaleString()}`}
+          sub={`value win rate ${stats.valueWinRate.toFixed(1)}%`}
           accent
           icon={<Trophy className="w-3.5 h-3.5" />}
-        />
-        <StatCard
-          label="Win Rate"
-          value={`${stats.winRate.toFixed(1)}%`}
-          sub={`${stats.wonCount} won · ${stats.lostCount} lost`}
-          icon={<TrendingUp className="w-3.5 h-3.5" />}
-        />
-        <StatCard
-          label="Value Win Rate"
-          value={`${stats.valueWinRate.toFixed(1)}%`}
-          sub="Of closed-deal value won"
-          icon={<TrendingUp className="w-3.5 h-3.5" />}
-        />
-        <StatCard
-          label="Lost Value"
-          value={`${cur}${stats.lostValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
-          sub={`${stats.lostCount} lost · avg ${cur}${Math.round(stats.avgLost).toLocaleString()}`}
-          icon={<TrendingDown className="w-3.5 h-3.5" />}
-        />
-        <StatCard
-          label="Pipeline"
-          value={`${cur}${stats.pipelineValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
-          sub="Draft + Sent quotes"
-          icon={<BarChart3 className="w-3.5 h-3.5" />}
         />
       </div>
 

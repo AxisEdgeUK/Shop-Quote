@@ -887,7 +887,7 @@ export function ViewQuote() {
                         setFuNextAction(action);
                         setFuLastContacted(today);
                         updateQuote.mutate(
-                          { id: quote.id, data: { nextAction: action, lastContactedDate: today } as any },
+                          { id: quote.id, data: { nextAction: action, lastContactedDate: today, status: "Sent" } as any },
                           {
                             onSuccess: () => {
                               queryClient.invalidateQueries({ queryKey: getGetQuoteQueryKey(id) });
@@ -908,7 +908,7 @@ export function ViewQuote() {
                         const action = "Waiting for customer response";
                         setFuNextAction(action);
                         updateQuote.mutate(
-                          { id: quote.id, data: { nextAction: action } as any },
+                          { id: quote.id, data: { nextAction: action, status: "Sent" } as any },
                           {
                             onSuccess: () => {
                               queryClient.invalidateQueries({ queryKey: getGetQuoteQueryKey(id) });

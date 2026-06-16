@@ -86,6 +86,10 @@ export function QuotesList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [customerFilter, setCustomerFilter] = useState<string>("all");
+  const [partFilter, setPartFilter] = useState("");
+  const [materialFilter, setMaterialFilter] = useState("");
+  const [processFilter, setProcessFilter] = useState("");
+  const [drawingFilter, setDrawingFilter] = useState("");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
@@ -112,7 +116,10 @@ export function QuotesList() {
       list = list.filter(
         (quote) =>
           quote.quoteNumber.toLowerCase().includes(q) ||
-          quote.customerName.toLowerCase().includes(q),
+          quote.customerName.toLowerCase().includes(q) ||
+          ((quote as any).partName ?? "").toLowerCase().includes(q) ||
+          ((quote as any).material ?? "").toLowerCase().includes(q) ||
+          ((quote as any).drawingNumber ?? "").toLowerCase().includes(q),
       );
     }
     if (statusFilter === "overdue") {
@@ -123,8 +130,24 @@ export function QuotesList() {
     if (customerFilter !== "all") {
       list = list.filter((quote) => quote.customerName === customerFilter);
     }
+    if (partFilter.trim()) {
+      const pf = partFilter.trim().toLowerCase();
+      list = list.filter((quote) => ((quote as any).partName ?? "").toLowerCase().includes(pf));
+    }
+    if (materialFilter.trim()) {
+      const mf = materialFilter.trim().toLowerCase();
+      list = list.filter((quote) => ((quote as any).material ?? "").toLowerCase().includes(mf));
+    }
+    if (processFilter.trim()) {
+      const prf = processFilter.trim().toLowerCase();
+      list = list.filter((quote) => ((quote as any).processType ?? "").toLowerCase().includes(prf));
+    }
+    if (drawingFilter.trim()) {
+      const df = drawingFilter.trim().toLowerCase();
+      list = list.filter((quote) => ((quote as any).drawingNumber ?? "").toLowerCase().includes(df));
+    }
     return list;
-  }, [quotes, searchQuery, statusFilter, customerFilter]);
+  }, [quotes, searchQuery, statusFilter, customerFilter, partFilter, materialFilter, processFilter, drawingFilter]);
 
   const allIds = filteredQuotes.map((q) => q.id);
   const allSelected =
@@ -334,8 +357,8 @@ export function QuotesList() {
         </div>
         {showAdvancedFilters && (
           <div className="flex flex-wrap gap-2 p-3 rounded-lg border bg-muted/30">
-            <div className="flex items-center gap-2 min-w-[200px]">
-              <span className="text-xs font-medium text-muted-foreground w-20 shrink-0">Customer</span>
+            <div className="flex items-center gap-2 min-w-[180px]">
+              <span className="text-xs font-medium text-muted-foreground w-16 shrink-0">Customer</span>
               <Select value={customerFilter} onValueChange={setCustomerFilter}>
                 <SelectTrigger className="h-9 flex-1">
                   <SelectValue placeholder="All customers" />
@@ -350,12 +373,54 @@ export function QuotesList() {
                 </SelectContent>
               </Select>
             </div>
-            {(customerFilter !== "all") && (
+            <div className="flex items-center gap-2 min-w-[160px]">
+              <span className="text-xs font-medium text-muted-foreground w-16 shrink-0">Part Name</span>
+              <Input
+                className="h-9 flex-1"
+                placeholder="Filter…"
+                value={partFilter}
+                onChange={(e) => setPartFilter(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-2 min-w-[160px]">
+              <span className="text-xs font-medium text-muted-foreground w-16 shrink-0">Material</span>
+              <Input
+                className="h-9 flex-1"
+                placeholder="Filter…"
+                value={materialFilter}
+                onChange={(e) => setMaterialFilter(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-2 min-w-[160px]">
+              <span className="text-xs font-medium text-muted-foreground w-16 shrink-0">Process</span>
+              <Input
+                className="h-9 flex-1"
+                placeholder="Filter…"
+                value={processFilter}
+                onChange={(e) => setProcessFilter(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-2 min-w-[160px]">
+              <span className="text-xs font-medium text-muted-foreground w-16 shrink-0">Dwg No.</span>
+              <Input
+                className="h-9 flex-1"
+                placeholder="Filter…"
+                value={drawingFilter}
+                onChange={(e) => setDrawingFilter(e.target.value)}
+              />
+            </div>
+            {(customerFilter !== "all" || partFilter || materialFilter || processFilter || drawingFilter) && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-9 text-xs text-muted-foreground"
-                onClick={() => { setCustomerFilter("all"); }}
+                onClick={() => {
+                  setCustomerFilter("all");
+                  setPartFilter("");
+                  setMaterialFilter("");
+                  setProcessFilter("");
+                  setDrawingFilter("");
+                }}
               >
                 <X className="w-3 h-3 mr-1" /> Clear filters
               </Button>

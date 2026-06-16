@@ -295,30 +295,54 @@ router.get("/quotes", async (req, res): Promise<void> => {
 
   const lineItems = await db
     .select({
+      id: quoteLineItemsTable.id,
       quoteId: quoteLineItemsTable.quoteId,
       sellPrice: quoteLineItemsTable.sellPrice,
+      partName: quoteLineItemsTable.partName,
+      material: quoteLineItemsTable.material,
+      processType: quoteLineItemsTable.processType,
+      drawingNumber: quoteLineItemsTable.drawingNumber,
     })
     .from(quoteLineItemsTable);
 
+  type FirstItem = { minId: number; partName: string; material: string; processType: string; drawingNumber: string };
   const quoteTotals = new Map<number, number>();
+  const quoteFirstItem = new Map<number, FirstItem>();
   for (const item of lineItems) {
     const current = quoteTotals.get(item.quoteId) ?? 0;
     quoteTotals.set(item.quoteId, current + parseFloat(item.sellPrice));
+    const existing = quoteFirstItem.get(item.quoteId);
+    if (!existing || item.id < existing.minId) {
+      quoteFirstItem.set(item.quoteId, {
+        minId: item.id,
+        partName: item.partName,
+        material: item.material,
+        processType: item.processType,
+        drawingNumber: item.drawingNumber,
+      });
+    }
   }
 
-  const result = quotes.map((q) => ({
-    id: q.id,
-    quoteNumber: q.quoteNumber,
-    customerId: q.customerId,
-    customerName: q.customerName ?? "Unknown",
-    status: q.status,
-    quoteDate: q.quoteDate,
-    validUntil: q.validUntil,
-    totalValue: quoteTotals.get(q.id) ?? 0,
-    createdAt: q.createdAt.toISOString(),
-    lostReason: q.lostReason ?? undefined,
-    followUpDate: q.followUpDate ?? null,
-  }));
+  const result = quotes.map((q) => {
+    const first = quoteFirstItem.get(q.id);
+    return {
+      id: q.id,
+      quoteNumber: q.quoteNumber,
+      customerId: q.customerId,
+      customerName: q.customerName ?? "Unknown",
+      status: q.status,
+      quoteDate: q.quoteDate,
+      validUntil: q.validUntil,
+      totalValue: quoteTotals.get(q.id) ?? 0,
+      createdAt: q.createdAt.toISOString(),
+      lostReason: q.lostReason ?? undefined,
+      followUpDate: q.followUpDate ?? null,
+      partName: first?.partName ?? "",
+      material: first?.material ?? "",
+      processType: first?.processType ?? "",
+      drawingNumber: first?.drawingNumber ?? "",
+    };
+  });
 
   res.json(ListQuotesResponse.parse(result));
 });

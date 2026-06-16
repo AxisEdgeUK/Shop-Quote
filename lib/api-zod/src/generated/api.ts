@@ -33,8 +33,8 @@ export const GetDashboardStatsResponse = zod.object({
   wonValueThisMonth: zod.number(),
   lostValueThisMonth: zod.number(),
   avgWonValue: zod.number(),
-  avgTurnaroundDaysThisMonth: zod.number(),
-  avgTurnaroundDaysLastMonth: zod.number(),
+  avgTurnaroundDaysThisMonth: zod.number().nullable(),
+  avgTurnaroundDaysLastMonth: zod.number().nullable(),
 });
 
 /**
@@ -339,6 +339,10 @@ export const ListQuotesResponseItem = zod.object({
   createdAt: zod.string(),
   lostReason: zod.string().optional(),
   followUpDate: zod.string().nullish(),
+  partName: zod.string().optional(),
+  material: zod.string().optional(),
+  processType: zod.string().optional(),
+  drawingNumber: zod.string().optional(),
 });
 export const ListQuotesResponse = zod.array(ListQuotesResponseItem);
 

@@ -25,8 +25,10 @@ export interface DashboardStats {
   wonValueThisMonth: number;
   lostValueThisMonth: number;
   avgWonValue: number;
-  avgTurnaroundDaysThisMonth: number;
-  avgTurnaroundDaysLastMonth: number;
+  /** @nullable */
+  avgTurnaroundDaysThisMonth: number | null;
+  /** @nullable */
+  avgTurnaroundDaysLastMonth: number | null;
 }
 
 export interface Customer {
@@ -249,6 +251,10 @@ export interface QuoteSummary {
   lostReason?: string;
   /** @nullable */
   followUpDate?: string | null;
+  partName?: string;
+  material?: string;
+  processType?: string;
+  drawingNumber?: string;
 }
 
 export interface Quote {

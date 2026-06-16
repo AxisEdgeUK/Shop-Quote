@@ -598,9 +598,9 @@ components:
         avgWonValue:
           type: number
         avgTurnaroundDaysThisMonth:
-          type: number
+          type: ["number", "null"]
         avgTurnaroundDaysLastMonth:
-          type: number
+          type: ["number", "null"]
 
     Customer:
       type: object
@@ -1134,6 +1134,14 @@ components:
           type: string
         followUpDate:
           type: ["string", "null"]
+        partName:
+          type: string
+        material:
+          type: string
+        processType:
+          type: string
+        drawingNumber:
+          type: string
 
     Quote:
       type: object

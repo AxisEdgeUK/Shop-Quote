@@ -123,7 +123,7 @@ router.get("/dashboard/stats", async (req, res): Promise<void> => {
     }
   }
   const avg = (arr: number[]) =>
-    arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+    arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
   const avgTurnaroundDaysThisMonth = avg(turnaroundThisMonth);
   const avgTurnaroundDaysLastMonth = avg(turnaroundLastMonth);
 
