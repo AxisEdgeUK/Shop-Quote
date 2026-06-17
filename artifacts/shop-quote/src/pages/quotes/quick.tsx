@@ -22,6 +22,7 @@ import {
   ChevronDown,
   ChevronUp,
   Layers,
+  StickyNote,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,6 +83,14 @@ interface CalcResult {
   pricePerPart: number;
 }
 
+type MachineRow = {
+  id: number;
+  name: string;
+  hourlyRate: string | number;
+  setupRate: string | number;
+  active: boolean;
+};
+
 // ── Counters ──────────────────────────────────────────────────────────────────
 
 let addonKeyCounter = 0;
@@ -97,7 +106,7 @@ const DELIVERY_METHODS = ["Collection", "Local Delivery", "Courier", "Pallet", "
 const CUR = "£";
 const MAX_PARTS = 10;
 
-// ── Calculation ───────────────────────────────────────────────────────────────
+// ── Calc ───────────────────────────────────────────────────────────────────────
 
 function calcResult(
   setupHours: number,
@@ -139,55 +148,16 @@ function makePart(defaults: Partial<PartEntry> = {}): PartEntry {
   };
 }
 
-// ── Sub-component: Machine select ─────────────────────────────────────────────
-
-function MachineSelect({
-  machineId,
-  machines,
-  defaultHourlyRate,
-  onChange,
-}: {
-  machineId: number | null;
-  machines: { id: number; name: string; hourlyRate: string | number; active: boolean }[];
-  defaultHourlyRate: number;
-  onChange: (id: number | null) => void;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label>Machine</Label>
-      <Select
-        value={machineId != null ? String(machineId) : "0"}
-        onValueChange={(v) => onChange(v === "0" ? null : Number(v))}
-      >
-        <SelectTrigger className="h-10">
-          <SelectValue placeholder="Select machine..." />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="0">
-            Default rates ({CUR}{defaultHourlyRate.toFixed(0)}/hr)
-          </SelectItem>
-          {machines
-            .filter((m) => m.active)
-            .map((m) => (
-              <SelectItem key={m.id} value={String(m.id)}>
-                {m.name} ({CUR}{parseFloat(String(m.hourlyRate)).toFixed(0)}/hr)
-              </SelectItem>
-            ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
-
-// ── Sub-component: Part card (pack mode) ──────────────────────────────────────
+// ── PartCard ──────────────────────────────────────────────────────────────────
 
 interface PartCardProps {
   part: PartEntry;
   index: number;
   total: number;
   result: CalcResult;
-  machines: { id: number; name: string; hourlyRate: string | number; active: boolean }[];
+  machines: MachineRow[];
   defaultHourlyRate: number;
+  isPack: boolean;
   onUpdate: (patch: Partial<PartEntry>) => void;
   onDuplicate: () => void;
   onRemove: () => void;
@@ -202,12 +172,17 @@ function PartCard({
   result,
   machines,
   defaultHourlyRate,
+  isPack,
   onUpdate,
   onDuplicate,
   onRemove,
   onMoveUp,
   onMoveDown,
 }: PartCardProps) {
+  const [showNotes, setShowNotes] = useState(!!part.notes);
+
+  const activeMachines = machines.filter((m) => m.active);
+
   return (
     <div
       className="rounded border overflow-hidden"
@@ -216,162 +191,125 @@ function PartCard({
         borderColor: "hsl(var(--card-border))",
       }}
     >
-      {/* Card header */}
+      {/* ── Card header ── */}
       <div
-        className="flex items-center justify-between px-4 py-2.5"
+        className="flex items-center gap-2 px-3 py-2"
         style={{
-          background: "hsl(var(--muted)/0.4)",
+          background: "hsl(var(--muted)/0.45)",
           borderBottom: part.collapsed ? "none" : "1px solid hsl(var(--border))",
         }}
       >
-        <div className="flex items-center gap-2 min-w-0">
+        {isPack && (
           <span
-            className="text-xs font-bold shrink-0"
+            className="text-[10px] font-bold shrink-0 tabular-nums"
             style={{ color: "hsl(213 97% 58%)" }}
           >
-            PART {index + 1}
+            P{index + 1}
           </span>
-          {part.partName && (
-            <span className="text-sm font-medium truncate">{part.partName}</span>
-          )}
-          {!part.partName && (
-            <span className="text-sm text-muted-foreground italic">Untitled part</span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-0.5 shrink-0 ml-2">
-          {result.sellPrice > 0 && (
-            <span
-              className="text-sm font-mono font-bold mr-1"
-              style={{ color: "hsl(213 97% 58%)" }}
-            >
-              {CUR}{result.sellPrice.toFixed(2)}
+        )}
+        <span className="text-sm font-medium truncate flex-1 min-w-0">
+          {part.partName || (
+            <span className="italic text-muted-foreground">
+              {isPack ? `Part ${index + 1}` : "New part"}
             </span>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={onMoveUp}
-            disabled={index === 0}
-            title="Move up"
+        </span>
+
+        {result.sellPrice > 0 && (
+          <span
+            className="text-sm font-mono font-bold shrink-0"
+            style={{ color: "hsl(213 97% 58%)" }}
           >
-            <ChevronUp className="w-3.5 h-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={onMoveDown}
-            disabled={index === total - 1}
-            title="Move down"
-          >
-            <ChevronDown className="w-3.5 h-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={onDuplicate}
-            title="Duplicate part"
-          >
-            <Copy className="w-3.5 h-3.5" />
-          </Button>
-          {total > 1 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-muted-foreground hover:text-destructive"
-              onClick={onRemove}
-              title="Remove part"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
+            {CUR}{result.sellPrice.toFixed(2)}
+          </span>
+        )}
+
+        <div className="flex items-center gap-0 shrink-0">
+          {isPack && (
+            <>
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onMoveUp} disabled={index === 0} title="Move up">
+                <ChevronUp className="w-3 h-3" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onMoveDown} disabled={index === total - 1} title="Move down">
+                <ChevronDown className="w-3 h-3" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDuplicate} title="Duplicate">
+                <Copy className="w-3 h-3" />
+              </Button>
+              {total > 1 && (
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={onRemove} title="Remove">
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              )}
+            </>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => onUpdate({ collapsed: !part.collapsed })}
-            title={part.collapsed ? "Expand" : "Collapse"}
-          >
-            {part.collapsed ? (
-              <ChevronDown className="w-3.5 h-3.5" />
-            ) : (
-              <ChevronUp className="w-3.5 h-3.5" />
-            )}
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onUpdate({ collapsed: !part.collapsed })} title={part.collapsed ? "Expand" : "Collapse"}>
+            {part.collapsed ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
           </Button>
         </div>
       </div>
 
-      {/* Card body */}
+      {/* ── Card body ── */}
       {!part.collapsed && (
-        <div className="p-4 space-y-3">
-          {/* Row 1: Part Name + Qty */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2 space-y-1.5">
-              <Label>Part Name *</Label>
+        <div className="p-3 space-y-2">
+          {/* Row 1: Part Name | Qty */}
+          <div className="grid gap-2" style={{ gridTemplateColumns: "1fr 72px" }}>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Part Name {isPack && <span className="text-destructive">*</span>}</Label>
               <Input
                 value={part.partName}
                 onChange={(e) => onUpdate({ partName: e.target.value })}
                 placeholder="e.g. Bracket A"
-                className="h-10"
+                className="h-8 text-sm"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>Qty</Label>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Qty</Label>
               <Input
                 type="number"
                 min="1"
                 value={part.qty}
                 onChange={(e) => onUpdate({ qty: Math.max(1, Number(e.target.value)) })}
-                className="h-10"
+                className="h-8 text-sm text-center"
               />
             </div>
           </div>
 
-          {/* Row 2: Drawing No + Revision + Process */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1.5">
-              <Label>Drawing No.</Label>
+          {/* Row 2: Drawing | Rev | Process */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Drawing No.</Label>
               <Input
                 value={part.drawingNumber}
                 onChange={(e) => onUpdate({ drawingNumber: e.target.value })}
                 placeholder="ABC-001"
-                className="h-10"
+                className="h-8 text-sm"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>Rev</Label>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Rev</Label>
               <Input
                 value={part.revision}
                 onChange={(e) => onUpdate({ revision: e.target.value })}
                 placeholder="A"
-                className="h-10"
+                className="h-8 text-sm"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>Process</Label>
-              <Select
-                value={part.processType}
-                onValueChange={(v) => onUpdate({ processType: v })}
-              >
-                <SelectTrigger className="h-10">
-                  <SelectValue />
-                </SelectTrigger>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Process</Label>
+              <Select value={part.processType} onValueChange={(v) => onUpdate({ processType: v })}>
+                <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {PROCESSES.map((p) => (
-                    <SelectItem key={p} value={p}>{p}</SelectItem>
-                  ))}
+                  {PROCESSES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Row 3: Material + Machine */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Material</Label>
+          {/* Row 3: Material | Machine */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Material</Label>
               <MaterialCombobox
                 value={part.material}
                 onChange={(val, costPerKg) => {
@@ -382,95 +320,122 @@ function PartCard({
                 }}
               />
             </div>
-            <MachineSelect
-              machineId={part.machineId}
-              machines={machines}
-              defaultHourlyRate={defaultHourlyRate}
-              onChange={(id) => onUpdate({ machineId: id })}
-            />
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Machine</Label>
+              <Select
+                value={part.machineId != null ? String(part.machineId) : "0"}
+                onValueChange={(v) => onUpdate({ machineId: v === "0" ? null : Number(v) })}
+              >
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue placeholder="Default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">
+                    Default ({CUR}{defaultHourlyRate.toFixed(0)}/hr)
+                  </SelectItem>
+                  {activeMachines.map((m) => (
+                    <SelectItem key={m.id} value={String(m.id)}>
+                      {m.name} ({CUR}{parseFloat(String(m.hourlyRate)).toFixed(0)}/hr)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {/* Row 4: Time + Cost fields */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="space-y-1.5">
-              <Label>Setup (hrs)</Label>
+          {/* Row 4: Setup | Machining | Mat Cost | Tooling */}
+          <div className="grid grid-cols-4 gap-2">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Setup (hrs)</Label>
               <Input
                 type="number"
                 min="0"
                 step="0.25"
                 value={part.setupHours}
                 onChange={(e) => onUpdate({ setupHours: Number(e.target.value) })}
-                className="h-10"
+                className="h-8 text-sm"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>Machining (mins)</Label>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Run (mins)</Label>
               <Input
                 type="number"
                 min="0"
                 step="1"
                 value={part.machiningMins}
                 onChange={(e) => onUpdate({ machiningMins: Number(e.target.value) })}
-                className="h-10"
+                className="h-8 text-sm"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>Material ({CUR}/unit)</Label>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Mat. {CUR}/unit</Label>
               <Input
                 type="number"
                 min="0"
                 step="0.01"
                 value={part.materialCost}
                 onChange={(e) => onUpdate({ materialCost: Number(e.target.value) })}
-                className="h-10"
+                className="h-8 text-sm"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>Tooling ({CUR})</Label>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Tooling {CUR}</Label>
               <Input
                 type="number"
                 min="0"
                 step="0.01"
                 value={part.toolingAllowance}
                 onChange={(e) => onUpdate({ toolingAllowance: Number(e.target.value) })}
-                className="h-10"
+                className="h-8 text-sm"
               />
             </div>
           </div>
 
-          {/* Notes */}
-          <div className="space-y-1.5">
-            <Label>
-              Notes{" "}
-              <span className="text-xs font-normal text-muted-foreground">
-                (optional)
-              </span>
-            </Label>
-            <Textarea
-              rows={2}
-              placeholder="Specific requirements, tolerances, finish…"
-              value={part.notes}
-              onChange={(e) => onUpdate({ notes: e.target.value })}
-              className="resize-none text-sm"
-            />
-          </div>
+          {/* Notes toggle + field */}
+          {showNotes ? (
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground">Notes</Label>
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => { setShowNotes(false); onUpdate({ notes: "" }); }}
+                >
+                  Clear &amp; hide
+                </button>
+              </div>
+              <Textarea
+                rows={2}
+                placeholder="Specific requirements, tolerances, finish…"
+                value={part.notes}
+                onChange={(e) => onUpdate({ notes: e.target.value })}
+                className="resize-none text-sm"
+              />
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setShowNotes(true)}
+            >
+              <StickyNote className="w-3 h-3" />
+              Add notes
+            </button>
+          )}
 
           {/* Part subtotal */}
           <div
-            className="flex justify-between items-center pt-2.5 border-t text-sm"
+            className="flex justify-between items-baseline pt-2 border-t text-xs"
             style={{ borderColor: "hsl(var(--border))" }}
           >
             <span className="text-muted-foreground">
-              Part subtotal · {part.qty}×{" "}
-              {result.pricePerPart > 0 && (
-                <span className="text-foreground font-mono">
-                  {CUR}{result.pricePerPart.toFixed(2)} each
-                </span>
-              )}
+              {part.qty > 1 && result.pricePerPart > 0
+                ? `${CUR}${result.pricePerPart.toFixed(2)} × ${part.qty}`
+                : "Subtotal"}
             </span>
             <span
-              className="font-mono font-bold text-base"
-              style={{ color: "hsl(213 97% 58%)" }}
+              className="font-mono font-semibold text-sm"
+              style={{ color: result.sellPrice > 0 ? "hsl(213 97% 58%)" : "hsl(var(--muted-foreground))" }}
             >
               {CUR}{result.sellPrice.toFixed(2)}
             </span>
@@ -481,17 +446,10 @@ function PartCard({
   );
 }
 
-// ── Sub-component: Pack summary panel ─────────────────────────────────────────
+// ── Summary panel ─────────────────────────────────────────────────────────────
 
-function PackSummaryPanel({
-  parts,
-  partResults,
-  addons,
-  addonsTotal,
-  grandTotal,
-  deliveryCost,
-  includeDeliveryInTotal,
-}: {
+interface SummaryPanelProps {
+  isPack: boolean;
   parts: PartEntry[];
   partResults: CalcResult[];
   addons: QuoteAddon[];
@@ -499,225 +457,220 @@ function PackSummaryPanel({
   grandTotal: number;
   deliveryCost: number;
   includeDeliveryInTotal: boolean;
-}) {
-  return (
-    <>
-      <div
-        className="text-xs font-semibold uppercase tracking-widest mb-4"
-        style={{ color: "hsl(var(--muted-foreground))" }}
-      >
-        Pack Summary
-      </div>
-
-      {/* Grand total hero */}
-      <div
-        className="text-center py-4 border-b mb-4"
-        style={{ borderColor: "hsl(var(--border))" }}
-      >
-        <div className="text-xs mb-1" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Grand Total
-        </div>
-        <div
-          className="text-4xl font-bold tabular-nums"
-          style={{ color: "hsl(213 97% 58%)" }}
-        >
-          {CUR}{grandTotal.toFixed(2)}
-        </div>
-        <div className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>
-          {parts.length} part{parts.length !== 1 ? "s" : ""}
-        </div>
-      </div>
-
-      {/* Per-part rows */}
-      <div className="space-y-2 text-sm">
-        {parts.map((part, idx) => (
-          <div key={part.key} className="flex justify-between gap-2">
-            <span className="truncate" style={{ color: "hsl(var(--muted-foreground))" }}>
-              <span className="font-medium" style={{ color: "hsl(var(--foreground))" }}>
-                {part.partName || `Part ${idx + 1}`}
-              </span>
-              {part.qty > 1 && (
-                <span className="text-xs ml-1">×{part.qty}</span>
-              )}
-            </span>
-            <span className="font-mono shrink-0">
-              {CUR}{partResults[idx].sellPrice.toFixed(2)}
-            </span>
-          </div>
-        ))}
-
-        {addons.length > 0 && (
-          <div className="flex justify-between">
-            <span style={{ color: "hsl(var(--muted-foreground))" }}>Extras &amp; Products</span>
-            <span className="font-mono">{CUR}{addonsTotal.toFixed(2)}</span>
-          </div>
-        )}
-
-        {deliveryCost > 0 && includeDeliveryInTotal && (
-          <div className="flex justify-between">
-            <span style={{ color: "hsl(var(--muted-foreground))" }}>Delivery</span>
-            <span className="font-mono">{CUR}{deliveryCost.toFixed(2)}</span>
-          </div>
-        )}
-
-        <div
-          className="flex justify-between border-t pt-2 mt-1 font-semibold"
-          style={{ borderColor: "hsl(var(--border))" }}
-        >
-          <span>Grand Total</span>
-          <span className="font-mono">{CUR}{grandTotal.toFixed(2)}</span>
-        </div>
-      </div>
-    </>
-  );
+  margin: number;
+  leadTime: string;
+  deliveryMethod: string;
+  machines: MachineRow[];
+  defaultHourlyRate: number;
+  defaultSetupRate: number;
+  canSubmit: boolean;
+  isPending: boolean;
+  onSaveDraft: () => void;
+  onGeneratePdf: () => void;
+  onFullQuote: () => void;
 }
 
-// ── Sub-component: Single-part result panel ───────────────────────────────────
-
-function SinglePartResultPanel({
-  result,
+function SummaryPanel({
+  isPack,
+  parts,
+  partResults,
   addons,
   addonsTotal,
+  grandTotal,
   deliveryCost,
   includeDeliveryInTotal,
   margin,
-  machines,
-  machineId,
-  defaultHourlyRate,
-  defaultSetupRate,
   leadTime,
   deliveryMethod,
-}: {
-  result: CalcResult;
-  addons: QuoteAddon[];
-  addonsTotal: number;
-  deliveryCost: number;
-  includeDeliveryInTotal: boolean;
-  margin: number;
-  machines: { id: number; name: string; hourlyRate: string | number; setupRate: string | number }[];
-  machineId: number | null;
-  defaultHourlyRate: number;
-  defaultSetupRate: number;
-  leadTime: string;
-  deliveryMethod: string;
-}) {
-  const selectedMachine = machines.find((m) => m.id === machineId);
-  const hrDisplay = selectedMachine
-    ? parseFloat(String(selectedMachine.hourlyRate))
-    : defaultHourlyRate;
-  const srDisplay = selectedMachine
-    ? parseFloat(String(selectedMachine.setupRate))
-    : defaultSetupRate;
+  machines,
+  defaultHourlyRate,
+  defaultSetupRate,
+  canSubmit,
+  isPending,
+  onSaveDraft,
+  onGeneratePdf,
+  onFullQuote,
+}: SummaryPanelProps) {
+  const singleResult = partResults[0];
+  const selectedMachine = !isPack ? machines.find((m) => m.id === parts[0]?.machineId) : null;
+  const hrDisplay = selectedMachine ? parseFloat(String(selectedMachine.hourlyRate)) : defaultHourlyRate;
+  const srDisplay = selectedMachine ? parseFloat(String(selectedMachine.setupRate)) : defaultSetupRate;
 
-  const total =
-    result.sellPrice +
+  const singleTotal =
+    singleResult.sellPrice +
     addonsTotal +
     (includeDeliveryInTotal && deliveryCost > 0 ? deliveryCost : 0);
 
   return (
-    <>
+    <div className="flex flex-col h-full">
+      {/* Header label */}
       <div
-        className="text-xs font-semibold uppercase tracking-widest mb-4"
+        className="text-[10px] font-bold uppercase tracking-widest mb-3"
         style={{ color: "hsl(var(--muted-foreground))" }}
       >
-        Live Result
+        {isPack ? "Pack Summary" : "Live Result"}
       </div>
 
+      {/* Hero total */}
       <div
-        className="text-center py-5 border-b mb-4"
+        className="text-center py-3 border-b mb-3"
         style={{ borderColor: "hsl(var(--border))" }}
       >
-        <div className="text-xs mb-1" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Price per part
-        </div>
+        {!isPack && (
+          <div className="text-[10px] mb-0.5 text-muted-foreground">Price per part</div>
+        )}
         <div
-          className="text-4xl font-bold tabular-nums"
+          className="text-3xl font-bold tabular-nums"
           style={{ color: "hsl(213 97% 58%)" }}
         >
-          {CUR}{result.pricePerPart.toFixed(2)}
+          {CUR}{isPack ? grandTotal.toFixed(2) : singleResult.pricePerPart.toFixed(2)}
         </div>
-        <div className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Total: {CUR}{total.toFixed(2)}
-          {includeDeliveryInTotal && deliveryCost > 0 && (
-            <span className="ml-1 text-xs opacity-70">(incl. delivery)</span>
-          )}
-        </div>
+        {!isPack && (
+          <div className="text-xs mt-0.5 text-muted-foreground">
+            Total: {CUR}{singleTotal.toFixed(2)}
+            {includeDeliveryInTotal && deliveryCost > 0 && (
+              <span className="ml-1 opacity-70">(incl. delivery)</span>
+            )}
+          </div>
+        )}
+        {isPack && (
+          <div className="text-xs mt-0.5 text-muted-foreground">
+            {parts.length} part{parts.length !== 1 ? "s" : ""}
+          </div>
+        )}
       </div>
 
-      <div className="space-y-2 text-sm">
-        {(
-          [
-            ["Setup", result.setupCost],
-            ["Machining", result.machiningCost],
-            ["Material", result.materialTotal],
-            ["Tooling", result.directCost - result.setupCost - result.machiningCost - result.materialTotal],
-          ] as [string, number][]
-        ).map(([label, val]) => (
-          <div key={label} className="flex justify-between">
-            <span style={{ color: "hsl(var(--muted-foreground))" }}>{label}</span>
-            <span className="font-mono">{CUR}{val.toFixed(2)}</span>
-          </div>
-        ))}
+      {/* Line items */}
+      <div className="space-y-1.5 text-xs flex-1 overflow-y-auto">
+        {isPack ? (
+          /* Pack: per-part rows */
+          parts.map((part, idx) => (
+            <div key={part.key} className="flex justify-between gap-1">
+              <span className="truncate text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  {part.partName || `Part ${idx + 1}`}
+                </span>
+                {part.qty > 1 && <span className="ml-1 opacity-70">×{part.qty}</span>}
+              </span>
+              <span className="font-mono shrink-0">
+                {CUR}{partResults[idx].sellPrice.toFixed(2)}
+              </span>
+            </div>
+          ))
+        ) : (
+          /* Single: cost breakdown */
+          <>
+            {(
+              [
+                ["Setup", singleResult.setupCost],
+                ["Machining", singleResult.machiningCost],
+                ["Material", singleResult.materialTotal],
+                ["Tooling", singleResult.directCost - singleResult.setupCost - singleResult.machiningCost - singleResult.materialTotal],
+              ] as [string, number][]
+            ).map(([label, val]) => (
+              <div key={label} className="flex justify-between">
+                <span className="text-muted-foreground">{label}</span>
+                <span className="font-mono">{CUR}{val.toFixed(2)}</span>
+              </div>
+            ))}
+            <div className="flex justify-between pt-1 border-t" style={{ borderColor: "hsl(var(--border))" }}>
+              <span className="text-muted-foreground">Direct cost</span>
+              <span className="font-mono">{CUR}{singleResult.directCost.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Margin</span>
+              <span className="font-mono">{margin}%</span>
+            </div>
+          </>
+        )}
 
+        {/* Shared: extras + delivery totals */}
         {addons.length > 0 && (
           <div className="flex justify-between">
-            <span style={{ color: "hsl(var(--muted-foreground))" }}>Extras &amp; Products</span>
+            <span className="text-muted-foreground">Extras &amp; Products</span>
             <span className="font-mono">{CUR}{addonsTotal.toFixed(2)}</span>
           </div>
         )}
-
         {deliveryCost > 0 && includeDeliveryInTotal && (
           <div className="flex justify-between">
-            <span style={{ color: "hsl(var(--muted-foreground))" }}>Delivery</span>
+            <span className="text-muted-foreground">Delivery</span>
             <span className="font-mono">{CUR}{deliveryCost.toFixed(2)}</span>
           </div>
         )}
 
+        {/* Grand total row */}
         <div
-          className="flex justify-between border-t pt-2 mt-2"
+          className="flex justify-between pt-1.5 border-t font-semibold"
           style={{ borderColor: "hsl(var(--border))" }}
         >
-          <span style={{ color: "hsl(var(--muted-foreground))" }}>Direct cost</span>
-          <span className="font-mono">{CUR}{result.directCost.toFixed(2)}</span>
+          <span>{isPack ? "Grand Total" : "Total"}</span>
+          <span className="font-mono">{CUR}{(isPack ? grandTotal : singleTotal).toFixed(2)}</span>
         </div>
-        <div className="flex justify-between">
-          <span style={{ color: "hsl(var(--muted-foreground))" }}>Margin</span>
-          <span className="font-mono">{margin}%</span>
-        </div>
+
+        {/* Rates / meta (single part) */}
+        {!isPack && (
+          <div
+            className="pt-1.5 space-y-0.5"
+            style={{ color: "hsl(var(--muted-foreground))" }}
+          >
+            <div>{CUR}{hrDisplay.toFixed(0)}/hr · setup {CUR}{srDisplay.toFixed(0)}/hr</div>
+            {selectedMachine && (
+              <div style={{ color: "hsl(213 97% 58%)" }}>{selectedMachine.name}</div>
+            )}
+            {leadTime && <div>Lead time: {leadTime}</div>}
+            {deliveryMethod && <div>Delivery: {deliveryMethod}</div>}
+          </div>
+        )}
+        {isPack && leadTime && (
+          <div className="text-muted-foreground pt-0.5">Lead time: {leadTime}</div>
+        )}
+        {isPack && deliveryMethod && (
+          <div className="text-muted-foreground">Delivery: {deliveryMethod}</div>
+        )}
       </div>
 
-      <div
-        className="mt-4 pt-4 border-t text-xs space-y-0.5"
-        style={{
-          borderColor: "hsl(var(--border))",
-          color: "hsl(var(--muted-foreground))",
-        }}
-      >
-        <div>
-          {CUR}{hrDisplay.toFixed(0)}/hr machining · {CUR}{srDisplay.toFixed(0)}/hr setup
+      {/* Action buttons */}
+      <div className="mt-4 space-y-2 shrink-0">
+        <Button
+          className="w-full h-10 font-semibold gap-2"
+          onClick={onSaveDraft}
+          disabled={!canSubmit || isPending}
+        >
+          <Save className="w-4 h-4" />
+          {isPending ? "Saving…" : isPack ? "Save Pack Draft" : "Save Draft"}
+        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            variant="outline"
+            className="h-9 gap-1 text-sm"
+            onClick={onGeneratePdf}
+            disabled={!canSubmit || isPending}
+          >
+            <FileDown className="w-3.5 h-3.5" /> PDF
+          </Button>
+          <Button
+            variant="outline"
+            className="h-9 gap-1 text-sm"
+            onClick={onFullQuote}
+            disabled={!canSubmit || isPending}
+          >
+            <ArrowRight className="w-3.5 h-3.5" />{" "}
+            {isPack ? "Full Quote" : "Full Quote"}
+          </Button>
         </div>
-        {selectedMachine && (
-          <div style={{ color: "hsl(213 97% 58%)" }}>{selectedMachine.name}</div>
+        {!canSubmit && (
+          <p className="text-xs text-center text-muted-foreground">
+            {parts[0] && parts[0].partName === "" && !isPack
+              ? "Enter a part name to save."
+              : "Select a customer to save."}
+          </p>
         )}
-        {leadTime && <div>Lead time: {leadTime}</div>}
-        {deliveryMethod && <div>Delivery: {deliveryMethod}</div>}
       </div>
-    </>
+    </div>
   );
 }
 
-// ── Sub-component: Addons section ─────────────────────────────────────────────
-
-interface AddonsSectionProps {
-  addons: QuoteAddon[];
-  setAddons: React.Dispatch<React.SetStateAction<QuoteAddon[]>>;
-  addonSearch: string;
-  setAddonSearch: (v: string) => void;
-  showAddonPicker: boolean;
-  setShowAddonPicker: (v: boolean) => void;
-  filteredExtras: ChargeableExtra[];
-  filteredProducts: StandardProduct[];
-}
+// ── Addons section ────────────────────────────────────────────────────────────
 
 function AddonsSection({
   addons,
@@ -728,143 +681,82 @@ function AddonsSection({
   setShowAddonPicker,
   filteredExtras,
   filteredProducts,
-}: AddonsSectionProps) {
+}: {
+  addons: QuoteAddon[];
+  setAddons: React.Dispatch<React.SetStateAction<QuoteAddon[]>>;
+  addonSearch: string;
+  setAddonSearch: (v: string) => void;
+  showAddonPicker: boolean;
+  setShowAddonPicker: (v: boolean) => void;
+  filteredExtras: ChargeableExtra[];
+  filteredProducts: StandardProduct[];
+}) {
   const cardStyle = {
     background: "hsl(var(--card))",
     borderColor: "hsl(var(--card-border))",
   };
 
   return (
-    <div className="rounded border p-5 space-y-4" style={cardStyle}>
+    <div className="rounded border p-4 space-y-3" style={cardStyle}>
       <div className="flex items-center justify-between">
-        <div
-          className="text-xs font-semibold uppercase tracking-widest"
-          style={{ color: "hsl(var(--muted-foreground))" }}
-        >
+        <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Extras &amp; Products
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowAddonPicker(!showAddonPicker)}
-        >
-          <Plus className="w-3.5 h-3.5 mr-1.5" />
-          Add
+        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setShowAddonPicker(!showAddonPicker)}>
+          <Plus className="w-3 h-3 mr-1" /> Add
         </Button>
       </div>
 
       {showAddonPicker && (
-        <div
-          className="rounded border p-3 space-y-2"
-          style={{
-            background: "hsl(var(--muted)/0.3)",
-            borderColor: "hsl(var(--border))",
-          }}
-        >
+        <div className="rounded border p-3 space-y-2" style={{ background: "hsl(var(--muted)/0.3)", borderColor: "hsl(var(--border))" }}>
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-            <Input
-              className="pl-8 h-8 text-sm"
-              placeholder="Search extras and products..."
-              value={addonSearch}
-              onChange={(e) => setAddonSearch(e.target.value)}
-              autoFocus
-            />
+            <Input className="pl-8 h-8 text-sm" placeholder="Search extras and products…" value={addonSearch} onChange={(e) => setAddonSearch(e.target.value)} autoFocus />
           </div>
-          <div className="max-h-52 overflow-y-auto space-y-0.5">
+          <div className="max-h-48 overflow-y-auto space-y-0.5">
             {filteredExtras.length === 0 && filteredProducts.length === 0 && (
-              <div className="text-xs text-muted-foreground text-center py-3">
-                No items found
-              </div>
+              <div className="text-xs text-muted-foreground text-center py-3">No items found</div>
             )}
             {filteredExtras.length > 0 && (
               <>
-                <div className="flex items-center gap-1.5 px-1 py-1.5">
+                <div className="flex items-center gap-1.5 px-1 py-1">
                   <PlusCircle className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                    Chargeable Extras
-                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Chargeable Extras</span>
                 </div>
                 {filteredExtras.map((extra) => (
-                  <button
-                    key={`extra-${extra.id}`}
-                    type="button"
-                    className="w-full text-left flex items-center justify-between px-3 py-2 rounded text-sm hover:bg-primary/10 transition-colors"
+                  <button key={`extra-${extra.id}`} type="button"
+                    className="w-full text-left flex items-center justify-between px-3 py-1.5 rounded text-sm hover:bg-primary/10 transition-colors"
                     onClick={() => {
-                      setAddons((prev) => [
-                        ...prev,
-                        {
-                          key: nextAddonKey(),
-                          type: "extra",
-                          id: extra.id,
-                          name: extra.extraName,
-                          category: extra.category,
-                          unit: extra.unit,
-                          unitSellPrice: extra.defaultSellPrice,
-                          qty: 1,
-                          notes: extra.notes,
-                        },
-                      ]);
-                      setAddonSearch("");
-                      setShowAddonPicker(false);
-                    }}
-                  >
+                      setAddons((prev) => [...prev, { key: nextAddonKey(), type: "extra", id: extra.id, name: extra.extraName, category: extra.category, unit: extra.unit, unitSellPrice: extra.defaultSellPrice, qty: 1, notes: extra.notes }]);
+                      setAddonSearch(""); setShowAddonPicker(false);
+                    }}>
                     <div>
                       <div className="font-medium">{extra.extraName}</div>
-                      {extra.category && (
-                        <div className="text-xs text-muted-foreground">{extra.category}</div>
-                      )}
+                      {extra.category && <div className="text-xs text-muted-foreground">{extra.category}</div>}
                     </div>
-                    <div className="font-mono text-xs text-muted-foreground ml-4 shrink-0">
-                      {CUR}{extra.defaultSellPrice.toFixed(2)} /{extra.unit}
-                    </div>
+                    <div className="font-mono text-xs text-muted-foreground ml-4 shrink-0">{CUR}{extra.defaultSellPrice.toFixed(2)} /{extra.unit}</div>
                   </button>
                 ))}
               </>
             )}
             {filteredProducts.length > 0 && (
               <>
-                <div className="flex items-center gap-1.5 px-1 py-1.5 mt-1">
+                <div className="flex items-center gap-1.5 px-1 py-1 mt-1">
                   <Package className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                    Standard Products
-                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Standard Products</span>
                 </div>
                 {filteredProducts.map((product) => (
-                  <button
-                    key={`product-${product.id}`}
-                    type="button"
-                    className="w-full text-left flex items-center justify-between px-3 py-2 rounded text-sm hover:bg-primary/10 transition-colors"
+                  <button key={`product-${product.id}`} type="button"
+                    className="w-full text-left flex items-center justify-between px-3 py-1.5 rounded text-sm hover:bg-primary/10 transition-colors"
                     onClick={() => {
-                      setAddons((prev) => [
-                        ...prev,
-                        {
-                          key: nextAddonKey(),
-                          type: "product",
-                          id: product.id,
-                          name: product.productName,
-                          category: product.category,
-                          unit: product.unit,
-                          unitSellPrice: product.defaultSellPrice,
-                          qty: 1,
-                          notes: product.notes,
-                        },
-                      ]);
-                      setAddonSearch("");
-                      setShowAddonPicker(false);
-                    }}
-                  >
+                      setAddons((prev) => [...prev, { key: nextAddonKey(), type: "product", id: product.id, name: product.productName, category: product.category, unit: product.unit, unitSellPrice: product.defaultSellPrice, qty: 1, notes: product.notes }]);
+                      setAddonSearch(""); setShowAddonPicker(false);
+                    }}>
                     <div>
                       <div className="font-medium">{product.productName}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {[product.category, product.material, product.standardSize]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </div>
+                      <div className="text-xs text-muted-foreground">{[product.category, product.material, product.standardSize].filter(Boolean).join(" · ")}</div>
                     </div>
-                    <div className="font-mono text-xs text-muted-foreground ml-4 shrink-0">
-                      {CUR}{product.defaultSellPrice.toFixed(2)} /{product.unit}
-                    </div>
+                    <div className="font-mono text-xs text-muted-foreground ml-4 shrink-0">{CUR}{product.defaultSellPrice.toFixed(2)} /{product.unit}</div>
                   </button>
                 ))}
               </>
@@ -874,55 +766,24 @@ function AddonsSection({
       )}
 
       {addons.length === 0 && !showAddonPicker && (
-        <p className="text-sm text-muted-foreground">
-          No extras or products added yet. Click{" "}
-          <span className="font-medium">Add</span> to pick from your library.
-        </p>
+        <p className="text-sm text-muted-foreground">No extras added. Click <span className="font-medium">Add</span> to pick from your library.</p>
       )}
 
       {addons.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {addons.map((addon) => (
-            <div
-              key={addon.key}
-              className="flex items-center gap-2 rounded border p-2"
-              style={{ borderColor: "hsl(var(--border))" }}
-            >
-              {addon.type === "extra" ? (
-                <PlusCircle className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-              ) : (
-                <Package className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-              )}
+            <div key={addon.key} className="flex items-center gap-2 rounded border p-2" style={{ borderColor: "hsl(var(--border))" }}>
+              {addon.type === "extra" ? <PlusCircle className="w-3.5 h-3.5 shrink-0 text-muted-foreground" /> : <Package className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />}
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium truncate">{addon.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {CUR}{addon.unitSellPrice.toFixed(2)} /{addon.unit}
-                </div>
+                <div className="text-xs text-muted-foreground">{CUR}{addon.unitSellPrice.toFixed(2)} /{addon.unit}</div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <Input
-                  type="number"
-                  min="1"
-                  value={addon.qty}
-                  onChange={(e) => {
-                    const q = Math.max(1, Number(e.target.value));
-                    setAddons((prev) =>
-                      prev.map((a) => (a.key === addon.key ? { ...a, qty: q } : a)),
-                    );
-                  }}
-                  className="w-16 h-8 text-sm text-center"
-                />
-                <div className="text-sm font-mono text-right w-16">
-                  {CUR}{(addon.unitSellPrice * addon.qty).toFixed(2)}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                  onClick={() =>
-                    setAddons((prev) => prev.filter((a) => a.key !== addon.key))
-                  }
-                >
+                <Input type="number" min="1" value={addon.qty}
+                  onChange={(e) => { const q = Math.max(1, Number(e.target.value)); setAddons((prev) => prev.map((a) => a.key === addon.key ? { ...a, qty: q } : a)); }}
+                  className="w-14 h-7 text-sm text-center" />
+                <div className="text-sm font-mono w-14 text-right">{CUR}{(addon.unitSellPrice * addon.qty).toFixed(2)}</div>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => setAddons((prev) => prev.filter((a) => a.key !== addon.key))}>
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
               </div>
@@ -947,7 +808,7 @@ export function QuickQuote() {
   const { data: machines, isLoading: machinesLoading } = useListMachines();
   const { data: settings, isLoading: settingsLoading } = useGetSettings();
 
-  // ── Shared quote-level state ───────────────────────────────────────────────
+  // ── Shared state ───────────────────────────────────────────────────────────
   const [customerId, setCustomerId] = useState(0);
   const [margin, setMargin] = useState(30);
   const [leadTime, setLeadTime] = useState("");
@@ -963,29 +824,26 @@ export function QuickQuote() {
   const [parts, setParts] = useState<PartEntry[]>([makePart()]);
   const isPack = parts.length > 1;
 
-  // ── Extras/Products data ───────────────────────────────────────────────────
+  // ── Extras/Products ────────────────────────────────────────────────────────
   const { data: extrasData = [] } = useQuery<ChargeableExtra[]>({
     queryKey: ["extras", true],
     queryFn: () => apiFetch<ChargeableExtra[]>("/extras?all=false"),
   });
-
   const { data: productsData = [] } = useQuery<StandardProduct[]>({
     queryKey: ["products", true],
     queryFn: () => apiFetch<StandardProduct[]>("/products?all=false"),
   });
 
   const addonSearchLower = addonSearch.toLowerCase();
-  const filteredExtras = extrasData.filter(
-    (e) =>
-      e.extraName.toLowerCase().includes(addonSearchLower) ||
-      e.extraCode.toLowerCase().includes(addonSearchLower) ||
-      e.category.toLowerCase().includes(addonSearchLower),
+  const filteredExtras = extrasData.filter((e) =>
+    e.extraName.toLowerCase().includes(addonSearchLower) ||
+    e.extraCode.toLowerCase().includes(addonSearchLower) ||
+    e.category.toLowerCase().includes(addonSearchLower),
   );
-  const filteredProducts = productsData.filter(
-    (p) =>
-      p.productName.toLowerCase().includes(addonSearchLower) ||
-      p.productCode.toLowerCase().includes(addonSearchLower) ||
-      p.category.toLowerCase().includes(addonSearchLower),
+  const filteredProducts = productsData.filter((p) =>
+    p.productName.toLowerCase().includes(addonSearchLower) ||
+    p.productCode.toLowerCase().includes(addonSearchLower) ||
+    p.category.toLowerCase().includes(addonSearchLower),
   );
 
   // ── Load defaults ──────────────────────────────────────────────────────────
@@ -993,13 +851,11 @@ export function QuickQuote() {
     if (settingsLoading || machinesLoading || defaultsLoaded) return;
     const d = loadDefaults();
     const machineExists = d.lastMachineId && machines?.find((m) => m.id === d.lastMachineId);
-    setParts((prev) =>
-      prev.map((p) => ({
-        ...p,
-        ...(machineExists ? { machineId: d.lastMachineId! } : {}),
-        ...(d.lastMaterial ? { material: d.lastMaterial } : {}),
-      })),
-    );
+    setParts((prev) => prev.map((p) => ({
+      ...p,
+      ...(machineExists ? { machineId: d.lastMachineId! } : {}),
+      ...(d.lastMaterial ? { material: d.lastMaterial } : {}),
+    })));
     if (d.defaultMargin != null) {
       setMargin(d.defaultMargin);
     } else if (settings?.defaultMarginPercentage) {
@@ -1013,74 +869,47 @@ export function QuickQuote() {
     setDefaultsLoaded(true);
   }, [settingsLoading, machinesLoading, machines, settings, defaultsLoaded, loadDefaults]);
 
-  // ── Derived rates ──────────────────────────────────────────────────────────
+  // ── Rates ──────────────────────────────────────────────────────────────────
   const defaultHourlyRate = parseFloat(String(settings?.defaultHourlyRate || 65));
   const defaultSetupRate = parseFloat(String(settings?.defaultSetupRate || 65));
 
   function getMachineRates(machineId: number | null) {
-    const m = machines?.find((m) => m.id === machineId);
+    const m = (machines || []).find((m) => m.id === machineId);
     return {
       hourlyRate: m ? parseFloat(String(m.hourlyRate)) : defaultHourlyRate,
       setupRate: m ? parseFloat(String(m.setupRate)) : defaultSetupRate,
     };
   }
 
-  // ── Per-part calculations ──────────────────────────────────────────────────
+  // ── Calculations ───────────────────────────────────────────────────────────
   const partResults = useMemo<CalcResult[]>(() => {
     return parts.map((part) => {
       const { hourlyRate, setupRate } = getMachineRates(part.machineId);
-      return calcResult(
-        part.setupHours,
-        part.machiningMins,
-        part.qty,
-        part.materialCost,
-        part.toolingAllowance,
-        margin,
-        hourlyRate,
-        setupRate,
-      );
+      return calcResult(part.setupHours, part.machiningMins, part.qty, part.materialCost, part.toolingAllowance, margin, hourlyRate, setupRate);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parts, machines, settings, margin]);
 
-  const addonsTotal = useMemo(
-    () => addons.reduce((s, a) => s + a.unitSellPrice * a.qty, 0),
-    [addons],
-  );
-
+  const addonsTotal = useMemo(() => addons.reduce((s, a) => s + a.unitSellPrice * a.qty, 0), [addons]);
   const grandTotal = useMemo(
-    () =>
-      partResults.reduce((sum, r) => sum + r.sellPrice, 0) +
-      addonsTotal +
-      (includeDeliveryInTotal && deliveryCost > 0 ? deliveryCost : 0),
+    () => partResults.reduce((sum, r) => sum + r.sellPrice, 0) + addonsTotal + (includeDeliveryInTotal && deliveryCost > 0 ? deliveryCost : 0),
     [partResults, addonsTotal, includeDeliveryInTotal, deliveryCost],
   );
 
   // ── Validation ─────────────────────────────────────────────────────────────
-  const canSubmit =
-    customerId > 0 &&
-    parts.every((p) => p.partName.trim().length > 0 && p.qty > 0);
+  const canSubmit = customerId > 0 && parts.every((p) => p.partName.trim().length > 0 && p.qty > 0);
 
-  // ── Part mutation helpers ──────────────────────────────────────────────────
+  // ── Part helpers ───────────────────────────────────────────────────────────
   const updatePart = useCallback(
     (key: string, patch: Partial<PartEntry>) =>
-      setParts((prev) =>
-        prev.map((p) => (p.key === key ? { ...p, ...patch } : p)),
-      ),
+      setParts((prev) => prev.map((p) => (p.key === key ? { ...p, ...patch } : p))),
     [],
   );
 
   const addPart = () => {
     if (parts.length >= MAX_PARTS) return;
     const last = parts[parts.length - 1];
-    setParts((prev) => [
-      ...prev,
-      makePart({
-        machineId: last.machineId,
-        material: last.material,
-        processType: last.processType,
-      }),
-    ]);
+    setParts((prev) => [...prev, makePart({ machineId: last.machineId, material: last.material, processType: last.processType })]);
   };
 
   const duplicatePart = (key: string) => {
@@ -1088,16 +917,8 @@ export function QuickQuote() {
     const src = parts.find((p) => p.key === key);
     if (!src) return;
     const idx = parts.findIndex((p) => p.key === key);
-    const copy = makePart({
-      ...src,
-      partName: src.partName ? `${src.partName} (copy)` : "",
-      collapsed: false,
-    });
-    setParts((prev) => {
-      const next = [...prev];
-      next.splice(idx + 1, 0, copy);
-      return next;
-    });
+    const copy = makePart({ ...src, partName: src.partName ? `${src.partName} (copy)` : "", collapsed: false });
+    setParts((prev) => { const next = [...prev]; next.splice(idx + 1, 0, copy); return next; });
   };
 
   const removePart = (key: string) => {
@@ -1109,19 +930,13 @@ export function QuickQuote() {
     const idx = parts.findIndex((p) => p.key === key);
     const newIdx = idx + dir;
     if (newIdx < 0 || newIdx >= parts.length) return;
-    setParts((prev) => {
-      const next = [...prev];
-      [next[idx], next[newIdx]] = [next[newIdx], next[idx]];
-      return next;
-    });
+    setParts((prev) => { const next = [...prev]; [next[idx], next[newIdx]] = [next[newIdx], next[idx]]; return next; });
   };
 
-  // ── Build payload ──────────────────────────────────────────────────────────
+  // ── Payload ────────────────────────────────────────────────────────────────
   const buildPayload = () => {
     const validUntilDate = new Date();
-    validUntilDate.setDate(
-      validUntilDate.getDate() + (settings?.quoteValidityDays || 30),
-    );
+    validUntilDate.setDate(validUntilDate.getDate() + (settings?.quoteValidityDays || 30));
     return {
       customerId,
       status: "Draft" as const,
@@ -1204,49 +1019,24 @@ export function QuickQuote() {
   // ── Actions ────────────────────────────────────────────────────────────────
   const doSave = (onSuccess: (id: number) => void) => {
     if (!canSubmit) return;
-    saveDefaults({
-      machineId: parts[0].machineId ?? undefined,
-      material: parts[0].material,
-      margin,
-      leadTime,
-    });
+    saveDefaults({ machineId: parts[0].machineId ?? undefined, material: parts[0].material, margin, leadTime });
     createQuote.mutate(
       { data: buildPayload() as any },
       {
-        onSuccess: (res) => {
-          queryClient.invalidateQueries({ queryKey: getListQuotesQueryKey() });
-          onSuccess(res.id);
-        },
-        onError: () =>
-          toast({ title: "Failed to save quote", variant: "destructive" }),
+        onSuccess: (res) => { queryClient.invalidateQueries({ queryKey: getListQuotesQueryKey() }); onSuccess(res.id); },
+        onError: () => toast({ title: "Failed to save quote", variant: "destructive" }),
       },
     );
   };
 
-  const handleSaveDraft = () =>
-    doSave((id) => {
-      toast({ title: "Quote saved" });
-      setLocation(`/quotes/${id}`);
-    });
+  const handleSaveDraft = () => doSave((id) => { toast({ title: "Quote saved" }); setLocation(`/quotes/${id}`); });
+  const handleGeneratePdf = () => doSave((id) => { setLocation(`/quotes/${id}`); setTimeout(() => window.print(), 900); });
+  const handleFullQuote = () => doSave((id) => { toast({ title: "Quote created — opening full editor" }); setLocation(`/quotes/${id}/edit`); });
 
-  const handleGeneratePdf = () =>
-    doSave((id) => {
-      setLocation(`/quotes/${id}`);
-      setTimeout(() => window.print(), 900);
-    });
-
-  const handleFullQuote = () =>
-    doSave((id) => {
-      toast({ title: "Quote created — opening full editor" });
-      setLocation(`/quotes/${id}/edit`);
-    });
-
-  // ── Loading state ──────────────────────────────────────────────────────────
-  const isLoading = customersLoading || machinesLoading || settingsLoading;
-
-  if (isLoading) {
+  // ── Loading ────────────────────────────────────────────────────────────────
+  if (customersLoading || machinesLoading || settingsLoading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-4">
+      <div className="max-w-4xl mx-auto space-y-4 pt-4">
         <Skeleton className="h-10 w-48" />
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
           <Skeleton className="lg:col-span-3 h-[600px]" />
@@ -1256,324 +1046,163 @@ export function QuickQuote() {
     );
   }
 
-  const cardStyle = {
-    background: "hsl(var(--card))",
-    borderColor: "hsl(var(--card-border))",
-  };
-
-  const machinesList = (machines || []) as {
-    id: number;
-    name: string;
-    hourlyRate: string | number;
-    setupRate: string | number;
-    active: boolean;
-  }[];
+  const machinesList = (machines || []) as MachineRow[];
+  const cardStyle = { background: "hsl(var(--card))", borderColor: "hsl(var(--card-border))" };
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-5xl mx-auto pb-8">
-      {/* Page header */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/quotes">
-          <Button variant="outline" size="icon">
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-        </Link>
-        <Zap className="w-5 h-5 text-primary" />
-        <h1 className="text-2xl font-bold tracking-tight">Quick Quote</h1>
-        {isPack && (
-          <span
-            className="text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 shrink-0"
-            style={{
-              background: "hsl(213 97% 58% / 0.12)",
-              color: "hsl(213 97% 58%)",
-              border: "1px solid hsl(213 97% 58% / 0.3)",
-            }}
-          >
-            <Layers className="w-3 h-3" />
-            PACK · {parts.length} parts
-          </span>
-        )}
-        <span
-          className="text-sm hidden md:block"
-          style={{ color: "hsl(var(--muted-foreground))" }}
-        >
-          {isPack
-            ? `Multi-part RFQ — ${parts.length} parts`
-            : "Professional quote in under 90 seconds"}
-        </span>
-      </div>
+    // Break out of AppLayout's horizontal + bottom padding
+    <div className="-mx-4 -mb-4 md:-mx-8 md:-mb-8">
+      <div className="lg:flex">
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-        {/* ── Left column ─────────────────────────────────────────────────── */}
-        <div className="lg:col-span-3 space-y-4">
+        {/* ── Left: scrollable main content ─────────────────────────────── */}
+        <div className="flex-1 min-w-0 px-4 md:px-6 lg:px-8 pt-5 pb-10 space-y-4">
 
-          {/* Quote Details (shared: customer + margin + lead time) */}
-          <div className="rounded border p-5 space-y-4" style={cardStyle}>
-            <div
-              className="text-xs font-semibold uppercase tracking-widest"
-              style={{ color: "hsl(var(--muted-foreground))" }}
-            >
-              {isPack ? "Quote Details" : "Customer & Part"}
-            </div>
-
-            {/* Customer */}
-            <div className="space-y-1.5">
-              <Label>Customer</Label>
-              <Select
-                value={customerId ? String(customerId) : ""}
-                onValueChange={(v) => setCustomerId(Number(v))}
+          {/* Page header */}
+          <div className="flex items-center gap-3">
+            <Link href="/quotes">
+              <Button variant="outline" size="icon" className="h-8 w-8">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Zap className="w-4 h-4 text-primary shrink-0" />
+            <h1 className="text-xl font-bold tracking-tight">Quick Quote</h1>
+            {isPack && (
+              <span
+                className="text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shrink-0"
+                style={{
+                  background: "hsl(213 97% 58% / 0.12)",
+                  color: "hsl(213 97% 58%)",
+                  border: "1px solid hsl(213 97% 58% / 0.3)",
+                }}
               >
-                <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Select customer..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {(customers || []).map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.companyName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <Layers className="w-3 h-3" />
+                PACK · {parts.length} parts
+              </span>
+            )}
+            <span className="text-sm hidden md:block text-muted-foreground">
+              {isPack ? `Multi-part RFQ` : "Professional quote in under 90 seconds"}
+            </span>
+          </div>
 
-            {/* Margin + Lead Time */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Margin (%)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="99"
-                  step="1"
-                  value={margin}
-                  onChange={(e) => setMargin(Number(e.target.value))}
-                  className="h-11"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Lead Time</Label>
-                <Select value={leadTime} onValueChange={setLeadTime}>
-                  <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Select lead time..." />
+          {/* ── Quote Details bar ── */}
+          <div className="rounded border p-4" style={cardStyle}>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {/* Customer */}
+              <div className="col-span-2 md:col-span-1 space-y-1">
+                <Label className="text-xs text-muted-foreground">Customer</Label>
+                <Select value={customerId ? String(customerId) : ""} onValueChange={(v) => setCustomerId(Number(v))}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Select customer…" />
                   </SelectTrigger>
                   <SelectContent>
-                    {LEAD_TIMES.map((t) => (
-                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    {(customers || []).map((c) => (
+                      <SelectItem key={c.id} value={String(c.id)}>{c.companyName}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            </div>
 
-            {/* Single-part mode: inline part fields */}
-            {!isPack && (
-              <>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label>Part Name</Label>
-                    <Input
-                      value={parts[0].partName}
-                      onChange={(e) => updatePart(parts[0].key, { partName: e.target.value })}
-                      placeholder="e.g. Bracket A"
-                      className="h-11"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Quantity</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={parts[0].qty}
-                      onChange={(e) =>
-                        updatePart(parts[0].key, { qty: Math.max(1, Number(e.target.value)) })
-                      }
-                      className="h-11"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label>Material</Label>
-                    <MaterialCombobox
-                      value={parts[0].material}
-                      onChange={(val, costPerKg) => {
-                        updatePart(parts[0].key, {
-                          material: val,
-                          ...(costPerKg !== undefined ? { materialCost: costPerKg } : {}),
-                        });
-                      }}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Process</Label>
-                    <Select
-                      value={parts[0].processType}
-                      onValueChange={(v) => updatePart(parts[0].key, { processType: v })}
-                    >
-                      <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {PROCESSES.map((p) => (
-                          <SelectItem key={p} value={p}>{p}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <MachineSelect
-                  machineId={parts[0].machineId}
-                  machines={machinesList}
-                  defaultHourlyRate={defaultHourlyRate}
-                  onChange={(id) => updatePart(parts[0].key, { machineId: id })}
-                />
-              </>
-            )}
+              {/* Margin */}
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Margin (%)</Label>
+                <Input type="number" min="0" max="99" step="1" value={margin} onChange={(e) => setMargin(Number(e.target.value))} className="h-9" />
+              </div>
+
+              {/* Lead Time */}
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Lead Time</Label>
+                <Select value={leadTime} onValueChange={setLeadTime}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Select…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LEAD_TIMES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
 
-          {/* Single-part mode: Time & Costs */}
-          {!isPack && (
-            <div className="rounded border p-5 space-y-4" style={cardStyle}>
-              <div
-                className="text-xs font-semibold uppercase tracking-widest"
-                style={{ color: "hsl(var(--muted-foreground))" }}
-              >
-                Time &amp; Costs
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Setup (hours)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.25"
-                    value={parts[0].setupHours}
-                    onChange={(e) => updatePart(parts[0].key, { setupHours: Number(e.target.value) })}
-                    className="h-11"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Machining (mins/part)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={parts[0].machiningMins}
-                    onChange={(e) => updatePart(parts[0].key, { machiningMins: Number(e.target.value) })}
-                    className="h-11"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Material cost/unit ({CUR})</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={parts[0].materialCost}
-                    onChange={(e) => updatePart(parts[0].key, { materialCost: Number(e.target.value) })}
-                    className="h-11"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Tooling ({CUR})</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={parts[0].toolingAllowance}
-                    onChange={(e) => updatePart(parts[0].key, { toolingAllowance: Number(e.target.value) })}
-                    className="h-11"
-                  />
-                </div>
-              </div>
+          {/* ── Parts ── */}
+          {isPack ? (
+            /* Pack mode: 2-column grid */
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              {parts.map((part, idx) => (
+                <PartCard
+                  key={part.key}
+                  part={part}
+                  index={idx}
+                  total={parts.length}
+                  result={partResults[idx]}
+                  machines={machinesList}
+                  defaultHourlyRate={defaultHourlyRate}
+                  isPack
+                  onUpdate={(patch) => updatePart(part.key, patch)}
+                  onDuplicate={() => duplicatePart(part.key)}
+                  onRemove={() => removePart(part.key)}
+                  onMoveUp={() => movePart(part.key, -1)}
+                  onMoveDown={() => movePart(part.key, 1)}
+                />
+              ))}
             </div>
+          ) : (
+            /* Single part */
+            <PartCard
+              part={parts[0]}
+              index={0}
+              total={1}
+              result={partResults[0]}
+              machines={machinesList}
+              defaultHourlyRate={defaultHourlyRate}
+              isPack={false}
+              onUpdate={(patch) => updatePart(parts[0].key, patch)}
+              onDuplicate={() => duplicatePart(parts[0].key)}
+              onRemove={() => {}}
+              onMoveUp={() => {}}
+              onMoveDown={() => {}}
+            />
           )}
 
-          {/* Pack mode: Part cards */}
-          {isPack &&
-            parts.map((part, idx) => (
-              <PartCard
-                key={part.key}
-                part={part}
-                index={idx}
-                total={parts.length}
-                result={partResults[idx]}
-                machines={machinesList}
-                defaultHourlyRate={defaultHourlyRate}
-                onUpdate={(patch) => updatePart(part.key, patch)}
-                onDuplicate={() => duplicatePart(part.key)}
-                onRemove={() => removePart(part.key)}
-                onMoveUp={() => movePart(part.key, -1)}
-                onMoveDown={() => movePart(part.key, 1)}
-              />
-            ))}
-
-          {/* Add Another Part button */}
+          {/* ── Add Another Part ── */}
           {parts.length < MAX_PARTS && (
             <button
               type="button"
               onClick={addPart}
-              className="w-full rounded border-2 border-dashed p-3.5 flex items-center justify-center gap-2 text-sm font-medium transition-colors hover:border-primary/60 hover:text-primary"
-              style={{
-                borderColor: "hsl(var(--border))",
-                color: "hsl(var(--muted-foreground))",
-              }}
+              className="w-full rounded border-2 border-dashed py-3 flex items-center justify-center gap-2 text-sm font-medium transition-colors hover:border-primary/60 hover:text-primary"
+              style={{ borderColor: "hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}
             >
               <Plus className="w-4 h-4" />
               Add Another Part
             </button>
           )}
 
-          {/* Delivery */}
-          <div className="rounded border p-5 space-y-4" style={cardStyle}>
-            <div
-              className="text-xs font-semibold uppercase tracking-widest"
-              style={{ color: "hsl(var(--muted-foreground))" }}
-            >
-              Delivery
-            </div>
-            <div className="space-y-3">
-              <div className="space-y-1.5">
-                <Label>Delivery Method</Label>
+          {/* ── Delivery ── */}
+          <div className="rounded border p-4" style={cardStyle}>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground uppercase tracking-widest">Delivery</Label>
                 <Select value={deliveryMethod} onValueChange={setDeliveryMethod}>
-                  <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Select method..." />
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Method…" />
                   </SelectTrigger>
                   <SelectContent>
-                    {DELIVERY_METHODS.map((m) => (
-                      <SelectItem key={m} value={m}>{m}</SelectItem>
-                    ))}
+                    {DELIVERY_METHODS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Delivery Cost ({CUR})</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={deliveryCost}
-                    onChange={(e) => setDeliveryCost(Number(e.target.value))}
-                    className="h-11"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Include in Total</Label>
-                  <div className="flex items-center gap-2 h-11">
-                    <Switch
-                      checked={includeDeliveryInTotal}
-                      onCheckedChange={setIncludeDeliveryInTotal}
-                    />
-                    <span className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-                      {includeDeliveryInTotal ? "Yes" : "No"}
-                    </span>
-                  </div>
-                </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Cost ({CUR})</Label>
+                <Input type="number" min="0" step="0.01" value={deliveryCost} onChange={(e) => setDeliveryCost(Number(e.target.value))} className="h-9" />
+              </div>
+              <div className="flex items-center gap-3 h-9">
+                <Switch checked={includeDeliveryInTotal} onCheckedChange={setIncludeDeliveryInTotal} />
+                <span className="text-sm text-muted-foreground">Include in total</span>
               </div>
             </div>
           </div>
 
-          {/* Extras & Products */}
+          {/* ── Extras & Products ── */}
           <AddonsSection
             addons={addons}
             setAddons={setAddons}
@@ -1586,88 +1215,81 @@ export function QuickQuote() {
           />
         </div>
 
-        {/* ── Right panel ─────────────────────────────────────────────────── */}
-        <div className="lg:col-span-2">
-          <div
-            className="rounded border p-5 lg:sticky lg:top-4"
-            style={{
-              background: "hsl(var(--card))",
-              borderColor: "hsl(213 97% 58% / 0.35)",
-            }}
-          >
-            {isPack ? (
-              <PackSummaryPanel
-                parts={parts}
-                partResults={partResults}
-                addons={addons}
-                addonsTotal={addonsTotal}
-                grandTotal={grandTotal}
-                deliveryCost={deliveryCost}
-                includeDeliveryInTotal={includeDeliveryInTotal}
-              />
-            ) : (
-              <SinglePartResultPanel
-                result={partResults[0]}
-                addons={addons}
-                addonsTotal={addonsTotal}
-                deliveryCost={deliveryCost}
-                includeDeliveryInTotal={includeDeliveryInTotal}
-                margin={margin}
-                machines={machinesList}
-                machineId={parts[0].machineId}
-                defaultHourlyRate={defaultHourlyRate}
-                defaultSetupRate={defaultSetupRate}
-                leadTime={leadTime}
-                deliveryMethod={deliveryMethod}
-              />
-            )}
-
-            {/* Action buttons */}
-            <div className="mt-5 space-y-2">
-              <Button
-                className="w-full h-12 font-semibold gap-2"
-                onClick={handleSaveDraft}
-                disabled={!canSubmit || createQuote.isPending}
-              >
-                <Save className="w-4 h-4" />
-                {createQuote.isPending
-                  ? "Saving..."
-                  : isPack
-                  ? "Save Pack as Draft"
-                  : "Save Draft"}
-              </Button>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  className="h-11 gap-1.5 text-sm"
-                  onClick={handleGeneratePdf}
-                  disabled={!canSubmit || createQuote.isPending}
-                >
-                  <FileDown className="w-4 h-4" /> Generate PDF
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-11 gap-1.5 text-sm"
-                  onClick={handleFullQuote}
-                  disabled={!canSubmit || createQuote.isPending}
-                >
-                  <ArrowRight className="w-4 h-4" />{" "}
-                  {isPack ? "Convert to Full" : "Full Quote"}
-                </Button>
-              </div>
-              {!canSubmit && (
-                <p
-                  className="text-xs text-center pt-1"
-                  style={{ color: "hsl(var(--muted-foreground))" }}
-                >
-                  {customerId === 0
-                    ? "Select a customer to save."
-                    : "All parts need a name to save."}
-                </p>
-              )}
-            </div>
-          </div>
+        {/* ── Right: sticky summary panel (desktop) ─────────────────────── */}
+        <div
+          className="hidden lg:flex flex-col w-[260px] xl:w-[280px] shrink-0 sticky top-0 h-screen overflow-y-auto px-4 py-5"
+          style={{
+            borderLeft: "1px solid hsl(var(--border))",
+            background: "hsl(var(--card))",
+          }}
+        >
+          <SummaryPanel
+            isPack={isPack}
+            parts={parts}
+            partResults={partResults}
+            addons={addons}
+            addonsTotal={addonsTotal}
+            grandTotal={grandTotal}
+            deliveryCost={deliveryCost}
+            includeDeliveryInTotal={includeDeliveryInTotal}
+            margin={margin}
+            leadTime={leadTime}
+            deliveryMethod={deliveryMethod}
+            machines={machinesList}
+            defaultHourlyRate={defaultHourlyRate}
+            defaultSetupRate={defaultSetupRate}
+            canSubmit={canSubmit}
+            isPending={createQuote.isPending}
+            onSaveDraft={handleSaveDraft}
+            onGeneratePdf={handleGeneratePdf}
+            onFullQuote={handleFullQuote}
+          />
         </div>
+      </div>
+
+      {/* ── Mobile: summary + actions ──────────────────────────────────── */}
+      <div
+        className="lg:hidden border-t px-4 py-4 space-y-3"
+        style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--card))" }}
+      >
+        {/* Totals */}
+        <div className="flex justify-between items-center">
+          <span className="font-semibold">{isPack ? "Grand Total" : "Total"}</span>
+          <span
+            className="text-2xl font-bold font-mono"
+            style={{ color: "hsl(213 97% 58%)" }}
+          >
+            {CUR}{(isPack ? grandTotal : (partResults[0].sellPrice + addonsTotal + (includeDeliveryInTotal && deliveryCost > 0 ? deliveryCost : 0))).toFixed(2)}
+          </span>
+        </div>
+        {isPack && (
+          <div className="space-y-1 text-sm">
+            {parts.map((part, idx) => (
+              <div key={part.key} className="flex justify-between text-sm">
+                <span className="text-muted-foreground truncate">{part.partName || `Part ${idx + 1}`}{part.qty > 1 && ` ×${part.qty}`}</span>
+                <span className="font-mono ml-2">{CUR}{partResults[idx].sellPrice.toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {/* Mobile actions */}
+        <Button className="w-full h-11 font-semibold gap-2" onClick={handleSaveDraft} disabled={!canSubmit || createQuote.isPending}>
+          <Save className="w-4 h-4" />
+          {createQuote.isPending ? "Saving…" : isPack ? "Save Pack Draft" : "Save Draft"}
+        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="outline" className="h-10 gap-1.5 text-sm" onClick={handleGeneratePdf} disabled={!canSubmit || createQuote.isPending}>
+            <FileDown className="w-4 h-4" /> Generate PDF
+          </Button>
+          <Button variant="outline" className="h-10 gap-1.5 text-sm" onClick={handleFullQuote} disabled={!canSubmit || createQuote.isPending}>
+            <ArrowRight className="w-4 h-4" /> Full Quote
+          </Button>
+        </div>
+        {!canSubmit && (
+          <p className="text-xs text-center text-muted-foreground">
+            {customerId === 0 ? "Select a customer to save." : "All parts need a name to save."}
+          </p>
+        )}
       </div>
     </div>
   );

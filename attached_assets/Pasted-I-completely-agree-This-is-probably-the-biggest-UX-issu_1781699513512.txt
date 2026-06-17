@@ -1,0 +1,322 @@
+I completely agree.
+
+This is probably the biggest UX issue I can see from that screenshot.
+
+The software is behaving like a **vertical form**, when quoting is naturally a **horizontal workflow**.
+
+Right now you've got:
+
+* 70% white space on the right
+* narrow quote cards
+* constant scrolling
+* pack summary isolated in a small box
+* fields stacked vertically
+
+On a 27" monitor you're only using about half the available workspace.
+
+A machine shop estimator wants to scan information left-to-right, not top-to-bottom.
+
+## What I would change
+
+### Layout
+
+Current:
+
+```text
+Customer
+
+Part 1
+
+Part 2
+
+Part 3
+
+Part 4
+```
+
+Better:
+
+```text
+---------------------------------------------------
+Customer | Lead Time | Margin | Delivery
+---------------------------------------------------
+
+Part 1 | Part 2
+
+Part 3 | Part 4
+
+---------------------------------------------------
+
+Pack Summary
+---------------------------------------------------
+```
+
+Now 4 parts can be viewed simultaneously.
+
+---
+
+### Part Cards
+
+Each part card is too tall.
+
+Current:
+
+```text
+Part Name
+
+Drawing Number
+
+Revision
+
+Material
+
+Machine
+
+Setup
+
+Machining
+
+Material Cost
+
+Tooling
+```
+
+Make it:
+
+```text
+Part Name | Qty
+
+Drawing | Rev
+
+Material | Machine
+
+Setup | Runtime
+
+Material Cost | Tooling
+```
+
+Two-column layout.
+
+Cuts card height almost in half.
+
+---
+
+### Summary Panel
+
+The summary panel is currently wasting space.
+
+I'd make it sticky.
+
+```text
+Customer
+Margin
+Lead Time
+
+----------------
+
+Part 1 £125
+
+Part 2 £98
+
+Part 3 £210
+
+Part 4 £80
+
+----------------
+
+Delivery £20
+
+Total £533
+```
+
+Always visible.
+
+Never scrolls away.
+
+---
+
+### On Large Screens
+
+Use responsive grids.
+
+Example:
+
+#### 2 Parts
+
+```text
+Part 1 | Part 2
+```
+
+#### 4 Parts
+
+```text
+Part 1 | Part 2
+
+Part 3 | Part 4
+```
+
+#### 6 Parts
+
+```text
+Part 1 | Part 2
+
+Part 3 | Part 4
+
+Part 5 | Part 6
+```
+
+---
+
+### Remove Dead Space
+
+You have huge margins:
+
+```text
+| Sidebar | Quote | White Space |
+```
+
+I would use:
+
+```text
+| Sidebar | Quote Area | Summary |
+```
+
+Full width.
+
+Much more professional.
+
+---
+
+### Think Like Fusion 360
+
+The best benchmark isn't SaaS software.
+
+It's:
+
+* Fusion 360
+* SolidWorks
+* Mastercam
+* Siemens NX
+
+They all utilise screen space aggressively.
+
+Engineers expect information density.
+
+---
+
+## Prompt for Replit
+
+```text
+Redesign Quick Quote Pack for widescreen engineering workflows.
+
+Current issue:
+
+The page behaves like a mobile form stretched onto a desktop monitor.
+
+Users are forced to scroll vertically despite having significant unused horizontal space.
+
+Goal:
+
+Use the available screen width efficiently.
+
+Think:
+Fusion 360
+SolidWorks
+Mastercam
+Industrial engineering software
+
+NOT:
+Generic SaaS forms
+
+1. Increase working width
+
+Reduce unnecessary margins.
+
+Use more of the available screen.
+
+2. Multi-part grid layout
+
+For Pack Quotes:
+
+2 parts:
+Part 1 | Part 2
+
+4 parts:
+Part 1 | Part 2
+Part 3 | Part 4
+
+6 parts:
+Part 1 | Part 2
+Part 3 | Part 4
+Part 5 | Part 6
+
+Responsive layout.
+
+3. Reduce part card height
+
+Use a two-column field layout.
+
+Place related fields on the same row.
+
+Example:
+
+Part Name | Quantity
+
+Drawing Number | Revision
+
+Material | Machine
+
+Setup Hours | Runtime Minutes
+
+Material Cost | Tooling Cost
+
+Notes collapsed by default.
+
+4. Sticky summary panel
+
+Keep summary visible at all times.
+
+Show:
+
+Customer
+
+Lead Time
+
+Margin
+
+Part Totals
+
+Delivery
+
+Grand Total
+
+Generate PDF
+
+Convert to Full Quote
+
+5. Desktop-first optimisation
+
+Optimise for:
+
+1920x1080
+2560x1440
+3440x1440
+
+Then make responsive for iPhone.
+
+6. Reduce scrolling
+
+A 4-part RFQ should ideally fit on one screen without excessive vertical scrolling.
+
+7. Preserve simplicity
+
+Do not add more fields.
+
+Improve layout only.
+
+Final goal:
+
+The quote screen should feel like professional engineering software rather than a long web form.
+```
+
+This is one of the strongest pieces of feedback you've had so far because it came from actually trying to quote a live job. That's exactly the kind of feedback that improves products.
