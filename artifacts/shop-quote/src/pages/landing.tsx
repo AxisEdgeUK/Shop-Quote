@@ -89,12 +89,12 @@ function Wordmark({ light = false }: { light?: boolean }) {
           style={{
             fontSize: 10,
             fontWeight: 700,
-            letterSpacing: "0.18em",
+            letterSpacing: "0.08em",
             color: light ? "rgba(255,255,255,0.9)" : "#0D1117",
             lineHeight: 1,
           }}
         >
-          SHOP
+          AXISEDGE
         </div>
         <div
           style={{
@@ -383,24 +383,24 @@ export function LandingPage() {
               fontSize: "clamp(2rem, 6vw, 5rem)",
             }}
           >
-            FAST PRECISE QUOTING
+            AXISEDGE QUOTE
             <br />
-            <span style={{ color: BLUE }}>FOR SMALL CNC SHOPS</span>
+            <span style={{ color: BLUE }}>PRECISION QUOTING FOR CNC MACHINE SHOPS</span>
           </h1>
 
           <p
             style={{
               fontSize: "clamp(0.875rem, 1.8vw, 1.05rem)",
               color: "rgba(255,255,255,0.65)",
-              maxWidth: 460,
+              maxWidth: 520,
               lineHeight: 1.7,
               marginBottom: 36,
               textShadow: "0 1px 20px rgba(0,0,0,0.95)",
               padding: "0 0.5rem",
             }}
           >
-            Professional milling and turning quotes in minutes. No spreadsheets,
-            no guesswork.
+            Built for small CNC milling and turning companies that need faster
+            quoting, cleaner workflows and professional customer quotations.
           </p>
 
           <div
@@ -718,11 +718,12 @@ export function LandingPage() {
           </p>
           <div
             style={{
-              maxWidth: 560,
+              maxWidth: 620,
               margin: "0 auto",
-              border: "1px solid #21262D",
+              border: `1px solid ${BLUE}`,
               padding: "48px 44px",
               textAlign: "center",
+              boxShadow: "0 4px 32px rgba(29,143,255,0.08)",
             }}
           >
             <div
@@ -730,25 +731,72 @@ export function LandingPage() {
                 fontSize: 10,
                 fontWeight: 700,
                 letterSpacing: "0.22em",
-                color: "#58A6FF",
+                color: BLUE,
                 textTransform: "uppercase",
-                marginBottom: 16,
+                marginBottom: 20,
               }}
             >
-              Beta Testing
+              AxisEdge Quote Founder Licence
+            </div>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#C9D1D9",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                marginBottom: 28,
+              }}
+            >
+              7-Day Free Trial
             </div>
             <p
               style={{
-                fontSize: "1rem",
-                color: "#C9D1D9",
-                lineHeight: 1.75,
-                marginBottom: 12,
+                fontSize: "0.875rem",
+                color: "#8B949E",
+                lineHeight: 1.7,
+                marginBottom: 28,
               }}
             >
-              Pricing will be announced at general launch.
+              Then choose:
             </p>
-            <p style={{ fontSize: "0.85rem", color: "#6b7280", lineHeight: 1.75 }}>
-              No hidden fees · No per-user charges · No ERP complexity.
+            <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", marginBottom: 32 }}>
+              <div
+                style={{
+                  flex: 1,
+                  minWidth: 180,
+                  border: `1px solid ${BLUE}`,
+                  padding: "24px 20px",
+                  textAlign: "center",
+                  background: `rgba(29,143,255,0.05)`,
+                }}
+              >
+                <div style={{ fontSize: 28, fontWeight: 800, color: "#E6EDF3", letterSpacing: "-0.03em", marginBottom: 4 }}>
+                  £999
+                </div>
+                <div style={{ fontSize: 11, color: "#8B949E", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  Lifetime Licence
+                </div>
+              </div>
+              <div
+                style={{
+                  flex: 1,
+                  minWidth: 180,
+                  border: "1px solid #30363D",
+                  padding: "24px 20px",
+                  textAlign: "center",
+                }}
+              >
+                <div style={{ fontSize: 28, fontWeight: 800, color: "#E6EDF3", letterSpacing: "-0.03em", marginBottom: 4 }}>
+                  £120<span style={{ fontSize: 14, fontWeight: 400, color: "#8B949E" }}>/mo</span>
+                </div>
+                <div style={{ fontSize: 11, color: "#8B949E", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  12 months, then owned
+                </div>
+              </div>
+            </div>
+            <p style={{ fontSize: "0.8rem", color: "#484F58", lineHeight: 1.75 }}>
+              Built for professional machine shops. No long-term subscription required.
             </p>
           </div>
         </div>
@@ -805,7 +853,7 @@ export function LandingPage() {
               gap: 8,
             }}
           >
-            <span>© {new Date().getFullYear()} SHOP Quote</span>
+            <span>© {new Date().getFullYear()} AxisEdge</span>
             <span>Precision quoting for precision engineering</span>
           </div>
         </div>

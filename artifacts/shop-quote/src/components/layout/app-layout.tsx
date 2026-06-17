@@ -18,9 +18,9 @@ function MobileTopBar({ onMenuClick }: { onMenuClick: () => void }) {
         <div>
           <div
             className="text-xs font-bold tracking-widest uppercase leading-none"
-            style={{ letterSpacing: "0.12em", color: "hsl(var(--foreground))" }}
+            style={{ letterSpacing: "0.06em", color: "hsl(var(--foreground))" }}
           >
-            SHOP
+            AXISEDGE
           </div>
           <div
             className="text-xs font-semibold leading-none mt-0.5"

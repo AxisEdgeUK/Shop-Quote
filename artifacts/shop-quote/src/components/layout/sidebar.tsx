@@ -133,10 +133,10 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               className="text-xs font-bold tracking-widest uppercase leading-none"
               style={{
                 color: "hsl(var(--sidebar-foreground))",
-                letterSpacing: "0.12em",
+                letterSpacing: "0.06em",
               }}
             >
-              SHOP
+              AXISEDGE
             </div>
             <div
               className="text-xs font-semibold mt-0.5 leading-none"

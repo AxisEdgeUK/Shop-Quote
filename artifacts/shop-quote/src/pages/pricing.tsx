@@ -37,8 +37,8 @@ function Wordmark() {
     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
       <LogoMark />
       <div>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", color: "#111827", lineHeight: 1 }}>
-          SHOP
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#111827", lineHeight: 1 }}>
+          AXISEDGE
         </div>
         <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.22em", color: BLUE, lineHeight: 1, marginTop: 2 }}>
           QUOTE
@@ -135,7 +135,7 @@ export function PricingPage() {
                 fontSize: "0.9rem",
               }}
             >
-              SHOP Quote is currently in beta testing with a small group of CNC machine shops.
+              AxisEdge Quote is currently in beta testing with a small group of CNC machine shops.
             </p>
           </div>
 
@@ -209,7 +209,7 @@ export function PricingPage() {
               },
               {
                 q: "Is it cloud-based?",
-                a: "Yes. SHOP Quote runs in your browser. No installation. Access from any machine in the shop.",
+                a: "Yes. AxisEdge Quote runs in your browser. No installation. Access from any machine in the shop.",
               },
               {
                 q: "Will my data be private?",
@@ -247,7 +247,7 @@ export function PricingPage() {
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ fontSize: 11, color: "#9ca3af" }}>
-            © {new Date().getFullYear()} SHOP Quote — Beta v0.1
+            © {new Date().getFullYear()} AxisEdge — Beta v0.1
           </span>
           <Link href="/">
             <span style={{ fontSize: 12, color: "#6b7280" }}>← Back to home</span>

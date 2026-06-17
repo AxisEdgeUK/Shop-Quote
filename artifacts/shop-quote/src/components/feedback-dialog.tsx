@@ -118,8 +118,8 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
         <DialogHeader>
           <DialogTitle>Send Feedback</DialogTitle>
           <DialogDescription>
-            Help us improve SHOP Quote. This is a beta — your input shapes the
-            product.
+            Help us improve AxisEdge Quote. This is a beta — your input shapes
+            the product.
           </DialogDescription>
         </DialogHeader>
 
