@@ -1,3 +1,4 @@
+import { type CSSProperties } from "react";
 import { format } from "date-fns";
 import { Quote, Customer, Settings } from "@workspace/api-client-react";
 
@@ -410,6 +411,7 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
             {standardItems.map((item, idx) => (
               <tr
                 key={item.id || idx}
+                className="print-row"
                 style={{
                   borderBottom: "1px solid #f1f5f9",
                   background: idx % 2 === 1 ? "#fafafa" : "#ffffff",
@@ -743,7 +745,7 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
           </div>
 
           {/* Right: totals */}
-          <div style={{ minWidth: 220, flexShrink: 0 }}>
+          <div className="print-totals" style={{ minWidth: 220, flexShrink: 0 }}>
             <div style={{ borderTop: "2px solid #1e293b", paddingTop: 12 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 13 }}>
                 <span style={{ color: "#64748b" }}>Subtotal</span>
@@ -783,7 +785,9 @@ export function PrintLayout({ quote, customer, settings }: PrintLayoutProps) {
                   padding: "10px 14px",
                   marginTop: 4,
                   background: "#1e293b",
-                }}
+                  WebkitPrintColorAdjust: "exact",
+                  printColorAdjust: "exact",
+                } as CSSProperties}
               >
                 <span style={{ fontWeight: 700, fontSize: 14, color: "#f8fafc" }}>Total</span>
                 <span style={{ fontWeight: 800, fontSize: 18, fontFamily: "monospace", color: "#f8fafc" }}>

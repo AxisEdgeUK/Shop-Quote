@@ -35,7 +35,16 @@ import { ProductsLibrary } from "@/pages/products";
 import { NewProduct } from "@/pages/products/new";
 import { EditProduct } from "@/pages/products/edit";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      gcTime: 300_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function AppRoute({
   component: Component,

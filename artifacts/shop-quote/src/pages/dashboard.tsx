@@ -150,6 +150,84 @@ export function DashboardPage() {
         </p>
       </div>
 
+      {/* ── First-run onboarding guide ───────────────────────────────── */}
+      {stats.totalQuotes === 0 && (
+        <div
+          className="rounded border px-5 py-4"
+          style={{
+            background: "hsl(213 97% 58% / 0.05)",
+            borderColor: "hsl(213 97% 58% / 0.25)",
+          }}
+        >
+          <p
+            className="text-sm font-semibold mb-3"
+            style={{ color: "hsl(213 97% 45%)" }}
+          >
+            Get started — 3 quick steps
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              {
+                step: "1",
+                title: "Set up company details",
+                desc: "Add your company name, logo, and bank details so PDFs look professional.",
+                href: "/settings",
+                cta: "Open Settings",
+              },
+              {
+                step: "2",
+                title: "Add your machines",
+                desc: "Enter your CNC machines with hourly and setup rates for accurate costing.",
+                href: "/machines",
+                cta: "Add Machines",
+              },
+              {
+                step: "3",
+                title: "Create your first quote",
+                desc: "Select a customer, add parts and costs, and generate a PDF in minutes.",
+                href: "/quotes/new",
+                cta: "New Quote",
+              },
+            ].map(({ step, title, desc, href, cta }) => (
+              <div
+                key={step}
+                className="rounded border p-3 flex flex-col gap-1.5"
+                style={{
+                  background: "hsl(var(--card))",
+                  borderColor: "hsl(var(--card-border))",
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    className="w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center shrink-0"
+                    style={{
+                      background: "hsl(213 97% 58%)",
+                      color: "#fff",
+                    }}
+                  >
+                    {step}
+                  </span>
+                  <span className="text-sm font-semibold">{title}</span>
+                </div>
+                <p
+                  className="text-xs leading-relaxed"
+                  style={{ color: "hsl(var(--muted-foreground))" }}
+                >
+                  {desc}
+                </p>
+                <Link
+                  href={href}
+                  className="text-xs font-medium mt-auto pt-1 self-start"
+                  style={{ color: "hsl(213 97% 55%)" }}
+                >
+                  {cta} →
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         <KpiCard
