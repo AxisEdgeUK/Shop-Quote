@@ -135,7 +135,7 @@ export function PricingPage() {
                 fontSize: "0.9rem",
               }}
             >
-              AxisEdge Quote is currently in beta testing with a small group of CNC machine shops.
+              AxisEdge is currently in beta testing with a small group of CNC machine shops.
             </p>
           </div>
 
@@ -209,7 +209,7 @@ export function PricingPage() {
               },
               {
                 q: "Is it cloud-based?",
-                a: "Yes. AxisEdge Quote runs in your browser. No installation. Access from any machine in the shop.",
+                a: "Yes. AxisEdge runs in your browser. No installation. Access from any machine in the shop.",
               },
               {
                 q: "Will my data be private?",

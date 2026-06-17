@@ -76,7 +76,7 @@ export function IdeasPage() {
       </div>
 
       <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-        Tell us what would make AxisEdge Quote better for your shop. All ideas are reviewed.
+        Tell us what would make AxisEdge better for your shop. All ideas are reviewed.
       </p>
 
       {/* Card */}

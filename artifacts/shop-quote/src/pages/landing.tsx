@@ -383,7 +383,7 @@ export function LandingPage() {
               fontSize: "clamp(2rem, 6vw, 5rem)",
             }}
           >
-            AXISEDGE QUOTE
+            AXISEDGE
             <br />
             <span style={{ color: BLUE }}>PRECISION QUOTING FOR CNC MACHINE SHOPS</span>
           </h1>
@@ -736,7 +736,7 @@ export function LandingPage() {
                 marginBottom: 20,
               }}
             >
-              AxisEdge Quote Founder Licence
+              AxisEdge Founder Licence
             </div>
             <div
               style={{
