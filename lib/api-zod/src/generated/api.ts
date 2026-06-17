@@ -38,6 +38,18 @@ export const GetDashboardStatsResponse = zod.object({
 });
 
 /**
+ * @summary List overdue and upcoming follow-up quotes
+ */
+export const ListFollowUpsResponseItem = zod.object({
+  id: zod.number(),
+  quoteNumber: zod.string(),
+  customerName: zod.string(),
+  followUpDate: zod.string(),
+  urgency: zod.enum(["overdue", "due_today", "due_soon"]),
+});
+export const ListFollowUpsResponse = zod.array(ListFollowUpsResponseItem);
+
+/**
  * @summary List all customers
  */
 export const ListCustomersResponseItem = zod.object({

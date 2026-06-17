@@ -22,6 +22,7 @@ import type {
   CustomerInput,
   CustomerUpdate,
   DashboardStats,
+  FollowUpQuote,
   HealthStatus,
   Machine,
   MachineInput,
@@ -191,6 +192,81 @@ export function useGetDashboardStats<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetDashboardStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List overdue and upcoming follow-up quotes
+ */
+export const getListFollowUpsUrl = () => {
+  return `/api/quotes/follow-ups`;
+};
+
+export const listFollowUps = async (
+  options?: RequestInit,
+): Promise<FollowUpQuote[]> => {
+  return customFetch<FollowUpQuote[]>(getListFollowUpsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListFollowUpsQueryKey = () => {
+  return [`/api/quotes/follow-ups`] as const;
+};
+
+export const getListFollowUpsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listFollowUps>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listFollowUps>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListFollowUpsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listFollowUps>>> = ({
+    signal,
+  }) => listFollowUps({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listFollowUps>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListFollowUpsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listFollowUps>>
+>;
+export type ListFollowUpsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List overdue and upcoming follow-up quotes
+ */
+
+export function useListFollowUps<
+  TData = Awaited<ReturnType<typeof listFollowUps>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listFollowUps>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListFollowUpsQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

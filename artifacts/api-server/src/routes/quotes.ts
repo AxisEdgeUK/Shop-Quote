@@ -275,6 +275,50 @@ async function insertLineItems(
   }
 }
 
+router.get("/quotes/follow-ups", async (req, res): Promise<void> => {
+  const today = new Date().toISOString().split("T")[0];
+  const weekOut = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0];
+
+  const quotes = await db
+    .select({
+      id: quotesTable.id,
+      quoteNumber: quotesTable.quoteNumber,
+      status: quotesTable.status,
+      followUpDate: quotesTable.followUpDate,
+      customerName: customersTable.companyName,
+    })
+    .from(quotesTable)
+    .leftJoin(customersTable, eq(quotesTable.customerId, customersTable.id))
+    .orderBy(quotesTable.followUpDate);
+
+  const result = quotes
+    .filter(
+      (q) =>
+        q.status === "Sent" &&
+        q.followUpDate !== null &&
+        q.followUpDate <= weekOut,
+    )
+    .map((q) => {
+      const date = q.followUpDate!;
+      let urgency: "overdue" | "due_today" | "due_soon";
+      if (date < today) urgency = "overdue";
+      else if (date === today) urgency = "due_today";
+      else urgency = "due_soon";
+
+      return {
+        id: q.id,
+        quoteNumber: q.quoteNumber,
+        customerName: q.customerName ?? "Unknown",
+        followUpDate: date,
+        urgency,
+      };
+    });
+
+  res.json(result);
+});
+
 router.get("/quotes", async (req, res): Promise<void> => {
   const quotes = await db
     .select({

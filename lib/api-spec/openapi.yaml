@@ -50,6 +50,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/DashboardStats"
 
+  /quotes/follow-ups:
+    get:
+      operationId: listFollowUps
+      tags: [dashboard]
+      summary: List overdue and upcoming follow-up quotes
+      responses:
+        "200":
+          description: Follow-up quotes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FollowUpQuote"
+
   /customers:
     get:
       operationId: listCustomers
@@ -545,6 +560,27 @@ components:
           type: string
       required:
         - status
+
+    FollowUpQuote:
+      type: object
+      required:
+        - id
+        - quoteNumber
+        - customerName
+        - followUpDate
+        - urgency
+      properties:
+        id:
+          type: integer
+        quoteNumber:
+          type: string
+        customerName:
+          type: string
+        followUpDate:
+          type: string
+        urgency:
+          type: string
+          enum: [overdue, due_today, due_soon]
 
     DashboardStats:
       type: object

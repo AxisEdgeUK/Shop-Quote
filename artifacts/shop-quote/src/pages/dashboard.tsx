@@ -1,10 +1,11 @@
 import {
   useGetDashboardStats,
   useListQuotes,
+  useListFollowUps,
 } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
-import { format } from "date-fns";
+import { format, differenceInCalendarDays } from "date-fns";
 import {
   FileText,
   Plus,
@@ -17,6 +18,7 @@ import {
   BarChart3,
   ChevronRight,
   Zap,
+  Bell,
 } from "lucide-react";
 
 function KpiCard({
@@ -109,6 +111,7 @@ function StatusChip({ status }: { status: string }) {
 export function DashboardPage() {
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
   const { data: allQuotes, isLoading: quotesLoading } = useListQuotes();
+  const { data: followUps = [] } = useListFollowUps();
 
   const recentQuotes = (allQuotes ?? []).slice(0, 8);
 
@@ -263,6 +266,94 @@ export function DashboardPage() {
           sub={stats.avgTurnaroundDaysLastMonth != null ? `Last month: ${stats.avgTurnaroundDaysLastMonth.toFixed(1)}d` : "RFQ received → quote sent"}
         />
       </div>
+
+      {/* Follow-up action list */}
+      {followUps.length > 0 && (
+        <div
+          className="rounded border overflow-hidden"
+          style={{
+            background: "hsl(38 92% 50% / 0.04)",
+            borderColor: "hsl(38 92% 50% / 0.4)",
+            boxShadow: "0 0 0 1px hsl(38 92% 50% / 0.1)",
+          }}
+        >
+          <div
+            className="flex items-center justify-between px-4 py-3"
+            style={{ borderBottom: "1px solid hsl(38 92% 50% / 0.2)" }}
+          >
+            <div className="flex items-center gap-2">
+              <Bell
+                className="w-4 h-4"
+                style={{ color: "hsl(38 92% 42%)" }}
+              />
+              <span
+                className="text-sm font-semibold tracking-wide uppercase"
+                style={{ letterSpacing: "0.06em", color: "hsl(38 92% 42%)" }}
+              >
+                Follow-up Chase List
+              </span>
+              <span
+                className="text-xs font-bold px-1.5 py-0.5 rounded-full"
+                style={{
+                  background: "hsl(38 92% 50% / 0.15)",
+                  color: "hsl(38 92% 38%)",
+                }}
+              >
+                {followUps.length}
+              </span>
+            </div>
+            <Link href="/quotes?status=Sent">
+              <span
+                className="text-xs font-medium flex items-center gap-1 hover:underline"
+                style={{ color: "hsl(38 92% 42%)" }}
+              >
+                View all sent <ChevronRight className="w-3 h-3" />
+              </span>
+            </Link>
+          </div>
+
+          {/* Mobile stacked */}
+          <div className="md:hidden divide-y" style={{ borderColor: "hsl(38 92% 50% / 0.15)" }}>
+            {followUps.map((q) => (
+              <Link key={q.id} href={`/quotes/${q.id}`}>
+                <div className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-amber-50/60 transition-colors cursor-pointer">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-sm font-bold">{q.quoteNumber}</span>
+                      <UrgencyBadge urgency={q.urgency} followUpDate={q.followUpDate} />
+                    </div>
+                    <div className="text-sm font-medium mt-0.5 truncate">{q.customerName}</div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 shrink-0 opacity-30" />
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {/* Desktop row layout */}
+          <div className="hidden md:block divide-y" style={{ borderColor: "hsl(38 92% 50% / 0.15)" }}>
+            {followUps.map((q) => (
+              <Link key={q.id} href={`/quotes/${q.id}`}>
+                <div className="flex items-center gap-4 px-5 py-3 hover:bg-amber-50/60 transition-colors cursor-pointer group">
+                  <div className="w-[110px] shrink-0">
+                    <div className="font-mono text-sm font-semibold">{q.quoteNumber}</div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{q.customerName}</div>
+                  </div>
+                  <div className="shrink-0">
+                    <UrgencyBadge urgency={q.urgency} followUpDate={q.followUpDate} />
+                  </div>
+                  <ChevronRight
+                    className="w-4 h-4 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ color: "hsl(38 92% 42%)" }}
+                  />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Main area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -553,6 +644,42 @@ function QuickAction({
         {label}
       </button>
     </Link>
+  );
+}
+
+function UrgencyBadge({
+  urgency,
+  followUpDate,
+}: {
+  urgency: string;
+  followUpDate: string;
+}) {
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+  const daysAgo = differenceInCalendarDays(todayDate, new Date(followUpDate + "T00:00:00"));
+
+  if (urgency === "overdue") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-600">
+        <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+        {daysAgo === 1 ? "1 day overdue" : `${daysAgo} days overdue`} &middot;{" "}
+        {format(new Date(followUpDate + "T00:00:00"), "dd MMM")}
+      </span>
+    );
+  }
+  if (urgency === "due_today") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+        Due today
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600">
+      <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+      Due {format(new Date(followUpDate + "T00:00:00"), "EEE dd MMM")}
+    </span>
   );
 }
 

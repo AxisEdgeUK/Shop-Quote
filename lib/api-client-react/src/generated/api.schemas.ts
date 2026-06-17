@@ -9,6 +9,23 @@ export interface HealthStatus {
   status: string;
 }
 
+export type FollowUpQuoteUrgency =
+  (typeof FollowUpQuoteUrgency)[keyof typeof FollowUpQuoteUrgency];
+
+export const FollowUpQuoteUrgency = {
+  overdue: "overdue",
+  due_today: "due_today",
+  due_soon: "due_soon",
+} as const;
+
+export interface FollowUpQuote {
+  id: number;
+  quoteNumber: string;
+  customerName: string;
+  followUpDate: string;
+  urgency: FollowUpQuoteUrgency;
+}
+
 export interface DashboardStats {
   totalQuotes: number;
   draftQuotes: number;
