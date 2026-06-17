@@ -1,0 +1,65 @@
+Re-run verdict: **partially renamed, not fully renamed yet.**
+
+What changed correctly:
+
+* Landing page now uses **AXISEDGE QUOTE** and the headline **Precision Quoting for CNC Machine Shops**. ([GitHub][1])
+* Browser HTML title appears to be **AxisEdge Quote**. ([GitHub][2])
+
+What still needs fixing:
+
+* Sidebar still shows **SHOP / QUOTE**. ([GitHub][3])
+* Footer/sidebar text still says **CNC Quoting Software**, not AxisEdge-branded. ([GitHub][3])
+* Package name is still `@workspace/shop-quote`. This is not user-facing, but should be renamed later for consistency. ([GitHub][4])
+
+Give Replit this:
+
+```text
+Finish the AxisEdge Quote rename.
+
+The rename is only partially complete.
+
+Landing page is correct, but the app sidebar still shows:
+SHOP
+QUOTE
+
+Replace this with:
+AXISEDGE
+QUOTE
+
+Also replace the sidebar subtext:
+CNC Quoting Software
+
+with:
+Precision Quoting for CNC Shops
+
+Search the whole app for remaining user-facing references to:
+SHOP Quote
+Shop Quote
+SHOP
+QUOTE
+Shop-Quote
+
+Replace visible branding with:
+AxisEdge Quote
+
+Keep non-user-facing technical names only if changing them could break the build.
+
+Also update:
+- sidebar logo
+- app header
+- login/register pages
+- dashboard branding
+- PDF generated-by text
+- settings product name
+- beta version footer
+
+Final check:
+No visible user-facing screen should still show SHOP Quote.
+```
+
+Once that’s done, the rename is clean enough for beta testing.
+
+[1]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/src/pages/landing.tsx "raw.githubusercontent.com"
+[2]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/index.html "AxisEdge Quote"
+[3]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/src/components/layout/sidebar.tsx "raw.githubusercontent.com"
+[4]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/package.json "raw.githubusercontent.com"

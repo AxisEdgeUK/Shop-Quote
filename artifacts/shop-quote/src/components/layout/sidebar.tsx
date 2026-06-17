@@ -209,7 +209,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
       >
         <div className="flex items-center justify-between mb-2">
           <div className="text-xs" style={{ color: "hsl(220 5% 32%)" }}>
-            CNC Quoting Software
+            Precision Quoting for CNC Shops
           </div>
           <span
             className="text-xs px-1.5 py-0.5 rounded font-semibold"
