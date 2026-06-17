@@ -22,6 +22,8 @@ import {
   Trophy,
   ChevronDown,
   MoreHorizontal,
+  Mail,
+  ClipboardCopy,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -123,6 +125,10 @@ export function ViewQuote() {
   const [viewMode, setViewMode] = useState<"customer" | "internal">("customer");
   const [showCostChecklist, setShowCostChecklist] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
+  const [showSendDialog, setShowSendDialog] = useState(false);
+  const [sendEmail, setSendEmail] = useState("");
+  const [sendSubject, setSendSubject] = useState("");
+  const [sendBody, setSendBody] = useState("");
   const [followUpEdit, setFollowUpEdit] = useState(false);
   const [fuRfqDate, setFuRfqDate] = useState("");
   const [fuSentDate, setFuSentDate] = useState("");
@@ -314,6 +320,64 @@ export function ViewQuote() {
     );
   };
 
+  const handleOpenSendDialog = () => {
+    if (!quote || !customer || !settings) return;
+    const cur = settings.currency ?? "£";
+    const total = ((quote as any).lineItems ?? []).reduce(
+      (sum: number, item: any) => sum + parseFloat(item.sellPrice ?? "0"),
+      0,
+    );
+    const subject = `Quote ${quote.quoteNumber} – ${customer.companyName}`;
+    const bodyLines = [
+      `Dear ${(customer as any).contactName || customer.companyName},`,
+      "",
+      `Please find attached our quotation ${quote.quoteNumber} for your recent enquiry.`,
+      "",
+      `Total value: ${cur}${total.toFixed(2)} (ex VAT)`,
+      quote.leadTime ? `Lead time: ${quote.leadTime}` : null,
+      quote.validUntil ? `Valid until: ${quote.validUntil}` : null,
+      "",
+      "Please don't hesitate to get in touch if you have any questions.",
+      "",
+      "Kind regards,",
+      settings.companyName || "",
+    ].filter((l): l is string => l !== null);
+
+    setSendEmail((customer as any).email || "");
+    setSendSubject(subject);
+    setSendBody(bodyLines.join("\n"));
+    setShowSendDialog(true);
+  };
+
+  const buildMailtoUri = () =>
+    `mailto:${encodeURIComponent(sendEmail)}?subject=${encodeURIComponent(sendSubject)}&body=${encodeURIComponent(sendBody)}`;
+
+  const handleSendViaEmail = () => {
+    window.open(buildMailtoUri(), "_blank");
+    if (quote?.status !== "Sent") {
+      updateQuote.mutate(
+        { id: quote!.id, data: { status: "Sent" } as any },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: getGetQuoteQueryKey(id) });
+            queryClient.invalidateQueries({ queryKey: getListQuotesQueryKey() });
+            toast({ title: "Quote marked as Sent" });
+          },
+        },
+      );
+    }
+    setShowSendDialog(false);
+  };
+
+  const handleCopyMailto = async () => {
+    try {
+      await navigator.clipboard.writeText(buildMailtoUri());
+      toast({ title: "mailto link copied to clipboard" });
+    } catch {
+      toast({ title: "Failed to copy link", variant: "destructive" });
+    }
+  };
+
   if (isLoadingQuote || isLoadingCustomer || isLoadingSettings) {
     return <Skeleton className="h-[800px] w-full max-w-4xl mx-auto" />;
   }
@@ -446,6 +510,15 @@ export function ViewQuote() {
               <Eye className="w-3.5 h-3.5 mr-1.5" /> Presentation
             </Button>
           </Link>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={handleOpenSendDialog}
+          >
+            <Mail className="w-3.5 h-3.5" /> Send Quote
+          </Button>
 
           <Button
             onClick={handlePrint}
@@ -961,6 +1034,16 @@ export function ViewQuote() {
                 <SheetTitle>More Actions</SheetTitle>
               </SheetHeader>
               <div className="space-y-2 pb-4">
+                <Button
+                  variant="outline"
+                  className="w-full h-11 justify-start gap-2"
+                  onClick={() => {
+                    setShowMoreSheet(false);
+                    handleOpenSendDialog();
+                  }}
+                >
+                  <Mail className="w-4 h-4" /> Send Quote
+                </Button>
                 <Link
                   href={`/quotes/${quote.id}/present`}
                   onClick={() => setShowMoreSheet(false)}
@@ -1232,6 +1315,78 @@ export function ViewQuote() {
               className="gap-1.5"
             >
               Generate PDF
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Quote dialog */}
+      <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-4 h-4" /> Send Quote
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            {!(customer as any).email && (
+              <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+                This customer has no email address on file. Add one in the customer record, or edit the To field below.
+              </div>
+            )}
+            <div>
+              <Label htmlFor="send-to">To</Label>
+              <Input
+                id="send-to"
+                className="mt-1.5"
+                type="email"
+                placeholder="customer@example.com"
+                value={sendEmail}
+                onChange={(e) => setSendEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="send-subject">Subject</Label>
+              <Input
+                id="send-subject"
+                className="mt-1.5"
+                value={sendSubject}
+                onChange={(e) => setSendSubject(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="send-body">Body</Label>
+              <Textarea
+                id="send-body"
+                className="mt-1.5 font-mono text-xs"
+                rows={9}
+                value={sendBody}
+                onChange={(e) => setSendBody(e.target.value)}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Clicking "Open in email client" will open your default email app pre-filled with this message and mark the quote as Sent. Attach the PDF manually before sending.
+            </p>
+          </div>
+          <DialogFooter className="gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={handleCopyMailto}
+            >
+              <ClipboardCopy className="w-3.5 h-3.5" /> Copy mailto link
+            </Button>
+            <div className="flex-1" />
+            <Button variant="outline" onClick={() => setShowSendDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="gap-1.5"
+              onClick={handleSendViaEmail}
+              disabled={updateQuote.isPending}
+            >
+              <Mail className="w-4 h-4" /> Open in email client
             </Button>
           </DialogFooter>
         </DialogContent>
