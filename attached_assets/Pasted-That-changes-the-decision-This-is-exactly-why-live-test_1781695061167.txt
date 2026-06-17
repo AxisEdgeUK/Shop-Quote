@@ -1,0 +1,119 @@
+That changes the decision.
+
+This is exactly why live testing matters. My earlier pushback was right in principle, but this real RFQ shows the product needs a middle ground.
+
+Do **not** turn Quick Quote into Full Quote, but add:
+
+**Quick Quote Pack**
+
+For fast RFQs with multiple simple parts.
+
+Use case:
+
+* 4 different parts
+* all 1 off
+* same customer
+* same enquiry
+* one PDF quote
+
+Paste this into Replit:
+
+```text
+Add Quick Quote Pack mode.
+
+This is based on live testing feedback.
+
+Current issue:
+Quick Quote only supports one part, but real RFQs often contain multiple simple parts, for example 4 different parts all quantity 1.
+
+Do not turn Quick Quote into Full Quote.
+
+Add a simple middle-ground mode:
+
+Quick Quote Pack
+
+Purpose:
+Allow fast quoting of multiple simple parts within one RFQ.
+
+Use cases:
+- 2 to 10 different parts
+- simple one-off parts
+- same customer
+- same enquiry
+- one quote PDF
+
+Workflow:
+
+1. On Quick Quote page add:
+Add Another Part
+
+2. Each part card should include only essential fields:
+- Part Name
+- Drawing Number
+- Revision
+- Material
+- Quantity
+- Machine
+- Setup Time
+- Runtime Minutes Per Part
+- Margin
+- Lead Time
+- Notes optional
+
+3. Do not show advanced fields in Quick Quote Pack:
+- certifications
+- complex risk controls
+- advanced tolerances
+- multi-stage operations
+- inspection breakdown
+- quantity break matrix
+
+If user needs these, show:
+Convert to Full Quote
+
+4. Show pack summary:
+- Part 1 subtotal
+- Part 2 subtotal
+- Part 3 subtotal
+- Part 4 subtotal
+- Chargeable extras
+- Delivery
+- Grand total
+
+5. Allow:
+- duplicate part
+- remove part
+- reorder parts
+
+6. PDF output:
+The customer PDF should show each part as a separate line item:
+- Part Name
+- Drawing Number
+- Revision
+- Material
+- Quantity
+- Price Each
+- Total
+
+Keep PDF compact and professional.
+
+Aim to keep one-page PDF where possible.
+
+7. Quick Quote should default to one part.
+Only show multiple parts after user clicks:
+Add Another Part
+
+8. Do not overcomplicate this.
+This is for fast multi-part RFQs, not complex assemblies.
+
+9. iPhone:
+Each part should display as a clean collapsible card.
+
+10. Add button:
+Convert Pack to Full Quote
+
+Final goal:
+Handle real-world small RFQs with multiple simple parts without forcing the user into the full quote workflow.
+```
+
+This is a **good feature because it came from a real job**, not from imagination.
