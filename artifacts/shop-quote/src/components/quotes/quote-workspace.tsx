@@ -91,16 +91,17 @@ export function QuoteWorkspace({
             <DividerHandle />
           </div>
 
-          {/* Right — quote builder: natural page flow, NO overflow container.
-               min-height ensures drawing is never orphaned on short steps. */}
+          {/* Right — quote builder: flex container so the wizard can render
+               its own scrollable content + sticky summary side-by-side.
+               No overflow set here so sticky children work via page scroll. */}
           <div
-            className="flex-1"
+            className="flex-1 flex"
             style={{
               background: "#F5F7FA",
               minHeight: "calc(100vh - 44px)",
             }}
           >
-            <div className="p-6 xl:p-8 max-w-3xl pb-20">{children}</div>
+            {children}
           </div>
         </div>
       </div>
@@ -141,10 +142,10 @@ export function QuoteWorkspace({
             <DrawingViewer quoteId={quoteId} />
           ) : (
             <div
-              className="h-full overflow-y-auto"
+              className="h-full overflow-y-auto flex"
               style={{ background: "#F5F7FA" }}
             >
-              <div className="p-4 pb-28">{children}</div>
+              <div className="flex-1 min-w-0">{children}</div>
             </div>
           )}
         </div>

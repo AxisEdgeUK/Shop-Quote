@@ -1295,190 +1295,1317 @@ export function QuoteWizard({
       </div>
     ) : null;
 
-  return (
-    <div>
-      {/* Step indicator — sticky:
-           Desktop: sticks just below the 44px workspace header (top-[44px])
-           Mobile:  sticks to top of the overflow-y-auto scroll container (top-0) */}
-      <div
-        className="flex items-center gap-1 text-sm text-muted-foreground flex-wrap sticky top-0 md:top-[44px] z-10 py-3 mb-4 -mx-6 px-6 xl:-mx-8 xl:px-8"
-        style={{
-          background: "#F5F7FA",
-          borderBottom: "1px solid rgba(0,0,0,0.06)",
-        }}
-      >
-        {STEPS.map((step, index) => (
-          <div key={step} className="flex items-center gap-1">
-            <div
-              className={`flex items-center justify-center w-6 h-6 rounded-full border text-xs font-medium shrink-0 ${
-                currentStep === index
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : currentStep > index
-                    ? "bg-primary/20 text-primary border-primary/20"
-                    : "border-muted-foreground"
-              }`}
-            >
-              {currentStep > index ? <Check className="w-3 h-3" /> : index + 1}
+  // ── Complete / success screen ────────────────────────────────────────
+  if (currentStep === 3) {
+    const customerId = form.getValues("customerId");
+    const completedCustomer = customers?.find((c) => c.id === customerId);
+    const partNames = form
+      .getValues("lineItems")
+      .filter((l: any) => !l.hiddenFromPdf)
+      .map((l: any) => l.partName)
+      .filter(Boolean)
+      .join(", ");
+    const validUntilRaw = form.getValues("validUntil");
+    const validity = validUntilRaw
+      ? new Date(validUntilRaw).toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : "";
+    const leadTime = form.getValues("leadTime");
+    const delivery = form.getValues("deliveryTerms");
+    const payment = form.getValues("paymentTerms");
+    const emailSubject = completedCustomer
+      ? `Quotation – ${completedCustomer.companyName}`
+      : "Quotation";
+    const emailBody = [
+      `Dear ${completedCustomer?.contactName || completedCustomer?.companyName || "Sir/Madam"},`,
+      "",
+      `Please find attached our quotation${partNames ? ` for: ${partNames}` : ""}.`,
+      "",
+      ...(validity ? [`This quotation is valid until ${validity}.`] : []),
+      ...(leadTime ? [`Lead time is estimated at ${leadTime}.`] : []),
+      ...(delivery ? [`Delivery: ${delivery}.`] : []),
+      ...(payment ? [`Payment terms: ${payment}.`] : []),
+      "",
+      "Please do not hesitate to contact us if you have any questions or would like to proceed.",
+      "",
+      "Kind regards,",
+      settings?.companyName || "",
+      ...(settings?.phone ? [settings.phone] : []),
+      ...(settings?.email ? [settings.email] : []),
+    ].join("\n");
+    const mailtoHref = completedCustomer?.email
+      ? `mailto:${completedCustomer.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+      : `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+
+    return (
+      <div className="flex-1 px-4 md:px-8 py-8">
+        <Card className="max-w-xl mx-auto">
+          <CardContent className="py-10 space-y-8">
+            <div className="text-center space-y-3">
+              <div className="w-16 h-16 rounded-full bg-green-500/15 flex items-center justify-center mx-auto border-2 border-green-500/30">
+                <Check className="w-8 h-8 text-green-500" />
+              </div>
+              <h2 className="text-2xl font-bold">Quote Saved!</h2>
+              <p className="text-muted-foreground">
+                Your quote has been saved and is ready to send.
+              </p>
             </div>
-            <span
-              className={`${currentStep === index ? "font-medium text-foreground" : ""} hidden sm:inline`}
-            >
-              {step}
-            </span>
-            {index < STEPS.length - 1 && (
-              <div className="w-6 h-px bg-border mx-1" />
-            )}
-          </div>
-        ))}
-      </div>
-
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(handleFinalSubmit)}
-          className="space-y-5"
-        >
-          {/* ── STEP 1: QUOTE INFO ──────────────────────────────────── */}
-          {currentStep === 0 && (
-            <div className="space-y-4">
-              {/* Template picker — new quotes only */}
-              {isNewQuote && !templateApplied && (
-                <TemplatePicker onSelect={applyTemplate} />
-              )}
-              {templateApplied && (
-                <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-2.5">
-                  <Check className="w-4 h-4 shrink-0" />
-                  Template defaults applied. You can still edit everything in
-                  step 2.
-                  <button
-                    type="button"
-                    className="ml-auto text-xs underline"
-                    onClick={() => setTemplateApplied(false)}
-                  >
-                    Change template
-                  </button>
+            {completedCustomer && (
+              <div
+                className="rounded border p-5 space-y-4"
+                style={{
+                  background: "hsl(var(--muted))",
+                  borderColor: "hsl(var(--border))",
+                }}
+              >
+                <div
+                  className="text-sm font-semibold uppercase tracking-wider"
+                  style={{ color: "hsl(var(--muted-foreground))" }}
+                >
+                  Send to Customer
                 </div>
-              )}
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Customer & Quote Details</CardTitle>
-                  <CardDescription>
-                    Who is this quote for and what are the key dates?
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="customerId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Customer *</FormLabel>
-                        <Select
-                          onValueChange={(v) => field.onChange(Number(v))}
-                          value={field.value ? field.value.toString() : ""}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a customer" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {customers?.map((c) => (
-                              <SelectItem key={c.id} value={c.id.toString()}>
-                                {c.companyName}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {customerDefaultsMsg && (
-                    <div className="flex items-start gap-2 rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-sm text-blue-800">
-                      <span className="mt-0.5">ℹ️</span>
-                      <span>{customerDefaultsMsg}</span>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm">
+                      {completedCustomer.companyName}
                     </div>
+                    {completedCustomer.contactName && (
+                      <div className="text-xs text-muted-foreground">
+                        Attn: {completedCustomer.contactName}
+                      </div>
+                    )}
+                    {completedCustomer.email && (
+                      <div className="text-xs font-mono text-muted-foreground">
+                        {completedCustomer.email}
+                      </div>
+                    )}
+                  </div>
+                  <a
+                    href={mailtoHref}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                    style={{ background: "hsl(213 97% 58%)" }}
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                    Open in Email Client
+                  </a>
+                </div>
+                {!completedCustomer.email && (
+                  <p className="text-xs text-amber-500">
+                    No email address on file. Add one in Customers to auto-fill
+                    the To: field.
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Attach the PDF before sending.
+                </p>
+              </div>
+            )}
+            <div className="flex gap-3 justify-center flex-wrap">
+              {savedQuoteId && (
+                <Button asChild>
+                  <Link href={`/quotes/${savedQuoteId}`}>
+                    View &amp; Download PDF
+                  </Link>
+                </Button>
+              )}
+              <Button variant="outline" asChild>
+                <Link href="/quotes/new">New Quote</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/quotes">Back to Quotes</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // ── Single-screen estimating workspace ───────────────────────────────
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(handleFinalSubmit)}
+        className="flex-1 flex min-w-0"
+      >
+        {/* ── Main scrollable content ──────────────────────────────── */}
+        <div className="flex-1 min-w-0 px-4 md:px-5 xl:px-7 py-4 pb-28 space-y-4">
+
+          {/* Banners */}
+          {isNewQuote && !templateApplied && (
+            <TemplatePicker onSelect={applyTemplate} />
+          )}
+          {templateApplied && (
+            <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-2.5">
+              <Check className="w-4 h-4 shrink-0" />
+              Template defaults applied. You can still edit everything below.
+              <button
+                type="button"
+                className="ml-auto text-xs underline"
+                onClick={() => setTemplateApplied(false)}
+              >
+                Change template
+              </button>
+            </div>
+          )}
+          {customerDefaultsMsg && (
+            <div className="flex items-start gap-2 rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-sm text-blue-800">
+              <span className="mt-0.5">ℹ️</span>
+              <span>{customerDefaultsMsg}</span>
+            </div>
+          )}
+
+          {/* ── Info bar ─────────────────────────────────────────────── */}
+          <div
+            className="rounded border bg-card p-3 space-y-3"
+            style={{ borderColor: "hsl(var(--border))" }}
+          >
+            {/* Row 1: Customer, Status, Quote Date, Valid Until */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="col-span-2 lg:col-span-1">
+                <FormField
+                  control={form.control}
+                  name="customerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Customer *</FormLabel>
+                      <Select
+                        onValueChange={(v) => field.onChange(Number(v))}
+                        value={field.value ? field.value.toString() : ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-8 text-sm">
+                            <SelectValue placeholder="Select customer" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {customers?.map((c) => (
+                            <SelectItem key={c.id} value={c.id.toString()}>
+                              {c.companyName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="status"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Status</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {["Draft", "Sent", "Won", "Lost", "Expired"].map(
+                          (s) => (
+                            <SelectItem key={s} value={s}>
+                              {s}
+                            </SelectItem>
+                          ),
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="quoteDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">Quote Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" className="h-8 text-sm" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="validUntil"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">Valid Until</FormLabel>
+                    <FormControl>
+                      <Input type="date" className="h-8 text-sm" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Row 2: Lead Time, Delivery Terms, RFQ, Follow-up */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Lead Time</label>
+                <div className="flex flex-wrap gap-1">
+                  {LEAD_TIME_PRESETS.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => form.setValue("leadTime", p)}
+                      className={`px-1.5 py-0.5 text-xs rounded border transition-colors ${form.watch("leadTime") === p ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+                <FormField
+                  control={form.control}
+                  name="leadTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input
+                          className="h-7 text-xs"
+                          placeholder="e.g. 4 weeks"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Delivery Terms</label>
+                <div className="flex flex-wrap gap-1">
+                  {DELIVERY_TERM_PRESETS.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => form.setValue("deliveryTerms", p)}
+                      className={`px-1.5 py-0.5 text-xs rounded border transition-colors ${form.watch("deliveryTerms") === p ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+                <FormField
+                  control={form.control}
+                  name="deliveryTerms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input
+                          className="h-7 text-xs"
+                          placeholder="e.g. Ex Works"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="rfqReceivedDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">RFQ Received</FormLabel>
+                    <FormControl>
+                      <Input type="date" className="h-8 text-sm" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="followUpDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">Follow-up Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" className="h-8 text-sm" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* ── Parts grid ───────────────────────────────────────────── */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <span
+                className="text-xs font-semibold uppercase tracking-widest"
+                style={{ color: "hsl(var(--muted-foreground))" }}
+              >
+                Parts
+              </span>
+              <div
+                className="flex gap-0.5 rounded-md border p-0.5"
+                style={{ background: "hsl(var(--muted))" }}
+              >
+                {(["basic", "advanced"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    className="px-2.5 py-0.5 rounded text-xs font-medium transition-all capitalize"
+                    style={
+                      quoteMode === m
+                        ? {
+                            background: "hsl(var(--background))",
+                            color: "hsl(var(--foreground))",
+                            boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
+                          }
+                        : { color: "hsl(var(--muted-foreground))" }
+                    }
+                    onClick={() => handleQuoteMode(m)}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              {fields.map((field, idx) => {
+                const item = form.watch(`lineItems.${idx}`);
+                const liveC = calculateCosts(item);
+                const margin = Number(item.profitMarginPercentage) || 0;
+                const risk = Number(item.riskPercentage) || 0;
+                const h = healthLabel(
+                  margin,
+                  risk,
+                  item.complexity ?? "Medium",
+                );
+                const isActive = idx === activeLineItemIndex;
+
+                return (
+                  <div
+                    key={field.id}
+                    className="rounded border bg-card p-3 space-y-2.5 transition-colors cursor-pointer"
+                    style={{
+                      borderColor: isActive
+                        ? "hsl(213 97% 58%)"
+                        : "hsl(var(--border))",
+                      background: isActive
+                        ? "hsl(213 97% 58% / 0.03)"
+                        : "hsl(var(--card))",
+                    }}
+                    onClick={() => setActiveLineItemIndex(idx)}
+                  >
+                    {/* Card header */}
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="text-xs font-mono font-bold px-1.5 py-0.5 rounded"
+                        style={{
+                          background: "hsl(213 97% 58% / 0.12)",
+                          color: "hsl(213 97% 58%)",
+                        }}
+                      >
+                        P{idx + 1}
+                      </span>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded border ${h.bg} ${h.border} ${h.color}`}
+                      >
+                        {h.label}
+                      </span>
+                      <div className="ml-auto flex items-center gap-1.5">
+                        <span
+                          className="text-sm font-bold font-mono"
+                          style={{ color: "hsl(213 97% 58%)" }}
+                        >
+                          {cur}
+                          {liveC.sellPrice.toFixed(2)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          ({cur}
+                          {liveC.pricePerPart.toFixed(2)} ea)
+                        </span>
+                        {fields.length > 1 && (
+                          <button
+                            type="button"
+                            className="ml-1 text-muted-foreground hover:text-destructive transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              remove(idx);
+                              setActiveLineItemIndex(
+                                Math.max(0, idx - 1),
+                              );
+                            }}
                           >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Part name + qty */}
+                    <div
+                      className="grid gap-2"
+                      style={{ gridTemplateColumns: "1fr 72px" }}
+                    >
+                      <FormField
+                        control={form.control}
+                        name={`lineItems.${idx}.partName`}
+                        render={({ field: f }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">
+                              Part Name *
+                            </FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
+                              <Input
+                                className="h-7 text-sm"
+                                placeholder="e.g. Bracket Assy"
+                                {...f}
+                                onClick={(e) => e.stopPropagation()}
+                              />
                             </FormControl>
-                            <SelectContent>
-                              {["Draft", "Sent", "Won", "Lost", "Expired"].map(
-                                (s) => (
-                                  <SelectItem key={s} value={s}>
-                                    {s}
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`lineItems.${idx}.quantity`}
+                        render={({ field: f }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Qty *</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="1"
+                                className="h-7 text-sm text-center"
+                                {...f}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Drawing | Rev | Process */}
+                    <div className="grid grid-cols-3 gap-2">
+                      <FormField
+                        control={form.control}
+                        name={`lineItems.${idx}.drawingNumber`}
+                        render={({ field: f }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Drawing</FormLabel>
+                            <FormControl>
+                              <Input
+                                className="h-7 text-xs"
+                                placeholder="DWG-001"
+                                {...f}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`lineItems.${idx}.revision`}
+                        render={({ field: f }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Rev</FormLabel>
+                            <FormControl>
+                              <Input
+                                className="h-7 text-xs"
+                                placeholder="A"
+                                {...f}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`lineItems.${idx}.processType`}
+                        render={({ field: f }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Process</FormLabel>
+                            <Select
+                              onValueChange={f.onChange}
+                              value={f.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="h-7 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {[
+                                  "Milling",
+                                  "Turning",
+                                  "Mill/Turn",
+                                  "Manual",
+                                  "Other",
+                                ].map((v) => (
+                                  <SelectItem key={v} value={v}>
+                                    {v}
                                   </SelectItem>
-                                ),
-                              )}
-                            </SelectContent>
-                          </Select>
-                        </FormItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Material | Machine */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <FormField
+                        control={form.control}
+                        name={`lineItems.${idx}.material`}
+                        render={({ field: f }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Material</FormLabel>
+                            <FormControl>
+                              <MaterialCombobox
+                                value={f.value ?? ""}
+                                onChange={(val, costPerKg) => {
+                                  f.onChange(val);
+                                  if (costPerKg !== undefined)
+                                    form.setValue(
+                                      `lineItems.${idx}.materialCostPerUnit`,
+                                      costPerKg,
+                                    );
+                                }}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`lineItems.${idx}.machineId`}
+                        render={({ field: f }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Machine</FormLabel>
+                            <Select
+                              onValueChange={(v) =>
+                                f.onChange(
+                                  v === "none" ? null : Number(v),
+                                )
+                              }
+                              value={
+                                f.value ? f.value.toString() : "none"
+                              }
+                            >
+                              <FormControl>
+                                <SelectTrigger className="h-7 text-xs">
+                                  <SelectValue placeholder="Default" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="none">
+                                  Default / Any
+                                </SelectItem>
+                                {machines
+                                  ?.filter((m) => m.active)
+                                  .map((m) => (
+                                    <SelectItem
+                                      key={m.id}
+                                      value={m.id.toString()}
+                                    >
+                                      {m.name}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Cost row: Setup | Machining | Mat | Tooling */}
+                    <div className="grid grid-cols-4 gap-2">
+                      <FormField
+                        control={form.control}
+                        name={`lineItems.${idx}.setupHours`}
+                        render={({ field: f }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">
+                              Setup (h)
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.25"
+                                min="0"
+                                className="h-7 text-xs"
+                                {...f}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`lineItems.${idx}.machiningMinutesPerPart`}
+                        render={({ field: f }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">
+                              Mchn (min)
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="1"
+                                min="0"
+                                className="h-7 text-xs"
+                                {...f}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`lineItems.${idx}.materialCostPerUnit`}
+                        render={({ field: f }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">
+                              Mat ({cur})
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                className="h-7 text-xs"
+                                {...f}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`lineItems.${idx}.toolingAllowance`}
+                        render={({ field: f }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">
+                              Tool ({cur})
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                className="h-7 text-xs"
+                                {...f}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Advanced time + material fields */}
+                    {quoteMode === "advanced" && (
+                      <>
+                        <div
+                          className="grid grid-cols-3 gap-2 pt-2 border-t"
+                          style={{ borderColor: "hsl(var(--border))" }}
+                        >
+                          <FormField
+                            control={form.control}
+                            name={`lineItems.${idx}.programmingHours`}
+                            render={({ field: f }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Prog (h)
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    step="0.25"
+                                    min="0"
+                                    className="h-7 text-xs"
+                                    {...f}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`lineItems.${idx}.inspectionHours`}
+                            render={({ field: f }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Inspect (h)
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    step="0.25"
+                                    min="0"
+                                    className="h-7 text-xs"
+                                    {...f}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`lineItems.${idx}.deburringMinutesPerPart`}
+                            render={({ field: f }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Deburr (min)
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    className="h-7 text-xs"
+                                    {...f}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 gap-2">
+                          <FormField
+                            control={form.control}
+                            name={`lineItems.${idx}.materialWastagePercentage`}
+                            render={({ field: f }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Wastage %
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    className="h-7 text-xs"
+                                    {...f}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`lineItems.${idx}.outsideProcessing`}
+                            render={({ field: f }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Outside ({cur})
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    className="h-7 text-xs"
+                                    {...f}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`lineItems.${idx}.packaging`}
+                            render={({ field: f }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Pkgng ({cur})
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    className="h-7 text-xs"
+                                    {...f}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`lineItems.${idx}.delivery`}
+                            render={({ field: f }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Deliv ({cur})
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    className="h-7 text-xs"
+                                    {...f}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {/* Commercials: Margin | Discount | [Risk] | VAT */}
+                    <div
+                      className={`grid gap-2 pt-2 border-t ${quoteMode === "advanced" ? "grid-cols-4" : "grid-cols-3"}`}
+                      style={{ borderColor: "hsl(var(--border))" }}
+                    >
+                      <FormField
+                        control={form.control}
+                        name={`lineItems.${idx}.profitMarginPercentage`}
+                        render={({ field: f }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Margin %</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="1"
+                                min="0"
+                                max="99"
+                                className="h-7 text-xs"
+                                {...f}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`lineItems.${idx}.discountPercentage`}
+                        render={({ field: f }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">
+                              Discount %
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="1"
+                                min="0"
+                                className="h-7 text-xs"
+                                {...f}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      {quoteMode === "advanced" && (
+                        <FormField
+                          control={form.control}
+                          name={`lineItems.${idx}.riskPercentage`}
+                          render={({ field: f }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs">Risk %</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="1"
+                                  min="0"
+                                  className="h-7 text-xs"
+                                  {...f}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
                       )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name={`lineItems.${idx}.vatEnabled`}
+                        render={({ field: f }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel className="text-xs">VAT</FormLabel>
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                              <Switch
+                                checked={f.value}
+                                onCheckedChange={f.onChange}
+                                className="scale-75 origin-left"
+                              />
+                              <span className="text-xs text-muted-foreground">
+                                {f.value ? "On" : "Off"}
+                              </span>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Quality (advanced) */}
+                    {quoteMode === "advanced" && (
+                      <div
+                        className="grid grid-cols-3 gap-2 pt-2 border-t"
+                        style={{ borderColor: "hsl(var(--border))" }}
+                      >
+                        <FormField
+                          control={form.control}
+                          name={`lineItems.${idx}.toleranceClass`}
+                          render={({ field: f }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs">
+                                Tolerance
+                              </FormLabel>
+                              <Select
+                                onValueChange={f.onChange}
+                                value={f.value || "Standard"}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="h-7 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {[
+                                    "Loose",
+                                    "Standard",
+                                    "Tight",
+                                    "Critical",
+                                  ].map((v) => (
+                                    <SelectItem key={v} value={v}>
+                                      {v}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`lineItems.${idx}.surfaceFinish`}
+                          render={({ field: f }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs">Surface</FormLabel>
+                              <Select
+                                onValueChange={f.onChange}
+                                value={f.value || "Standard"}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="h-7 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {["Standard", "Fine", "Critical"].map(
+                                    (v) => (
+                                      <SelectItem key={v} value={v}>
+                                        {v}
+                                      </SelectItem>
+                                    ),
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`lineItems.${idx}.complexity`}
+                          render={({ field: f }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs">
+                                Complexity
+                              </FormLabel>
+                              <Select
+                                onValueChange={f.onChange}
+                                value={f.value || "Medium"}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="h-7 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {[
+                                    "Simple",
+                                    "Medium",
+                                    "Complex",
+                                    "Very Complex",
+                                  ].map((v) => (
+                                    <SelectItem key={v} value={v}>
+                                      {v}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+
+                    {/* Cost check (advanced, active part only) */}
+                    {quoteMode === "advanced" && isActive && (
+                      <CostCheckPanel item={item} />
+                    )}
+
+                    {/* Card footer */}
+                    <div
+                      className="pt-2 flex items-center gap-2 text-xs text-muted-foreground border-t flex-wrap"
+                      style={{ borderColor: "hsl(var(--border))" }}
+                    >
+                      <span>
+                        Direct: {cur}
+                        {liveC.directCost.toFixed(2)}
+                      </span>
+                      <span>·</span>
+                      <span>
+                        w/risk: {cur}
+                        {liveC.costBeforeMargin.toFixed(2)}
+                      </span>
+                      <span>·</span>
+                      <span
+                        className="font-semibold"
+                        style={{ color: "hsl(213 97% 58%)" }}
+                      >
+                        {cur}
+                        {liveC.pricePerPart.toFixed(2)} ea
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Add part / one-off row */}
+            <div className="flex gap-2 mt-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  append(newItemDefaults() as any);
+                  setActiveLineItemIndex(fields.length);
+                }}
+              >
+                <Plus className="w-4 h-4 mr-1" /> Add Part
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  append({
+                    ...newItemDefaults(),
+                    lineItemType: "oneoff",
+                    partName: "",
+                    material: "N/A",
+                    processType: "Other",
+                  } as any);
+                  setActiveLineItemIndex(fields.length);
+                }}
+              >
+                <Plus className="w-4 h-4 mr-1" /> Add One-off Charge
+              </Button>
+            </div>
+          </div>
+
+          {/* ── Terms, Notes & Options ──────────────────────────────── */}
+          <div>
+            <button
+              type="button"
+              className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest py-2 w-full"
+              style={{ color: "hsl(var(--muted-foreground))" }}
+              onClick={() => setShowAdvanced((v) => !v)}
+            >
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
+              />
+              Terms, Notes &amp; Options
+            </button>
+
+            {showAdvanced && (
+              <div className="space-y-4 mt-2">
+                {/* Delivery cost */}
+                <div
+                  className="rounded border bg-card p-3 space-y-3"
+                  style={{ borderColor: "hsl(var(--border))" }}
+                >
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Delivery Cost
+                  </h4>
+                  <div className="grid grid-cols-3 gap-3">
                     <FormField
                       control={form.control}
-                      name="quoteDate"
+                      name="deliveryCost"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Quote Date</FormLabel>
+                          <FormLabel className="text-xs">Cost ({cur})</FormLabel>
                           <FormControl>
-                            <Input type="date" {...field} />
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="0.00"
+                              className="h-8"
+                              {...field}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={form.control}
-                      name="validUntil"
+                      name="deliveryMethod"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Valid Until</FormLabel>
+                          <FormLabel className="text-xs">Method</FormLabel>
                           <FormControl>
-                            <Input type="date" {...field} />
+                            <Input
+                              placeholder="Courier"
+                              className="h-8"
+                              {...field}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={form.control}
-                      name="rfqReceivedDate"
+                      name="includeDeliveryInTotal"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>RFQ Received</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
+                        <FormItem className="flex flex-col">
+                          <FormLabel className="text-xs">
+                            Include in total
+                          </FormLabel>
+                          <div className="flex items-center gap-2 mt-2">
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <span className="text-xs text-muted-foreground">
+                              {field.value ? "Yes" : "No"}
+                            </span>
+                          </div>
                         </FormItem>
                       )}
                     />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="followUpDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Follow-up Date</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                </div>
+
+                {/* Payment terms */}
+                <div
+                  className="rounded border bg-card p-3 space-y-2"
+                  style={{ borderColor: "hsl(var(--border))" }}
+                >
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Payment Terms
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {PAYMENT_TERM_PRESETS.map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => form.setValue("paymentTerms", p)}
+                        className={`px-2 py-1 text-xs rounded border transition-colors ${form.watch("paymentTerms") === p ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="paymentTerms"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g. 30 days from invoice date"
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Notes */}
+                <div
+                  className="rounded border bg-card p-3 space-y-3"
+                  style={{ borderColor: "hsl(var(--border))" }}
+                >
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Notes
+                  </h4>
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Customer Notes</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            rows={2}
+                            placeholder="Notes visible to the customer on the PDF…"
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="internalNotes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Internal Notes{" "}
+                          <span className="text-muted-foreground text-xs font-normal">
+                            (not on PDF)
+                          </span>
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            rows={2}
+                            placeholder="Internal use only…"
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Follow-up */}
+                <div
+                  className="rounded border bg-card p-3 space-y-3"
+                  style={{ borderColor: "hsl(var(--border))" }}
+                >
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Follow-up
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
                     <FormField
                       control={form.control}
                       name="lastContactedDate"
@@ -1491,6 +2618,21 @@ export function QuoteWizard({
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={form.control}
+                      name="followUpNotes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Follow-up Notes</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Internal follow-up notes…"
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
                   </div>
                   <FormField
                     control={form.control}
@@ -1499,274 +2641,24 @@ export function QuoteWizard({
                       <FormItem>
                         <FormLabel>Next Action</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. Call to confirm receipt, chase for PO…" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="followUpNotes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Follow-up Notes</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Internal follow-up notes…" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  {showAdvanced && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="quoteRevision"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Revision</FormLabel>
-                            <FormControl>
-                              <Input placeholder="A" {...field} />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="revisionNotes"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Revision Notes</FormLabel>
-                            <FormControl>
-                              <Input placeholder="What changed?" {...field} />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Commercial Terms</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Lead Time</label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {LEAD_TIME_PRESETS.map((p) => (
-                          <button
-                            key={p}
-                            type="button"
-                            onClick={() => form.setValue("leadTime", p)}
-                            className={`px-2 py-1 text-xs rounded border transition-colors ${form.watch("leadTime") === p ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
-                          >
-                            {p}
-                          </button>
-                        ))}
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name="leadTime"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input placeholder="e.g. 4 weeks" {...field} />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">
-                        Delivery Terms
-                      </label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {DELIVERY_TERM_PRESETS.map((p) => (
-                          <button
-                            key={p}
-                            type="button"
-                            onClick={() => form.setValue("deliveryTerms", p)}
-                            className={`px-2 py-1 text-xs rounded border transition-colors ${form.watch("deliveryTerms") === p ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
-                          >
-                            {p}
-                          </button>
-                        ))}
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name="deliveryTerms"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input placeholder="e.g. Ex Works" {...field} />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium">Delivery Cost</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <label className="text-xs text-muted-foreground">Cost (£)</label>
-                        <FormField
-                          control={form.control}
-                          name="deliveryCost"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  step="0.01"
-                                  placeholder="0.00"
-                                  {...field}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs text-muted-foreground">Method</label>
-                        <FormField
-                          control={form.control}
-                          name="deliveryMethod"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input placeholder="e.g. Courier" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                    <FormField
-                      control={form.control}
-                      name="includeDeliveryInTotal"
-                      render={({ field }) => (
-                        <FormItem>
-                          <div className="flex items-center gap-3">
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <label className="text-sm text-muted-foreground cursor-pointer" onClick={() => field.onChange(!field.value)}>
-                              Include delivery in quote total
-                            </label>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Payment Terms</label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {PAYMENT_TERM_PRESETS.map((p) => (
-                        <button
-                          key={p}
-                          type="button"
-                          onClick={() => form.setValue("paymentTerms", p)}
-                          className={`px-2 py-1 text-xs rounded border transition-colors ${form.watch("paymentTerms") === p ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
-                        >
-                          {p}
-                        </button>
-                      ))}
-                    </div>
-                    <FormField
-                      control={form.control}
-                      name="paymentTerms"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g. 30 days from invoice date"
-                              {...field}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Notes</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Customer Notes</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            rows={3}
-                            placeholder="Notes visible to the customer on the PDF…"
+                          <Input
+                            placeholder="e.g. Call to confirm receipt, chase for PO…"
                             {...field}
                           />
                         </FormControl>
                       </FormItem>
                     )}
                   />
-                  {showAdvanced && (
-                    <FormField
-                      control={form.control}
-                      name="internalNotes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Internal Notes{" "}
-                            <span className="text-muted-foreground text-xs font-normal">
-                              (not on PDF)
-                            </span>
-                          </FormLabel>
-                          <FormControl>
-                            <Textarea
-                              rows={2}
-                              placeholder="Internal use only…"
-                              {...field}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </CardContent>
-              </Card>
+                </div>
 
-              {/* Advanced Options toggle */}
-              <button
-                type="button"
-                onClick={() => setShowAdvanced((v) => !v)}
-                className="flex items-center gap-2 text-sm py-1 w-full transition-colors"
-                style={{ color: "hsl(var(--muted-foreground))" }}
-              >
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-200 ${showAdvanced ? "rotate-180" : ""}`}
-                />
-                {showAdvanced ? "Hide Advanced Options" : "Advanced Options"}
-              </button>
-
-              {showAdvanced && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Certification Requirements</CardTitle>
-                    <CardDescription>
-                      Which certificates are included with this quote?
-                    </CardDescription>
-                  </CardHeader>
-                <CardContent>
+                {/* Certifications */}
+                <div
+                  className="rounded border bg-card p-3"
+                  style={{ borderColor: "hsl(var(--border))" }}
+                >
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                    Certification Requirements
+                  </h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
                       {
@@ -1807,21 +2699,52 @@ export function QuoteWizard({
                       />
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-              )}
+                </div>
 
-              {/* Price break quantity selector */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quantity Price Breaks</CardTitle>
-                  <CardDescription>
-                    Add alternative pricing for different order quantities.
-                    Toggle Manual to override calculated prices.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Quick-add chips */}
+                {/* Revision */}
+                <div
+                  className="rounded border bg-card p-3 space-y-3"
+                  style={{ borderColor: "hsl(var(--border))" }}
+                >
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Revision
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField
+                      control={form.control}
+                      name="quoteRevision"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Revision</FormLabel>
+                          <FormControl>
+                            <Input placeholder="A" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="revisionNotes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Revision Notes</FormLabel>
+                          <FormControl>
+                            <Input placeholder="What changed?" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {/* Price Breaks */}
+                <div
+                  className="rounded border bg-card p-3 space-y-3"
+                  style={{ borderColor: "hsl(var(--border))" }}
+                >
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Quantity Price Breaks
+                  </h4>
                   <div className="flex flex-wrap gap-1.5 items-center">
                     {[5, 10, 25, 50, 100, 250, 500].map((qty) => {
                       const rows = parsePriceBreakRows(
@@ -1839,9 +2762,10 @@ export function QuoteWizard({
                             );
                             const next = exists
                               ? current.filter((r) => r.qty !== qty)
-                              : [...current, { qty, manual: false }].sort(
-                                  (a, b) => a.qty - b.qty,
-                                );
+                              : [
+                                  ...current,
+                                  { qty, manual: false },
+                                ].sort((a, b) => a.qty - b.qty);
                             form.setValue(
                               "priceBreakQtys",
                               JSON.stringify(next),
@@ -1869,9 +2793,10 @@ export function QuoteWizard({
                               form.setValue(
                                 "priceBreakQtys",
                                 JSON.stringify(
-                                  [...current, { qty, manual: false }].sort(
-                                    (a, b) => a.qty - b.qty,
-                                  ),
+                                  [
+                                    ...current,
+                                    { qty, manual: false },
+                                  ].sort((a, b) => a.qty - b.qty),
                                 ),
                               );
                             }
@@ -1893,9 +2818,10 @@ export function QuoteWizard({
                             form.setValue(
                               "priceBreakQtys",
                               JSON.stringify(
-                                [...current, { qty, manual: false }].sort(
-                                  (a, b) => a.qty - b.qty,
-                                ),
+                                [
+                                  ...current,
+                                  { qty, manual: false },
+                                ].sort((a, b) => a.qty - b.qty),
                               ),
                             );
                           }
@@ -1906,20 +2832,17 @@ export function QuoteWizard({
                       </button>
                     </div>
                   </div>
-
-                  {/* Rows */}
                   {(() => {
                     const rows = parsePriceBreakRows(
                       form.watch("priceBreakQtys"),
                     );
-                    if (rows.length === 0) {
+                    if (rows.length === 0)
                       return (
                         <p className="text-xs text-muted-foreground">
-                          No price breaks added. Click quantities above to add
-                          them.
+                          No price breaks added. Click quantities above to
+                          add them.
                         </p>
                       );
-                    }
                     return (
                       <div className="border rounded divide-y text-sm">
                         {rows.map((row, idx) => (
@@ -1946,60 +2869,38 @@ export function QuoteWizard({
                                     };
                                     form.setValue(
                                       "priceBreakQtys",
-                                      JSON.stringify(
-                                        [...current].sort(
-                                          (a, b) => a.qty - b.qty,
-                                        ),
-                                      ),
+                                      JSON.stringify(current),
                                     );
                                   }}
                                 />
                               </div>
-                              <div className="flex rounded border overflow-hidden text-xs shrink-0">
-                                <button
-                                  type="button"
-                                  className={`px-2.5 py-1 transition-colors ${!row.manual ? "bg-muted font-semibold" : "text-muted-foreground hover:bg-muted/50"}`}
-                                  onClick={() => {
+                              <div className="flex items-center gap-1 shrink-0">
+                                <Switch
+                                  checked={row.manual ?? false}
+                                  onCheckedChange={(v) => {
                                     const current = parsePriceBreakRows(
                                       form.watch("priceBreakQtys"),
                                     );
                                     current[idx] = {
                                       ...current[idx],
-                                      manual: false,
+                                      manual: v,
                                     };
                                     form.setValue(
                                       "priceBreakQtys",
                                       JSON.stringify(current),
                                     );
                                   }}
-                                >
-                                  Auto
-                                </button>
-                                <button
-                                  type="button"
-                                  className={`px-2.5 py-1 border-l transition-colors ${row.manual ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:bg-muted/50"}`}
-                                  onClick={() => {
-                                    const current = parsePriceBreakRows(
-                                      form.watch("priceBreakQtys"),
-                                    );
-                                    current[idx] = {
-                                      ...current[idx],
-                                      manual: true,
-                                    };
-                                    form.setValue(
-                                      "priceBreakQtys",
-                                      JSON.stringify(current),
-                                    );
-                                  }}
-                                >
+                                  className="scale-75 origin-left"
+                                />
+                                <span className="text-xs text-muted-foreground">
                                   Manual
-                                </button>
+                                </span>
                               </div>
                               {row.manual && (
                                 <>
                                   <div className="flex items-center gap-1">
                                     <span className="text-xs text-muted-foreground">
-                                      £ each
+                                      Each {cur}
                                     </span>
                                     <Input
                                       type="number"
@@ -2007,24 +2908,26 @@ export function QuoteWizard({
                                       value={row.priceEach ?? ""}
                                       step="0.01"
                                       min={0}
-                                      className="w-24 h-7 text-xs font-mono"
+                                      className="w-20 h-7 text-xs font-mono"
                                       onChange={(e) => {
                                         const priceEach =
                                           e.target.value === ""
                                             ? undefined
                                             : parseFloat(e.target.value);
-                                        const current = parsePriceBreakRows(
-                                          form.watch("priceBreakQtys"),
-                                        );
+                                        const current =
+                                          parsePriceBreakRows(
+                                            form.watch("priceBreakQtys"),
+                                          );
                                         current[idx] = {
                                           ...current[idx],
                                           priceEach,
                                           total:
-                                            priceEach != null
+                                            priceEach != null &&
+                                            row.qty > 0
                                               ? parseFloat(
-                                                  (priceEach * row.qty).toFixed(
-                                                    2,
-                                                  ),
+                                                  (
+                                                    priceEach * row.qty
+                                                  ).toFixed(2),
                                                 )
                                               : current[idx].total,
                                         };
@@ -2037,7 +2940,7 @@ export function QuoteWizard({
                                   </div>
                                   <div className="flex items-center gap-1">
                                     <span className="text-xs text-muted-foreground">
-                                      Total £
+                                      Total {cur}
                                     </span>
                                     <Input
                                       type="number"
@@ -2051,16 +2954,19 @@ export function QuoteWizard({
                                           e.target.value === ""
                                             ? undefined
                                             : parseFloat(e.target.value);
-                                        const current = parsePriceBreakRows(
-                                          form.watch("priceBreakQtys"),
-                                        );
+                                        const current =
+                                          parsePriceBreakRows(
+                                            form.watch("priceBreakQtys"),
+                                          );
                                         current[idx] = {
                                           ...current[idx],
                                           total,
                                           priceEach:
                                             total != null && row.qty > 0
                                               ? parseFloat(
-                                                  (total / row.qty).toFixed(4),
+                                                  (
+                                                    total / row.qty
+                                                  ).toFixed(4),
                                                 )
                                               : current[idx].priceEach,
                                         };
@@ -2113,1161 +3019,227 @@ export function QuoteWizard({
                       </div>
                     );
                   })()}
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* ── STEP 2: PART DETAILS (shown in step 0) ──────────────── */}
-          {currentStep === 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Part Details</CardTitle>
-                <CardDescription>
-                  Define the core geometry and requirements for each part
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <PartTabs />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name={`lineItems.${activeLineItemIndex}.partName`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Part Name *</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`lineItems.${activeLineItemIndex}.drawingNumber`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Drawing Number</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`lineItems.${activeLineItemIndex}.revision`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Part Revision</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g. A, B, 01" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`lineItems.${activeLineItemIndex}.quantity`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Quantity *</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="1" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`lineItems.${activeLineItemIndex}.material`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Material *</FormLabel>
-                        <FormControl>
-                          <MaterialCombobox
-                            value={field.value ?? ""}
-                            onChange={(val, costPerKg) => {
-                              field.onChange(val);
-                              if (costPerKg !== undefined) {
-                                form.setValue(
-                                  `lineItems.${activeLineItemIndex}.materialCostPerUnit`,
-                                  costPerKg,
-                                );
-                              }
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`lineItems.${activeLineItemIndex}.processType`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Process Type *</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {[
-                              "Milling",
-                              "Turning",
-                              "Mill/Turn",
-                              "Manual",
-                              "Other",
-                            ].map((v) => (
-                              <SelectItem key={v} value={v}>
-                                {v}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`lineItems.${activeLineItemIndex}.machineId`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Target Machine</FormLabel>
-                        <Select
-                          onValueChange={(v) =>
-                            field.onChange(v === "none" ? null : Number(v))
-                          }
-                          value={field.value ? field.value.toString() : "none"}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Default / Any" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="none">Default / Any</SelectItem>
-                            {machines
-                              ?.filter((m) => m.active)
-                              .map((m) => (
-                                <SelectItem key={m.id} value={m.id.toString()}>
-                                  {m.name} ({m.machineType})
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`lineItems.${activeLineItemIndex}.toleranceClass`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tolerance Class</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value || "Standard"}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {[
-                              {
-                                value: "Loose",
-                                label: "Loose (general workshop)",
-                              },
-                              {
-                                value: "Standard",
-                                label: "Standard (±0.10mm typical)",
-                              },
-                              {
-                                value: "Tight",
-                                label: "Tight (±0.05mm or better)",
-                              },
-                              {
-                                value: "Critical",
-                                label: "Critical (±0.01mm / fit-critical)",
-                              },
-                            ].map(({ value, label }) => (
-                              <SelectItem key={value} value={value}>
-                                {label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`lineItems.${activeLineItemIndex}.surfaceFinish`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Surface Finish</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value || "Standard"}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {["Standard", "Fine", "Critical"].map((v) => (
-                              <SelectItem key={v} value={v}>
-                                {v}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`lineItems.${activeLineItemIndex}.complexity`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Complexity</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value || "Medium"}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {[
-                              "Simple",
-                              "Medium",
-                              "Complex",
-                              "Very Complex",
-                            ].map((v) => (
-                              <SelectItem key={v} value={v}>
-                                {v}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                {/* Line item type and visibility */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t">
-                  <FormField
-                    control={form.control}
-                    name={`lineItems.${activeLineItemIndex}.lineItemType`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Line Item Type</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value || "standard"}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="standard">
-                              Standard Part (qty × price)
-                            </SelectItem>
-                            <SelectItem value="oneoff">
-                              One-off Charge (flat, no qty)
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">
-                          Use "One-off" for programming, fixtures, tooling,
-                          delivery charges.
-                        </p>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`lineItems.${activeLineItemIndex}.hiddenFromPdf`}
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>PDF Visibility</FormLabel>
-                        <div className="flex items-center gap-3 mt-2 p-3 rounded-md border bg-muted/30">
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                          <div>
-                            <div className="text-sm font-medium">
-                              {field.value
-                                ? "Hidden from customer PDF"
-                                : "Visible on customer PDF"}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {field.value
-                                ? "Internal use only. Not printed."
-                                : "Customer will see this line"}
-                            </div>
-                          </div>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      append(newItemDefaults() as any);
-                      setActiveLineItemIndex(fields.length);
-                    }}
-                  >
-                    <Plus className="w-4 h-4 mr-1" /> Add Part
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      append({
-                        ...newItemDefaults(),
-                        lineItemType: "oneoff",
-                        partName: "",
-                        material: "N/A",
-                        processType: "Other",
-                      } as any);
-                      setActiveLineItemIndex(fields.length);
-                    }}
-                  >
-                    <Plus className="w-4 h-4 mr-1" /> Add One-off Charge
-                  </Button>
-                  {fields.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        remove(activeLineItemIndex);
-                        setActiveLineItemIndex(
-                          Math.max(0, activeLineItemIndex - 1),
-                        );
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 mr-1" /> Remove
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* ── STEP 2: COST BUILD-UP ────────────────────────────────── */}
-          {currentStep === 1 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span
-                  className="text-xs"
-                  style={{ color: "hsl(var(--muted-foreground))" }}
-                >
-                  {quoteMode === "basic"
-                    ? "Essential fields only"
-                    : "All fields shown"}
-                </span>
-                <div
-                  className="flex gap-0.5 rounded-md border p-0.5"
-                  style={{ background: "hsl(var(--muted))" }}
-                >
-                  {(["basic", "advanced"] as const).map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      className="px-3 py-1 rounded text-xs font-medium transition-all capitalize"
-                      style={
-                        quoteMode === m
-                          ? {
-                              background: "hsl(var(--background))",
-                              color: "hsl(var(--foreground))",
-                              boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
-                            }
-                          : { color: "hsl(var(--muted-foreground))" }
-                      }
-                      onClick={() => handleQuoteMode(m)}
-                    >
-                      {m}
-                    </button>
-                  ))}
                 </div>
               </div>
+            )}
+          </div>
+        </div>
 
-              <PartTabs />
+        {/* ── Sticky summary panel ─────────────────────────────────── */}
+        <div
+          className="hidden lg:flex flex-col w-[260px] xl:w-[280px] shrink-0 sticky overflow-y-auto border-l"
+          style={{
+            top: 44,
+            height: "calc(100vh - 44px)",
+            background: "hsl(var(--card))",
+            borderColor: "hsl(var(--border))",
+          }}
+        >
+          <div className="p-4 space-y-3 flex-1 overflow-y-auto">
+            <div
+              className="text-xs font-semibold uppercase tracking-widest"
+              style={{ color: "hsl(var(--muted-foreground))" }}
+            >
+              Quote Summary
+            </div>
 
-              {/* Live cost summary */}
-              {fields.map((f, idx) => {
-                if (idx !== activeLineItemIndex) return null;
-                const liveC = calculateCosts(form.watch(`lineItems.${idx}`));
-                return (
-                  <div
-                    key={f.id}
-                    className="flex items-center justify-between rounded border px-4 py-2.5 text-sm"
-                    style={{
-                      background: "hsl(var(--muted))",
-                      borderColor: "hsl(var(--border))",
-                    }}
-                  >
-                    <span className="text-muted-foreground font-medium">
-                      Live sell price
-                    </span>
-                    <div className="text-right">
-                      <span
-                        className="text-lg font-bold"
-                        style={{ color: "hsl(213 97% 58%)" }}
-                      >
-                        {cur}
-                        {liveC.sellPrice.toFixed(2)}
-                      </span>
-                      <span className="text-xs text-muted-foreground ml-2">
-                        {cur}
-                        {liveC.pricePerPart.toFixed(2)} each ×{" "}
-                        {form.watch(`lineItems.${idx}.quantity`) || 1}
-                      </span>
+            {/* Per-part rows */}
+            {fields.map((field, idx) => {
+              const item = form.watch(`lineItems.${idx}`);
+              const liveC = calculateCosts(item);
+              const partName = item.partName || `Part ${idx + 1}`;
+              return (
+                <div
+                  key={field.id}
+                  className="flex justify-between items-start gap-2 text-xs py-2 border-b"
+                  style={{ borderColor: "hsl(var(--border))" }}
+                >
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{partName}</div>
+                    <div className="text-muted-foreground">
+                      qty {item.quantity || 1} × {cur}
+                      {liveC.pricePerPart.toFixed(2)}
                     </div>
                   </div>
-                );
-              })}
+                  <div className="font-mono font-semibold shrink-0">
+                    {cur}
+                    {liveC.sellPrice.toFixed(2)}
+                  </div>
+                </div>
+              );
+            })}
 
-              {/* Hidden cost prompts */}
-              {quoteMode === "advanced" && (
-                <CostCheckPanel
-                  item={form.watch(`lineItems.${activeLineItemIndex}`)}
-                />
+            {/* Delivery line */}
+            {form.watch("includeDeliveryInTotal") &&
+              Number(form.watch("deliveryCost")) > 0 && (
+                <div className="flex justify-between text-xs py-1">
+                  <span className="text-muted-foreground">Delivery</span>
+                  <span className="font-mono">
+                    {cur}
+                    {Number(form.watch("deliveryCost")).toFixed(2)}
+                  </span>
+                </div>
               )}
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Cost Build-Up</CardTitle>
-                  <CardDescription>
-                    Time and effort estimates (adjust from template if needed)
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
-                        Time (total job)
-                      </h3>
-                      <FormField
-                        control={form.control}
-                        name={`lineItems.${activeLineItemIndex}.setupHours`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Setup (hours)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.25"
-                                min="0"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      {quoteMode === "advanced" && (
-                        <FormField
-                          control={form.control}
-                          name={`lineItems.${activeLineItemIndex}.programmingHours`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Programming (hours)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.25"
-                                  min="0"
-                                  {...field}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      )}
-                      {quoteMode === "advanced" && (
-                        <FormField
-                          control={form.control}
-                          name={`lineItems.${activeLineItemIndex}.inspectionHours`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Inspection (hours)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.25"
-                                  min="0"
-                                  {...field}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      )}
-                    </div>
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
-                        Time (per part)
-                      </h3>
-                      <FormField
-                        control={form.control}
-                        name={`lineItems.${activeLineItemIndex}.machiningMinutesPerPart`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Machining (mins)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="1"
-                                min="0"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      {quoteMode === "advanced" && (
-                        <FormField
-                          control={form.control}
-                          name={`lineItems.${activeLineItemIndex}.deburringMinutesPerPart`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Deburring (mins)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="1"
-                                  min="0"
-                                  {...field}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      )}
-                    </div>
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
-                        Material & direct costs
-                      </h3>
-                      <FormField
-                        control={form.control}
-                        name={`lineItems.${activeLineItemIndex}.materialCostPerUnit`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Material cost/unit ({cur})</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      {quoteMode === "advanced" && (
-                        <FormField
-                          control={form.control}
-                          name={`lineItems.${activeLineItemIndex}.materialWastagePercentage`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Wastage (%)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="1"
-                                  min="0"
-                                  {...field}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      )}
-                      <FormField
-                        control={form.control}
-                        name={`lineItems.${activeLineItemIndex}.toolingAllowance`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Tooling ({cur})</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      {quoteMode === "advanced" && (
-                        <FormField
-                          control={form.control}
-                          name={`lineItems.${activeLineItemIndex}.outsideProcessing`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Outside processing ({cur})</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  {...field}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      )}
-                      {quoteMode === "advanced" && (
-                        <FormField
-                          control={form.control}
-                          name={`lineItems.${activeLineItemIndex}.packaging`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Packaging ({cur})</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  {...field}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      )}
-                      {quoteMode === "advanced" && (
-                        <FormField
-                          control={form.control}
-                          name={`lineItems.${activeLineItemIndex}.delivery`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Delivery ({cur})</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  {...field}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Commercials</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {quoteMode === "advanced" && (
-                      <FormField
-                        control={form.control}
-                        name={`lineItems.${activeLineItemIndex}.riskPercentage`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Risk allowance (%)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="1"
-                                min="0"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                    <FormField
-                      control={form.control}
-                      name={`lineItems.${activeLineItemIndex}.profitMarginPercentage`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Profit margin (%)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              step="1"
-                              min="0"
-                              max="99"
-                              {...field}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`lineItems.${activeLineItemIndex}.discountPercentage`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Discount (%)</FormLabel>
-                          <FormControl>
-                            <Input type="number" step="1" min="0" {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`lineItems.${activeLineItemIndex}.vatEnabled`}
-                      render={({ field }) => (
-                        <FormItem className="flex items-center gap-2 space-y-0 pt-6">
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormLabel>Apply VAT</FormLabel>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* ── STEP 3: REVIEW & OUTPUT ─────────────────────────────── */}
-          {currentStep === 2 && (
-            <div className="space-y-4">
-              <PartTabs />
-
-              {fields.map((field, idx) => {
-                if (idx !== activeLineItemIndex) return null;
-                const itemVals = form.watch(`lineItems.${idx}`);
-                const c = calculateCosts(itemVals);
-                const margin = Number(itemVals.profitMarginPercentage) || 0;
-                const risk = Number(itemVals.riskPercentage) || 0;
-
-                return (
-                  <Card key={field.id}>
-                    <CardHeader>
-                      <div className="flex justify-between items-start gap-4">
-                        <div>
-                          <div className="flex items-center gap-3">
-                            <CardTitle>
-                              {itemVals.partName || "Unnamed Part"}
-                            </CardTitle>
-                            <HealthBadge
-                              margin={margin}
-                              risk={risk}
-                              complexity={itemVals.complexity}
-                            />
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Qty: {itemVals.quantity} · {itemVals.material} ·{" "}
-                            {itemVals.processType}
-                            {itemVals.drawingNumber &&
-                              ` · Dwg: ${itemVals.drawingNumber}`}
-                          </p>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <div className="text-xs text-muted-foreground">
-                            Unit Price
-                          </div>
-                          <div className="text-2xl font-bold text-primary">
-                            {cur}
-                            {c.pricePerPart.toFixed(2)}
-                          </div>
-                          <div className="text-sm text-muted-foreground font-medium">
-                            Total: {cur}
-                            {c.sellPrice.toFixed(2)}
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-                        {[
-                          ["Setup", c.setupCost],
-                          ["Programming", c.programmingCost],
-                          ["Machining", c.machiningCost],
-                          ["Inspection", c.inspectionCost],
-                          ["Deburring", c.deburringCost],
-                          ["Material", c.materialCostTotal],
-                        ].map(([label, val]) => (
-                          <div
-                            key={label as string}
-                            className="flex justify-between items-center px-3 py-2 bg-muted/40 rounded text-sm"
-                          >
-                            <span className="text-muted-foreground">
-                              {label}
-                            </span>
-                            <span className="font-mono">
-                              {cur}
-                              {(val as number).toFixed(2)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="pt-2 space-y-1 text-sm border-t">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">
-                            Direct cost
-                          </span>
-                          <span className="font-mono">
-                            {cur}
-                            {c.directCost.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">
-                            Risk ({risk}%)
-                          </span>
-                          <span className="font-mono">
-                            {cur}
-                            {c.riskValue.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between font-semibold border-t pt-1.5 mt-1">
-                          <span>Sell price (excl. VAT)</span>
-                          <span className="font-mono text-primary">
-                            {cur}
-                            {c.sellPrice.toFixed(2)}
-                          </span>
-                        </div>
-                        {c.vatEnabled && (
-                          <div className="flex justify-between text-muted-foreground">
-                            <span>VAT ({c.vatRate}%)</span>
-                            <span className="font-mono">
-                              {cur}
-                              {c.vatAmount.toFixed(2)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Health tip */}
-                      {(() => {
-                        const h = healthLabel(
-                          margin,
-                          risk,
-                          itemVals.complexity ?? "Medium",
-                        );
-                        return (
-                          <div
-                            className={`text-xs px-3 py-2 rounded border ${h.bg} ${h.border} ${h.color}`}
-                          >
-                            <strong>{h.label}:</strong> {h.tip}
-                          </div>
-                        );
-                      })()}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-
-              {/* Quote totals summary */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quote Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <div className="grid grid-cols-2 gap-2">
-                    {form.watch("leadTime") && (
-                      <div>
-                        <span className="text-muted-foreground">
-                          Lead time:
-                        </span>{" "}
-                        <span className="font-medium">
-                          {form.watch("leadTime")}
-                        </span>
-                      </div>
-                    )}
-                    {form.watch("deliveryTerms") && (
-                      <div>
-                        <span className="text-muted-foreground">Delivery:</span>{" "}
-                        <span className="font-medium">
-                          {form.watch("deliveryTerms")}
-                        </span>
-                      </div>
-                    )}
-                    {form.watch("paymentTerms") && (
-                      <div>
-                        <span className="text-muted-foreground">Payment:</span>{" "}
-                        <span className="font-medium">
-                          {form.watch("paymentTerms")}
-                        </span>
-                      </div>
-                    )}
-                    {form.watch("quoteRevision") && (
-                      <div>
-                        <span className="text-muted-foreground">Revision:</span>{" "}
-                        <span className="font-medium">
-                          {form.watch("quoteRevision")}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  {(form.watch("materialCertIncluded") ||
-                    form.watch("inspectionReportIncluded") ||
-                    form.watch("fairIncluded") ||
-                    form.watch("cmmReportIncluded")) && (
-                    <div>
-                      <span className="text-muted-foreground">
-                        Certifications:{" "}
-                      </span>
-                      {[
-                        form.watch("materialCertIncluded") && "Material Cert",
-                        form.watch("inspectionReportIncluded") &&
-                          "Inspection Report",
-                        form.watch("fairIncluded") && "FAIR",
-                        form.watch("cmmReportIncluded") && "CMM Report",
-                      ]
-                        .filter(Boolean)
-                        .join(", ")}
-                    </div>
-                  )}
-                  {form.watch("notes") && (
-                    <div className="p-3 bg-muted/30 rounded">
-                      <div className="text-xs text-muted-foreground uppercase mb-1">
-                        Customer Notes
-                      </div>
-                      <div>{form.watch("notes")}</div>
-                    </div>
-                  )}
-                  {form.watch("internalNotes") && (
-                    <div className="p-3 bg-amber-50 border border-amber-200 rounded dark:bg-amber-950/20 dark:border-amber-800">
-                      <div className="text-xs text-amber-600 dark:text-amber-400 uppercase mb-1">
-                        Internal Notes (not on PDF)
-                      </div>
-                      <div>{form.watch("internalNotes")}</div>
-                    </div>
-                  )}
-                  <div className="pt-3 border-t flex justify-between items-center">
-                    <span className="font-semibold text-base">
-                      Quote Total (excl. VAT)
-                    </span>
-                    <span className="text-xl font-bold text-primary">
-                      {cur}
-                      {fields
-                        .reduce(
-                          (sum, _, idx) =>
-                            sum +
-                            calculateCosts(form.watch(`lineItems.${idx}`))
-                              .sellPrice,
-                          0,
-                        )
-                        .toFixed(2)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* ── STEP 4: COMPLETE ────────────────────────────────────── */}
-          {currentStep === 3 &&
-            (() => {
-              const customerId = form.getValues("customerId");
-              const completedCustomer = customers?.find(
-                (c) => c.id === customerId,
+            {/* Grand total */}
+            {(() => {
+              const partsTotal = fields.reduce(
+                (sum, _, idx) =>
+                  sum +
+                  calculateCosts(form.watch(`lineItems.${idx}`)).sellPrice,
+                0,
               );
-              const partNames = form
-                .getValues("lineItems")
-                .filter((l: any) => !l.hiddenFromPdf)
-                .map((l: any) => l.partName)
-                .filter(Boolean)
-                .join(", ");
-              const validUntilRaw = form.getValues("validUntil");
-              const validity = validUntilRaw
-                ? new Date(validUntilRaw).toLocaleDateString("en-GB", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  })
-                : "";
-              const leadTime = form.getValues("leadTime");
-              const delivery = form.getValues("deliveryTerms");
-              const payment = form.getValues("paymentTerms");
-
-              const emailSubject = completedCustomer
-                ? `Quotation – ${completedCustomer.companyName}`
-                : "Quotation";
-
-              const emailBody = [
-                `Dear ${completedCustomer?.contactName || completedCustomer?.companyName || "Sir/Madam"},`,
-                "",
-                `Please find attached our quotation${partNames ? ` for: ${partNames}` : ""}.`,
-                "",
-                ...(validity
-                  ? [`This quotation is valid until ${validity}.`]
-                  : []),
-                ...(leadTime ? [`Lead time is estimated at ${leadTime}.`] : []),
-                ...(delivery ? [`Delivery: ${delivery}.`] : []),
-                ...(payment ? [`Payment terms: ${payment}.`] : []),
-                "",
-                "Please do not hesitate to contact us if you have any questions or would like to proceed.",
-                "",
-                "Kind regards,",
-                settings?.companyName || "",
-                ...(settings?.phone ? [settings.phone] : []),
-                ...(settings?.email ? [settings.email] : []),
-              ].join("\n");
-
-              const mailtoHref = completedCustomer?.email
-                ? `mailto:${completedCustomer.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
-                : `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-
+              const deliveryExtra = form.watch("includeDeliveryInTotal")
+                ? Number(form.watch("deliveryCost")) || 0
+                : 0;
+              const grandTotal = partsTotal + deliveryExtra;
+              const vatTotal = fields.reduce(
+                (sum, _, idx) =>
+                  sum +
+                  calculateCosts(form.watch(`lineItems.${idx}`)).vatAmount,
+                0,
+              );
               return (
-                <Card>
-                  <CardContent className="py-10 space-y-8">
-                    {/* Success */}
-                    <div className="text-center space-y-3">
-                      <div className="w-16 h-16 rounded-full bg-green-500/15 flex items-center justify-center mx-auto border-2 border-green-500/30">
-                        <Check className="w-8 h-8 text-green-500" />
+                <div className="space-y-1.5 pt-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-semibold">
+                      Total (excl. VAT)
+                    </span>
+                    <span
+                      className="text-xl font-bold font-mono"
+                      style={{ color: "hsl(213 97% 58%)" }}
+                    >
+                      {cur}
+                      {grandTotal.toFixed(2)}
+                    </span>
+                  </div>
+                  {vatTotal > 0 && (
+                    <>
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>VAT</span>
+                        <span className="font-mono">
+                          {cur}
+                          {vatTotal.toFixed(2)}
+                        </span>
                       </div>
-                      <h2 className="text-2xl font-bold">Quote Saved!</h2>
-                      <p className="text-muted-foreground">
-                        Your quote has been saved and is ready to send.
-                      </p>
-                    </div>
-
-                    {/* Email CTA */}
-                    {completedCustomer && (
                       <div
-                        className="rounded border p-5 space-y-4"
-                        style={{
-                          background: "hsl(var(--muted))",
-                          borderColor: "hsl(var(--border))",
-                        }}
+                        className="flex justify-between text-sm font-semibold border-t pt-1.5"
+                        style={{ borderColor: "hsl(var(--border))" }}
                       >
-                        <div
-                          className="text-sm font-semibold uppercase tracking-wider"
-                          style={{ color: "hsl(var(--muted-foreground))" }}
-                        >
-                          Send to Customer
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-sm">
-                              {completedCustomer.companyName}
-                            </div>
-                            {completedCustomer.contactName && (
-                              <div className="text-xs text-muted-foreground">
-                                Attn: {completedCustomer.contactName}
-                              </div>
-                            )}
-                            {completedCustomer.email && (
-                              <div className="text-xs font-mono text-muted-foreground">
-                                {completedCustomer.email}
-                              </div>
-                            )}
-                          </div>
-                          <a
-                            href={mailtoHref}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                            style={{ background: "hsl(213 97% 58%)" }}
-                          >
-                            <ArrowRight className="w-4 h-4" />
-                            Open in Email Client
-                          </a>
-                        </div>
-                        {!completedCustomer.email && (
-                          <p className="text-xs text-amber-500">
-                            No email address on file for this customer. Add one
-                            in Customers to auto-fill the To: field.
-                          </p>
-                        )}
-                        <p className="text-xs text-muted-foreground">
-                          Clicking "Open in Email Client" will launch your
-                          default email app with the quote email pre-filled.
-                          Attach the PDF before sending.
-                        </p>
+                        <span>Total (inc. VAT)</span>
+                        <span className="font-mono">
+                          {cur}
+                          {(grandTotal + vatTotal).toFixed(2)}
+                        </span>
                       </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex gap-3 justify-center flex-wrap">
-                      {savedQuoteId && (
-                        <Button asChild>
-                          <Link href={`/quotes/${savedQuoteId}`}>
-                            View &amp; Download PDF
-                          </Link>
-                        </Button>
-                      )}
-                      <Button variant="outline" asChild>
-                        <Link href="/quotes/new">New Quote</Link>
-                      </Button>
-                      <Button variant="outline" asChild>
-                        <Link href="/quotes">Back to Quotes</Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </>
+                  )}
+                </div>
               );
             })()}
 
-          {/* Navigation */}
-          {currentStep < 3 && (
+            {/* Lead time / terms summary */}
             <div
-              className="flex justify-between sticky bottom-0 py-3 mt-4 -mx-6 px-6 xl:-mx-8 xl:px-8"
-              style={{
-                background: "#F5F7FA",
-                borderTop: "1px solid rgba(0,0,0,0.06)",
-              }}
+              className="pt-2 space-y-1 text-xs border-t"
+              style={{ borderColor: "hsl(var(--border))" }}
             >
+              {form.watch("leadTime") && (
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground shrink-0">
+                    Lead time
+                  </span>
+                  <span className="font-medium text-right">
+                    {form.watch("leadTime")}
+                  </span>
+                </div>
+              )}
+              {form.watch("deliveryTerms") && (
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground shrink-0">
+                    Delivery
+                  </span>
+                  <span className="font-medium text-right">
+                    {form.watch("deliveryTerms")}
+                  </span>
+                </div>
+              )}
+              {form.watch("paymentTerms") && (
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground shrink-0">
+                    Payment
+                  </span>
+                  <span className="font-medium text-right truncate max-w-[130px]">
+                    {form.watch("paymentTerms")}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Health tip for active part */}
+            {(() => {
+              const activeItem = form.watch(
+                `lineItems.${activeLineItemIndex}`,
+              );
+              if (!activeItem) return null;
+              const margin =
+                Number(activeItem.profitMarginPercentage) || 0;
+              const risk = Number(activeItem.riskPercentage) || 0;
+              const h = healthLabel(
+                margin,
+                risk,
+                activeItem.complexity ?? "Medium",
+              );
+              return (
+                <div
+                  className={`text-xs px-3 py-2 rounded border ${h.bg} ${h.border} ${h.color}`}
+                >
+                  <strong>{h.label}:</strong> {h.tip}
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Save button */}
+          <div
+            className="p-4 border-t space-y-2 shrink-0"
+            style={{ borderColor: "hsl(var(--border))" }}
+          >
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSubmitting ? "Saving…" : "Save Quote"}
+            </Button>
+            {savedQuoteId && (
               <Button
                 type="button"
                 variant="outline"
-                onClick={handlePrev}
-                disabled={currentStep === 0}
+                size="sm"
+                className="w-full"
+                asChild
               >
-                <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                <Link href={`/quotes/${savedQuoteId}`}>View PDF</Link>
               </Button>
-              {currentStep < 2 ? (
-                <Button type="button" onClick={handleNext}>
-                  Next <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              ) : (
-                <Button type="submit" disabled={isSubmitting}>
-                  <Save className="w-4 h-4 mr-2" />
-                  {isSubmitting ? "Saving…" : "Save Quote"}
-                </Button>
-              )}
-            </div>
-          )}
-        </form>
-      </Form>
-    </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile save button (fixed) */}
+        <div
+          className="lg:hidden fixed bottom-0 inset-x-0 p-4 border-t z-20"
+          style={{
+            background: "hsl(var(--card))",
+            borderColor: "hsl(var(--border))",
+          }}
+        >
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Save className="w-4 h-4 mr-2" />
+            {isSubmitting ? "Saving…" : "Save Quote"}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }

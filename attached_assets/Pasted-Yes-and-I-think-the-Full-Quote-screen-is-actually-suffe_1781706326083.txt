@@ -1,0 +1,350 @@
+Yes, and I think the Full Quote screen is actually suffering from this even more than the Quick Quote Pack did.
+
+The current Full Quote screen is behaving like a CRM form rather than an estimating workspace.
+
+The left-hand drawing area is excellent.
+
+The problem is the right-hand side is still a long vertical wizard:
+
+```text
+Customer
+
+Status
+
+Dates
+
+Follow Up
+
+Notes
+
+Terms
+
+Delivery
+
+Payment Terms
+
+Next
+
+Next
+
+Next
+```
+
+That isn't how an estimator works.
+
+An estimator is constantly looking:
+
+```text
+Drawing
+↓
+
+Material
+
+↓
+
+Machine
+
+↓
+
+Time
+
+↓
+
+Cost
+
+↓
+
+Summary
+```
+
+The screen should support that workflow.
+
+Paste this into Replit:
+
+```text
+Redesign the Full Quote workspace using the same desktop-first engineering layout philosophy as Quick Quote Pack.
+
+Current issue:
+
+The Full Quote screen behaves like a long vertical CRM form.
+
+Users are forced to scroll through multiple stacked sections despite having significant unused horizontal space.
+
+The drawing viewer is good.
+
+The estimating area is not.
+
+Goal:
+
+Make Full Quote feel like professional engineering software.
+
+Think:
+
+- Fusion 360
+- SolidWorks
+- Mastercam
+- Siemens NX
+- Engineering estimating software
+
+NOT:
+
+- CRM forms
+- SaaS wizards
+- Long scrolling forms
+
+-----------------------------------
+
+1. Keep Split Screen Layout
+
+Retain:
+
+Left Side:
+Drawing Workspace
+
+Right Side:
+Estimating Workspace
+
+This is a strong feature.
+
+Do not remove it.
+
+-----------------------------------
+
+2. Replace Vertical Form Layout
+
+Current:
+
+Customer
+
+Status
+
+Dates
+
+Follow-Up
+
+Commercial Terms
+
+Delivery
+
+Payment Terms
+
+Next
+
+Next
+
+Next
+
+Replace with:
+
+Top Information Bar
+
+--------------------------------------------------
+
+Customer | Quote Date | Valid Until
+
+Lead Time | Margin | Delivery
+
+RFQ Received | Follow-Up Date
+
+--------------------------------------------------
+
+Everything visible immediately.
+
+No unnecessary scrolling.
+
+-----------------------------------
+
+3. Full Width Information Density
+
+Use the available screen width.
+
+Current layout wastes too much horizontal space.
+
+Reduce padding and margins.
+
+Use engineering software density.
+
+Do not create clutter.
+
+-----------------------------------
+
+4. Parts Section
+
+Below the quote header create:
+
+Parts Workspace
+
+Use responsive cards.
+
+Large screens:
+
+Part 1 | Part 2
+
+Part 3 | Part 4
+
+Part 5 | Part 6
+
+Each part card should contain:
+
+Part Name | Qty
+
+Drawing Number | Revision
+
+Material | Machine
+
+Setup Hours | Runtime Minutes
+
+Material Cost | Tooling Cost
+
+Part Total
+
+Notes collapsed by default
+
+Do not stack everything vertically.
+
+-----------------------------------
+
+5. Sticky Quote Summary
+
+Move quote summary to a dedicated right sidebar.
+
+Always visible.
+
+Never scroll away.
+
+Show:
+
+Customer
+
+Lead Time
+
+Margin
+
+Part Totals
+
+Extras
+
+Products
+
+Delivery
+
+Subtotal
+
+Grand Total
+
+Generate PDF
+
+Save Draft
+
+Mark Sent
+
+Convert To Pack
+
+-----------------------------------
+
+6. Move Commercial Sections Down
+
+Chargeable Extras
+
+Standard Products
+
+Quote Notes
+
+Should appear below the parts grid.
+
+Full width.
+
+Compact table layout.
+
+Not large cards.
+
+-----------------------------------
+
+7. Reduce Wizard Behaviour
+
+Current experience feels:
+
+Step 1
+Step 2
+Step 3
+
+Instead:
+
+Make it feel like a workspace.
+
+Users should be able to see:
+
+- Drawing
+- Customer
+- Parts
+- Costs
+- Summary
+
+At the same time.
+
+-----------------------------------
+
+8. Desktop Optimisation
+
+Optimise specifically for:
+
+1920x1080
+
+2560x1440
+
+3440x1440
+
+The majority of estimators use large monitors.
+
+Use the screen.
+
+-----------------------------------
+
+9. Mobile Behaviour
+
+Keep current mobile responsiveness.
+
+Desktop experience should not be constrained by mobile-first design.
+
+Desktop is the priority workflow.
+
+-----------------------------------
+
+10. Reduce Scrolling
+
+Target:
+
+A typical RFQ containing:
+
+- 1 drawing
+- 1 customer
+- 4 parts
+
+should mostly fit within a single screen view.
+
+Users should not need excessive scrolling to understand the quote.
+
+-----------------------------------
+
+11. Final Design Goal
+
+The Full Quote screen should feel like:
+
+A professional estimating workstation.
+
+Not:
+
+A web form.
+
+Not:
+
+A CRM.
+
+Not:
+
+A wizard.
+
+When opened on a 27-inch monitor it should feel like the screen is being fully utilised.
+```
+
+This is exactly the type of feedback I'd expect from a real estimator after 10 minutes of use, and it's higher value than almost any feature request because it affects every quote created.
