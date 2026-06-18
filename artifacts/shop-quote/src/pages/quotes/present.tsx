@@ -59,7 +59,6 @@ export function PresentQuote() {
   const { data: settings, isLoading: isLoadingSettings } = useGetSettings();
 
   const handlePrint = () => {
-    setCheckedItems(new Set());
     setShowCostChecklist(true);
   };
 

@@ -139,7 +139,6 @@ export function ViewQuote() {
   const [fuCustomerFeedback, setFuCustomerFeedback] = useState("");
 
   const handlePrint = () => {
-    setCheckedItems(new Set());
     setShowCostChecklist(true);
   };
 
