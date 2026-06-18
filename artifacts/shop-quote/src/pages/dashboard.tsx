@@ -656,7 +656,9 @@ function UrgencyBadge({
 }) {
   const todayDate = new Date();
   todayDate.setHours(0, 0, 0, 0);
-  const daysAgo = differenceInCalendarDays(todayDate, new Date(followUpDate + "T00:00:00"));
+  const parsedFollowUp = new Date(followUpDate + "T00:00:00");
+  if (!followUpDate || isNaN(parsedFollowUp.getTime())) return null;
+  const daysAgo = differenceInCalendarDays(todayDate, parsedFollowUp);
 
   if (urgency === "overdue") {
     return (

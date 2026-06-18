@@ -328,6 +328,7 @@ router.get("/quotes/follow-ups", async (req, res): Promise<void> => {
       (q) =>
         q.status === "Sent" &&
         q.followUpDate !== null &&
+        q.followUpDate !== "" &&
         q.followUpDate <= weekOut,
     )
     .map((q) => {
