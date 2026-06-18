@@ -1460,12 +1460,12 @@ export function QuoteWizard({
 
           {/* ── Info bar ─────────────────────────────────────────────── */}
           <div
-            className="rounded border bg-card p-3 space-y-3"
+            className="rounded border bg-card p-3 space-y-2"
             style={{ borderColor: "hsl(var(--border))" }}
           >
-            {/* Row 1: Customer, Status, Quote Date, Valid Until */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="col-span-2 lg:col-span-1">
+            {/* Row 1: Customer | Status | Quote Date | Valid Until | RFQ | Follow-up */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              <div className="col-span-2 sm:col-span-2 lg:col-span-1">
                 <FormField
                   control={form.control}
                   name="customerId"
@@ -1507,13 +1507,9 @@ export function QuoteWizard({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {["Draft", "Sent", "Won", "Lost", "Expired"].map(
-                          (s) => (
-                            <SelectItem key={s} value={s}>
-                              {s}
-                            </SelectItem>
-                          ),
-                        )}
+                        {["Draft", "Sent", "Won", "Lost", "Expired"].map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </FormItem>
@@ -1543,70 +1539,6 @@ export function QuoteWizard({
                   </FormItem>
                 )}
               />
-            </div>
-
-            {/* Row 2: Lead Time, Delivery Terms, RFQ, Follow-up */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs font-medium">Lead Time</label>
-                <div className="flex flex-wrap gap-1">
-                  {LEAD_TIME_PRESETS.map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => form.setValue("leadTime", p)}
-                      className={`px-1.5 py-0.5 text-xs rounded border transition-colors ${form.watch("leadTime") === p ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                </div>
-                <FormField
-                  control={form.control}
-                  name="leadTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          className="h-7 text-xs"
-                          placeholder="e.g. 4 weeks"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-medium">Delivery Terms</label>
-                <div className="flex flex-wrap gap-1">
-                  {DELIVERY_TERM_PRESETS.map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => form.setValue("deliveryTerms", p)}
-                      className={`px-1.5 py-0.5 text-xs rounded border transition-colors ${form.watch("deliveryTerms") === p ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                </div>
-                <FormField
-                  control={form.control}
-                  name="deliveryTerms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          className="h-7 text-xs"
-                          placeholder="e.g. Ex Works"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
               <FormField
                 control={form.control}
                 name="rfqReceivedDate"
@@ -1627,6 +1559,148 @@ export function QuoteWizard({
                     <FormLabel className="text-xs">Follow-up Date</FormLabel>
                     <FormControl>
                       <Input type="date" className="h-8 text-sm" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Row 2: Lead Time | Delivery Terms | Margin % | Delivery £ | Incl. | Payment Terms */}
+            <div
+              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-2 border-t"
+              style={{ borderColor: "hsl(var(--border))" }}
+            >
+              <FormField
+                control={form.control}
+                name="leadTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">Lead Time</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={LEAD_TIME_PRESETS.includes(field.value ?? "") ? (field.value ?? "") : ""}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue placeholder="Select…" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {LEAD_TIME_PRESETS.map((p) => (
+                          <SelectItem key={p} value={p}>{p}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {field.value && !LEAD_TIME_PRESETS.includes(field.value) && (
+                      <Input
+                        className="h-7 text-xs mt-1"
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="deliveryTerms"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">Delivery Terms</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={DELIVERY_TERM_PRESETS.includes(field.value ?? "") ? (field.value ?? "") : ""}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue placeholder="Select…" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {DELIVERY_TERM_PRESETS.map((p) => (
+                          <SelectItem key={p} value={p}>{p}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {field.value && !DELIVERY_TERM_PRESETS.includes(field.value) && (
+                      <Input
+                        className="h-7 text-xs mt-1"
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  </FormItem>
+                )}
+              />
+              <div className="space-y-1">
+                <label className="text-xs font-medium leading-none">Margin %</label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="99"
+                  step="1"
+                  className="h-8 text-sm"
+                  value={form.watch("lineItems.0.profitMarginPercentage") ?? 30}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    fields.forEach((_, idx) => {
+                      form.setValue(`lineItems.${idx}.profitMarginPercentage`, v);
+                    });
+                  }}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="deliveryCost"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">Delivery ({cur})</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="h-8 text-sm"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="includeDeliveryInTotal"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-xs">Incl. in total</FormLabel>
+                    <div className="flex items-center gap-2 mt-2">
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="scale-75 origin-left"
+                        />
+                      </FormControl>
+                      <span className="text-xs text-muted-foreground">
+                        {field.value ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="paymentTerms"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">Payment Terms</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="h-8 text-sm"
+                        placeholder="e.g. 30 days"
+                        {...field}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
@@ -2445,111 +2519,6 @@ export function QuoteWizard({
 
             {showAdvanced && (
               <div className="space-y-4 mt-2">
-                {/* Delivery cost */}
-                <div
-                  className="rounded border bg-card p-3 space-y-3"
-                  style={{ borderColor: "hsl(var(--border))" }}
-                >
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Delivery Cost
-                  </h4>
-                  <div className="grid grid-cols-3 gap-3">
-                    <FormField
-                      control={form.control}
-                      name="deliveryCost"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Cost ({cur})</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00"
-                              className="h-8"
-                              {...field}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="deliveryMethod"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Method</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Courier"
-                              className="h-8"
-                              {...field}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="includeDeliveryInTotal"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel className="text-xs">
-                            Include in total
-                          </FormLabel>
-                          <div className="flex items-center gap-2 mt-2">
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <span className="text-xs text-muted-foreground">
-                              {field.value ? "Yes" : "No"}
-                            </span>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                {/* Payment terms */}
-                <div
-                  className="rounded border bg-card p-3 space-y-2"
-                  style={{ borderColor: "hsl(var(--border))" }}
-                >
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Payment Terms
-                  </h4>
-                  <div className="flex flex-wrap gap-1.5">
-                    {PAYMENT_TERM_PRESETS.map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => form.setValue("paymentTerms", p)}
-                        className={`px-2 py-1 text-xs rounded border transition-colors ${form.watch("paymentTerms") === p ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
-                      >
-                        {p}
-                      </button>
-                    ))}
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="paymentTerms"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g. 30 days from invoice date"
-                            {...field}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
                 {/* Notes */}
                 <div
                   className="rounded border bg-card p-3 space-y-3"

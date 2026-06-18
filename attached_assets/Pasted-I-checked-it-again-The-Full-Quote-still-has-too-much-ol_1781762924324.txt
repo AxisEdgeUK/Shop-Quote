@@ -1,0 +1,123 @@
+I checked it again. The Full Quote still has too much old wizard/form behaviour in `quote-wizard.tsx`; Quick Quote Pack is still the better layout direction. ([GitHub][1])
+
+Use this final correction prompt:
+
+```text
+The Full Quote screen still has too much old vertical wizard behaviour.
+
+Do not add features.
+
+Redesign the Full Quote right-side workspace to follow the same visual/layout principles as Quick Quote Pack.
+
+Keep:
+- left drawing workspace
+- existing fields
+- existing calculations
+- existing PDF logic
+- existing quote saving
+
+Change only layout and usability.
+
+Requirements:
+
+1. Remove long vertical wizard feel
+
+The Full Quote should not feel like:
+Customer section
+Status section
+Dates section
+Terms section
+Delivery section
+Next button
+Next screen
+
+It should feel like one integrated estimating workspace.
+
+2. Top quote information bar
+
+Move key quote information into a compact horizontal top bar:
+
+- Customer
+- Quote Date
+- Valid Until
+- Lead Time
+- Margin
+- Delivery Cost
+- Payment Terms
+- RFQ Received
+- Follow-Up Date
+
+Use a compact two-row grid if needed.
+
+3. Parts grid layout
+
+Part cards must use a wide responsive grid.
+
+On large screens:
+- 2 part cards per row
+
+Each part card should use compact two-column rows:
+
+- Part Name | Quantity
+- Drawing Number | Revision
+- Material | Machine
+- Setup Hours | Runtime Minutes
+- Material Cost | Tooling Cost
+
+Keep notes collapsed by default.
+
+4. Sticky quote summary
+
+Add or improve right-side sticky quote summary:
+
+- Parts subtotal
+- Extras
+- Products
+- Delivery
+- VAT if enabled
+- Grand total
+- Generate PDF
+- Save Draft
+
+It must remain visible while editing parts.
+
+5. Bottom compact sections
+
+Move lower-priority areas below the parts grid:
+
+- Chargeable Extras
+- Standard Products
+- Quote Notes
+- Internal Notes
+- Certifications
+
+Use compact tables or collapsed panels.
+
+6. Use screen width properly
+
+The current full quote wastes horizontal space and forces vertical scrolling.
+
+Optimise for:
+- 1920x1080
+- 2560x1440
+- 3440x1440
+
+7. Mobile
+
+On iPhone, keep stacked cards.
+
+Desktop should be desktop-first.
+
+8. Do not add new features
+
+Do not change business logic.
+Do not break Quick Quote.
+Do not break PDF generation.
+
+Goal:
+Full Quote should feel like professional CNC estimating software, not a long web form.
+```
+
+This is layout correction, not product expansion.
+
+[1]: https://raw.githubusercontent.com/AxisEdgeUK/Shop-Quote/main/artifacts/shop-quote/src/components/quotes/quote-wizard.tsx "raw.githubusercontent.com"
