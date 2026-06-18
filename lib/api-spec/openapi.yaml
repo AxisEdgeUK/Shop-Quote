@@ -914,6 +914,7 @@ components:
         - material
         - processType
         - machineId
+        - rateSource
         - toleranceClass
         - surfaceFinish
         - complexity
@@ -972,6 +973,9 @@ components:
           type: string
         machineId:
           type: ["integer", "null"]
+        rateSource:
+          type: string
+          description: '"machine" (rate from selected machine/defaults) or "manual" (user-entered rate)'
         toleranceClass:
           type: string
         surfaceFinish:
@@ -1086,6 +1090,15 @@ components:
           type: string
         machineId:
           type: ["integer", "null"]
+        rateSource:
+          type: string
+          description: '"machine" (default) or "manual" — when "manual", manualHourlyRate is used and machineId is ignored'
+        manualHourlyRate:
+          type: number
+          description: Manual hourly rate (£/hr). Required when rateSource is "manual".
+        manualSetupRate:
+          type: number
+          description: Manual setup rate (£/hr). Optional — falls back to manualHourlyRate when blank.
         toleranceClass:
           type: string
         surfaceFinish:

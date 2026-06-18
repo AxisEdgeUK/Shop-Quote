@@ -66,6 +66,9 @@ interface PartEntry {
   material: string;
   processType: string;
   machineId: number | null;
+  rateSource: "machine" | "manual";
+  manualHourlyRate: number;
+  manualSetupRate: number | null;
   setupHours: number;
   machiningMins: number;
   materialCost: number;
@@ -138,6 +141,9 @@ function makePart(defaults: Partial<PartEntry> = {}): PartEntry {
     material: "",
     processType: "Milling",
     machineId: null,
+    rateSource: "machine",
+    manualHourlyRate: 0,
+    manualSetupRate: null,
     setupHours: 0,
     machiningMins: 0,
     materialCost: 0,
@@ -306,22 +312,51 @@ function PartCard({
             </div>
           </div>
 
-          {/* Row 3: Material | Machine */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Material</Label>
-              <MaterialCombobox
-                value={part.material}
-                onChange={(val, costPerKg) => {
-                  onUpdate({
-                    material: val,
-                    ...(costPerKg !== undefined ? { materialCost: costPerKg } : {}),
-                  });
-                }}
-              />
+          {/* Row 3: Material */}
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Material</Label>
+            <MaterialCombobox
+              value={part.material}
+              onChange={(val, costPerKg) => {
+                onUpdate({
+                  material: val,
+                  ...(costPerKg !== undefined ? { materialCost: costPerKg } : {}),
+                });
+              }}
+            />
+          </div>
+
+          {/* Row 3b: Rate source — Select Machine (default) vs Manual Rate */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">Rate</Label>
+              <div className="inline-flex rounded-md border border-border p-0.5 bg-muted/40">
+                <button
+                  type="button"
+                  onClick={() => onUpdate({ rateSource: "machine" })}
+                  className={`px-2.5 py-1 text-xs font-medium rounded ${
+                    part.rateSource === "machine"
+                      ? "bg-background shadow-sm text-foreground"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  Select Machine
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onUpdate({ rateSource: "manual" })}
+                  className={`px-2.5 py-1 text-xs font-medium rounded ${
+                    part.rateSource === "manual"
+                      ? "bg-background shadow-sm text-foreground"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  Manual Rate
+                </button>
+              </div>
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Machine</Label>
+
+            {part.rateSource === "machine" ? (
               <Select
                 value={part.machineId != null ? String(part.machineId) : "0"}
                 onValueChange={(v) => onUpdate({ machineId: v === "0" ? null : Number(v) })}
@@ -340,7 +375,49 @@ function PartCard({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">Hourly rate ({CUR}/hr)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={part.manualHourlyRate || ""}
+                    onChange={(e) => onUpdate({ manualHourlyRate: Number(e.target.value) })}
+                    placeholder="e.g. 65"
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">Setup rate ({CUR}/hr, optional)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={part.manualSetupRate ?? ""}
+                    onChange={(e) =>
+                      onUpdate({
+                        manualSetupRate: e.target.value === "" ? null : Number(e.target.value),
+                      })
+                    }
+                    placeholder="= hourly"
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+            )}
+
+            {part.rateSource === "manual" &&
+            (!part.manualHourlyRate || part.manualHourlyRate <= 0) ? (
+              <p className="text-[11px] text-destructive">
+                Hourly rate required for manual rate quote.
+              </p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground">
+                Select a machine or enter a manual hourly rate.
+              </p>
+            )}
           </div>
 
           {/* Row 4: Setup | Machining | Mat Cost | Tooling */}
@@ -492,9 +569,22 @@ function SummaryPanel({
   onFullQuote,
 }: SummaryPanelProps) {
   const singleResult = partResults[0];
-  const selectedMachine = !isPack ? machines.find((m) => m.id === parts[0]?.machineId) : null;
-  const hrDisplay = selectedMachine ? parseFloat(String(selectedMachine.hourlyRate)) : defaultHourlyRate;
-  const srDisplay = selectedMachine ? parseFloat(String(selectedMachine.setupRate)) : defaultSetupRate;
+  const singlePart = !isPack ? parts[0] : undefined;
+  const isManual = singlePart?.rateSource === "manual";
+  const selectedMachine =
+    !isPack && !isManual ? machines.find((m) => m.id === parts[0]?.machineId) : null;
+  const hrDisplay = isManual
+    ? singlePart?.manualHourlyRate || 0
+    : selectedMachine
+      ? parseFloat(String(selectedMachine.hourlyRate))
+      : defaultHourlyRate;
+  const srDisplay = isManual
+    ? singlePart?.manualSetupRate != null && singlePart.manualSetupRate > 0
+      ? singlePart.manualSetupRate
+      : singlePart?.manualHourlyRate || 0
+    : selectedMachine
+      ? parseFloat(String(selectedMachine.setupRate))
+      : defaultSetupRate;
 
   const singleTotal =
     singleResult.sellPrice +
@@ -614,8 +704,12 @@ function SummaryPanel({
             style={{ color: "hsl(var(--muted-foreground))" }}
           >
             <div>{CUR}{hrDisplay.toFixed(0)}/hr · setup {CUR}{srDisplay.toFixed(0)}/hr</div>
-            {selectedMachine && (
-              <div style={{ color: "hsl(213 97% 58%)" }}>{selectedMachine.name}</div>
+            {isManual ? (
+              <div style={{ color: "hsl(213 97% 58%)" }}>Manual rate</div>
+            ) : (
+              selectedMachine && (
+                <div style={{ color: "hsl(213 97% 58%)" }}>{selectedMachine.name}</div>
+              )
             )}
             {leadTime && <div>Lead time: {leadTime}</div>}
             {deliveryMethod && <div>Delivery: {deliveryMethod}</div>}
@@ -660,9 +754,11 @@ function SummaryPanel({
         </div>
         {!canSubmit && (
           <p className="text-xs text-center text-muted-foreground">
-            {parts[0] && parts[0].partName === "" && !isPack
-              ? "Enter a part name to save."
-              : "Select a customer to save."}
+            {parts.some((p) => p.rateSource === "manual" && (!p.manualHourlyRate || p.manualHourlyRate <= 0))
+              ? "Hourly rate required for manual rate quote."
+              : parts[0] && parts[0].partName === "" && !isPack
+                ? "Enter a part name to save."
+                : "Select a customer to save."}
           </p>
         )}
       </div>
@@ -881,10 +977,24 @@ export function QuickQuote() {
     };
   }
 
+  // Resolves the effective rates for a part, honouring its per-part rate source.
+  // Manual: hourly = entered rate; setup falls back to hourly when blank/zero.
+  function getPartRates(part: PartEntry) {
+    if (part.rateSource === "manual") {
+      const hourlyRate = part.manualHourlyRate || 0;
+      const setupRate =
+        part.manualSetupRate != null && part.manualSetupRate > 0
+          ? part.manualSetupRate
+          : hourlyRate;
+      return { hourlyRate, setupRate };
+    }
+    return getMachineRates(part.machineId);
+  }
+
   // ── Calculations ───────────────────────────────────────────────────────────
   const partResults = useMemo<CalcResult[]>(() => {
     return parts.map((part) => {
-      const { hourlyRate, setupRate } = getMachineRates(part.machineId);
+      const { hourlyRate, setupRate } = getPartRates(part);
       return calcResult(part.setupHours, part.machiningMins, part.qty, part.materialCost, part.toolingAllowance, margin, hourlyRate, setupRate);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -897,7 +1007,13 @@ export function QuickQuote() {
   );
 
   // ── Validation ─────────────────────────────────────────────────────────────
-  const canSubmit = customerId > 0 && parts.every((p) => p.partName.trim().length > 0 && p.qty > 0);
+  const manualRateMissing = parts.some(
+    (p) => p.rateSource === "manual" && (!p.manualHourlyRate || p.manualHourlyRate <= 0),
+  );
+  const canSubmit =
+    customerId > 0 &&
+    parts.every((p) => p.partName.trim().length > 0 && p.qty > 0) &&
+    !manualRateMissing;
 
   // ── Part helpers ───────────────────────────────────────────────────────────
   const updatePart = useCallback(
@@ -909,7 +1025,17 @@ export function QuickQuote() {
   const addPart = () => {
     if (parts.length >= MAX_PARTS) return;
     const last = parts[parts.length - 1];
-    setParts((prev) => [...prev, makePart({ machineId: last.machineId, material: last.material, processType: last.processType })]);
+    setParts((prev) => [
+      ...prev,
+      makePart({
+        machineId: last.machineId,
+        material: last.material,
+        processType: last.processType,
+        rateSource: last.rateSource,
+        manualHourlyRate: last.manualHourlyRate,
+        manualSetupRate: last.manualSetupRate,
+      }),
+    ]);
   };
 
   const duplicatePart = (key: string) => {
@@ -966,7 +1092,13 @@ export function QuickQuote() {
           quantity: part.qty,
           material: part.material,
           processType: part.processType,
-          machineId: part.machineId ?? null,
+          machineId: part.rateSource === "manual" ? null : (part.machineId ?? null),
+          rateSource: part.rateSource,
+          manualHourlyRate: part.rateSource === "manual" ? part.manualHourlyRate : undefined,
+          manualSetupRate:
+            part.rateSource === "manual" && part.manualSetupRate != null && part.manualSetupRate > 0
+              ? part.manualSetupRate
+              : undefined,
           setupHours: part.setupHours,
           programmingHours: 0,
           machiningMinutesPerPart: part.machiningMins,
@@ -1287,7 +1419,11 @@ export function QuickQuote() {
         </div>
         {!canSubmit && (
           <p className="text-xs text-center text-muted-foreground">
-            {customerId === 0 ? "Select a customer to save." : "All parts need a name to save."}
+            {customerId === 0
+              ? "Select a customer to save."
+              : manualRateMissing
+                ? "Hourly rate required for manual rate quote."
+                : "All parts need a name to save."}
           </p>
         )}
       </div>

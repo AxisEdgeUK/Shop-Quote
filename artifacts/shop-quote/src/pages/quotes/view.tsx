@@ -172,7 +172,9 @@ export function ViewQuote() {
     if (!quote.leadTime) warns.push("Lead time not specified.");
     const items = (quote as any).lineItems ?? [];
     const hasNoMaterial = items.some((i: any) => !i.material);
-    const hasNoMachine = items.some((i: any) => !i.machineId);
+    const hasNoMachine = items.some(
+      (i: any) => i.rateSource !== "manual" && !i.machineId,
+    );
     const hasZeroSetup = items.some(
       (i: any) =>
         parseFloat(i.setupHours ?? "0") === 0 &&
@@ -728,7 +730,9 @@ export function ViewQuote() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Machine rate</span>
+                    <span className="text-muted-foreground">
+                      {item.rateSource === "manual" ? "Manual rate" : "Machine rate"}
+                    </span>
                     <span className="font-mono">
                       {cur}
                       {machineHourlyRate.toFixed(2)}/hr

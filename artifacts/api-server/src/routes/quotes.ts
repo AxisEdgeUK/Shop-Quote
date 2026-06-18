@@ -177,6 +177,22 @@ async function getDefaultRates() {
   return { defaultHourlyRate: 65, defaultSetupRate: 65 };
 }
 
+// Returns an error message when a manual-rate line item is missing an hourly
+// rate, otherwise null. The client blocks this case, but guard server-side too.
+function validateManualRates(
+  lineItemsData: NonNullable<typeof CreateQuoteBody._type.lineItems>,
+): string | null {
+  for (const item of lineItemsData) {
+    if (
+      item.rateSource === "manual" &&
+      (item.manualHourlyRate == null || item.manualHourlyRate <= 0)
+    ) {
+      return "Hourly rate required for manual rate quote.";
+    }
+  }
+  return null;
+}
+
 async function insertLineItems(
   quoteId: number,
   lineItemsData: NonNullable<typeof CreateQuoteBody._type.lineItems>,
@@ -188,7 +204,20 @@ async function insertLineItems(
     let setupRate = defaults.defaultSetupRate;
     let hourlyRate = defaults.defaultHourlyRate;
 
-    if (item.machineId) {
+    const rateSource = item.rateSource === "manual" ? "manual" : "machine";
+    // When manual, the machine link is ignored — store null so the internal
+    // view can clearly show a manual rate was used.
+    const effectiveMachineId = rateSource === "manual" ? null : item.machineId;
+
+    if (rateSource === "manual") {
+      hourlyRate = item.manualHourlyRate ?? 0;
+      // Optional setup rate falls back to the hourly rate when blank/zero.
+      setupRate =
+        item.manualSetupRate != null && item.manualSetupRate > 0
+          ? item.manualSetupRate
+          : hourlyRate;
+      machineHourlyRate = hourlyRate;
+    } else if (item.machineId) {
       const [machine] = await db
         .select()
         .from(machinesTable)
@@ -231,7 +260,8 @@ async function insertLineItems(
       quantity: item.quantity,
       material: item.material,
       processType: item.processType,
-      machineId: item.machineId ?? null,
+      machineId: effectiveMachineId ?? null,
+      rateSource,
       toleranceClass: item.toleranceClass ?? "Standard",
       surfaceFinish: item.surfaceFinish ?? "Standard",
       complexity: item.complexity ?? "Medium",
@@ -401,6 +431,14 @@ router.post("/quotes", async (req, res): Promise<void> => {
     return;
   }
 
+  if (parsed.data.lineItems) {
+    const rateError = validateManualRates(parsed.data.lineItems);
+    if (rateError) {
+      res.status(400).json({ error: rateError });
+      return;
+    }
+  }
+
   const today = new Date().toISOString().split("T")[0];
   const settingsRows = await db.select().from(settingsTable).limit(1);
   const s = settingsRows[0];
@@ -535,6 +573,15 @@ router.patch("/quotes/:id", async (req, res): Promise<void> => {
   }
 
   const d = parsed.data;
+
+  if (d.lineItems) {
+    const rateError = validateManualRates(d.lineItems);
+    if (rateError) {
+      res.status(400).json({ error: rateError });
+      return;
+    }
+  }
+
   const updateData: Record<string, unknown> = {};
   if (d.customerId !== undefined) updateData.customerId = d.customerId;
   if (d.status !== undefined) updateData.status = d.status;

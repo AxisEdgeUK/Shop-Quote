@@ -85,6 +85,8 @@ export const quoteLineItemsTable = pgTable("quote_line_items", {
   material: text("material").notNull().default(""),
   processType: text("process_type").notNull().default("Milling"),
   machineId: integer("machine_id").references(() => machinesTable.id),
+  // "machine" = rate from selected machine/defaults, "manual" = user-entered rate
+  rateSource: text("rate_source").notNull().default("machine"),
   toleranceClass: text("tolerance_class").notNull().default("Standard"),
   surfaceFinish: text("surface_finish").notNull().default("Standard"),
   complexity: text("complexity").notNull().default("Medium"),

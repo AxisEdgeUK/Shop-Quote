@@ -1,0 +1,97 @@
+Paste this into Replit:
+
+```text
+Add manual rate entry to Quick Quote and Quick Quote Pack.
+
+Current issue:
+Quick Quote currently pushes the user to select a machine to get the hourly rate.
+
+In real quoting, sometimes the user just wants to manually enter:
+- hourly rate
+- setup hours
+- machining minutes
+
+without selecting a machine.
+
+This must be extremely simple.
+
+Requirements:
+
+1. In Quick Quote, add a toggle:
+
+Machine Rate Source:
+- Select Machine
+- Manual Rate
+
+Default:
+Select Machine
+
+2. If Select Machine is chosen:
+- show machine dropdown
+- use selected machine hourly rate
+- use selected machine setup rate
+
+3. If Manual Rate is chosen:
+hide machine dropdown and show:
+- Hourly Rate (£/hr)
+- Setup Rate (£/hr), optional
+
+If Setup Rate is blank:
+use Hourly Rate as Setup Rate.
+
+4. Manual calculation logic:
+
+setup_cost = setup_hours × setup_rate
+
+machining_cost = machining_minutes / 60 × quantity × hourly_rate
+
+5. This must work in:
+- single-part Quick Quote
+- Quick Quote Pack
+- each individual part in a pack
+
+6. In Quick Quote Pack:
+each part should be able to choose independently:
+- Select Machine
+or
+- Manual Rate
+
+Example:
+Part 1 uses selected CNC Turning Centre
+Part 2 uses manual hourly rate £65/hr
+
+7. Keep the UI clean.
+
+Do not make this feel complicated.
+
+Use simple wording:
+
+Select a machine or enter a manual hourly rate.
+
+8. PDF output:
+Customer PDF should NOT show:
+- hourly rate
+- setup rate
+- internal costing
+
+It should only show:
+- part
+- quantity
+- unit price
+- total price
+
+9. Internal view:
+Show whether the quote used:
+- machine rate
+or
+- manual rate
+
+10. Validation:
+If Manual Rate is selected and hourly rate is missing, show warning:
+Hourly rate required for manual rate quote.
+
+11. Final goal:
+Quick Quote should be fast even when the user does not want to select or set up a machine first.
+```
+
+This is a good addition because it reduces friction. It keeps Quick Quote usable even before a shop has fully imported its machine list.
