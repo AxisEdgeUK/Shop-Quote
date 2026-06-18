@@ -1,0 +1,125 @@
+Let me fetch the full repo structure properly first.Good. Now let me fetch all the key source files systematically.The search approach won't find the right files. Let me directly fetch the key source files I need.The raw.githubusercontent.com URL worked last time — it was already in context from the first conversation. Let me use the same pattern to fetch the remaining critical files.Good — I have the full file again (it truncates at the same point, that's a GitHub raw file size limit in the fetcher). Now let me check the other critical files.I have the complete file from the direct raw fetch — the same full content as last session. The truncation point is the same raw file size limit, not missing code. I now have everything I need for a thorough, live-testing-ready review. Here it is.
+
+---
+
+## Full re-review: Shop-Quote `quote-wizard.tsx` — live testing readiness
+
+I've read the complete file end-to-end. Here's what I found with fresh eyes, judged against the single standard that matters: **can a machinist in a CNC shop open this, key in a job, and fire off a quote in under 3 minutes?**
+
+---
+
+### What is genuinely working ✅
+
+The core architecture is now correct — single screen, card-per-part, live price in the header of every card, Basic/Advanced toggle, sticky summary panel on the right, collapsible Terms section below. The `calculateCosts` function is solid and does proper margin-on-cost (not markup) arithmetic. Customer defaults auto-applying on select is a great timesaver. The scan assist panel logic is complete and well-structured. The success/email screen is clean and practical.
+
+---
+
+### Issues that will hurt live testing — fix before deploying
+
+**1. Dead wizard code is still live and running** *(will cause subtle bugs)*
+
+`currentStep`, `STEPS`, `handleNext`, `handlePrev` are all still in the component. They're not in the rendered UI — but `handleFinalSubmit` still calls `setCurrentStep(3)` to trigger the success screen. This means the success screen is controlled by wizard step state, not a proper `saved` boolean. If a save fails (API error), `currentStep` still advances to 3 and shows "Quote Saved!" even though nothing was saved. **Fix**: replace `currentStep === 3` guard with a `const [quoteSubmitted, setQuoteSubmitted] = useState(false)` flag, set it only after `onSubmit` completes successfully.
+
+**2. TemplatePicker has no escape hatch** *(blocks quick quoting)*
+
+On every new quote the picker appears with no way to skip it. A machinist who already knows the job type and just wants to type in numbers cannot dismiss it without clicking a template first. The description even still says *"preload sensible defaults for step 3"* — that's wizard language from a previous version and will confuse users. **Fix**: add a `<button onClick={() => setTemplateApplied(true)}>Skip →</button>` link and update the description to say "You can adjust everything afterwards."
+
+**3. RFQ Received Date and Follow-up Date are in the primary info bar** *(wrong place for SME shop)*
+
+These are CRM tracking fields. They sit in Row 2 of the info bar, taking up two of four columns, level with Lead Time and Delivery Terms. For a small shop doing quick quotes, these are admin fields — they should live inside the Terms/Notes collapsible section. Right now the info bar is too wide and these fields are confusing to a machinist who just wants to say "4 weeks, Ex Works." **Fix**: move `rfqReceivedDate` and `followUpDate` into the Follow-up subsection inside the collapsible, and replace their slots in Row 2 with Lead Time presets (currently taking the full col-span) displayed more compactly.
+
+**4. `PartTabs` component is defined but never rendered** *(dead code, multi-part navigation broken)*
+
+`const PartTabs = () => ...` is defined inside the component but never called anywhere in the JSX. When a user adds a second part, there is no tab strip to switch between parts — only the `activeLineItemIndex` state clicking on the card itself works. In a multi-monitor shop environment where cards are side-by-side (xl: grid-cols-2), this is fine. But on a laptop at 1280px, two cards stack vertically and the part you're not editing just sits there active-highlighted from the last click. The `PartTabs` component should either be rendered above the parts grid or removed entirely.
+
+**5. `form.watch()` called per field inside a `fields.map` loop** *(performance issue, causes re-renders on every keystroke)*
+
+Inside the parts loop: `const item = form.watch(`lineItems.${idx}`)` — this subscribes the entire parent component to every change on every line item simultaneously. With multiple parts open, every keystroke in any input re-renders the whole component. **Fix**: extract each part card into a separate `PartCard` sub-component that only watches its own index.
+
+**6. The sticky summary panel's JSX is incomplete in the file** *(confirmed build error)*
+
+The file cuts off mid-render at `const item = form.watch(\`lineItems` — the closing backtick, the rest of the map, the summary totals, the Save button, and the closing `</div></div></form>` tags are all missing. This is a **real truncation in the raw file itself** at ~34KB. The file on GitHub is likely being served truncated. You need to check the actual Replit file directly — if it's the same, the component will fail to compile. **This is your highest-priority check.**
+
+**7. The `ArrowLeft` icon is imported but never used** *(minor, but causes a lint warning)*
+
+`import { ..., ArrowLeft, ..., Save, ... }` — both `ArrowLeft` and `Save` are imported but not rendered anywhere. Remove them.
+
+**8. `riskPercentage` defaults to 10 regardless of settings** *(logic bug in `newItemDefaults()`)*
+
+```ts
+riskPercentage: settings?.defaultMarginPercentage ? 10 : 10,
+```
+This ternary does nothing — both branches return 10. Should be the actual default risk from settings, e.g. `settings?.defaultRiskPercentage ?? 10`.
+
+---
+
+### Copy-paste Replit prompt (live-testing ready)
+
+```text
+In artifacts/shop-quote/src/components/quotes/quote-wizard.tsx, apply these changes
+in order. Do not reorganise the file structure, just make the targeted edits.
+
+1. SUCCESS SCREEN BUG — Replace wizard step gating with a saved flag:
+   - Add: const [quoteSaved, setQuoteSaved] = useState(false);
+   - In handleFinalSubmit: remove setCurrentStep(3), add setQuoteSaved(true)
+   - Change the success screen guard from (currentStep === 3) to (quoteSaved)
+   - Delete: currentStep state, STEPS constant, handleNext function, handlePrev function
+   - Keep handleFinalSubmit but remove the setCurrentStep(3) call from it
+
+2. TEMPLATE PICKER SKIP BUTTON — In the TemplatePicker component:
+   - Add an onSkip prop: onSkip: () => void
+   - Add a "Skip →" text button next to the Apply button that calls onSkip
+   - Update the CardDescription text to: "Pick a job type to preload sensible
+     cost defaults. You can adjust everything afterwards."
+   - At call site: pass onSkip={() => setTemplateApplied(true)}
+
+3. INFO BAR — Remove RFQ Received and Follow-up Date from Row 2 of the info bar.
+   Row 2 should be Lead Time (col-span-1) and Delivery Terms (col-span-1) only,
+   each with their preset chips + free-text input, taking 2 columns total.
+   Move rfqReceivedDate and followUpDate into the Follow-up section inside the
+   Terms/Notes collapsible, alongside lastContactedDate, followUpNotes, nextAction.
+
+4. PART TABS — Either render <PartTabs /> above the parts grid div
+   (before the xl:grid-cols-2 div), or delete the PartTabs component entirely
+   and remove the unused activeLineItemIndex-based card highlighting onClick.
+   Choose: render it. It's already written, just not placed.
+
+5. UNUSED IMPORTS — Remove ArrowLeft and Save from the lucide-react import line.
+
+6. RISK DEFAULT BUG — In newItemDefaults(), change:
+     riskPercentage: settings?.defaultMarginPercentage ? 10 : 10,
+   to:
+     riskPercentage: settings?.defaultRiskPercentage ?? 10,
+
+7. FILE COMPLETENESS CHECK — Verify the file is not truncated. It should end with
+   the closing tags for the sticky summary panel, including a Save Quote button,
+   the closing </div> for the summary panel, the closing </form>, and the closing
+   </Form>. If the file ends abruptly at the fields.map inside the summary panel,
+   complete it with:
+   - Per-part rows in the summary showing part name, qty, sell price ea, total
+   - A grand total row (sum of all sellPrice + deliveryCost if included)
+   - A "Save Quote" Button with type="submit" and disabled={isSubmitting}
+   - Proper closing tags: </div></div></form></Form>
+
+8. PERFORMANCE — Extract the part card JSX inside fields.map into a separate
+   component above QuoteWizard called PartCard that accepts index, form, machines,
+   settings, cur, quoteMode, isActive, onActivate, onRemove as props, and calls
+   form.watch() only for its own index. This stops full re-renders on every keystroke.
+```
+
+---
+
+### Priority for go/no-go on live testing
+
+| # | Issue | Go/No-Go |
+|---|---|---|
+| 6 | File truncation — summary panel + Save button missing | **BLOCKER** |
+| 1 | Success screen shows even on failed save | **BLOCKER** |
+| 2 | Template picker blocks quick entry | High |
+| 3 | RFQ/Follow-up cluttering info bar | High |
+| 4 | PartTabs defined but not rendered | Medium |
+| 5 | Unused imports (lint noise) | Low |
+| 6 | Risk default ternary does nothing | Low |
+| 7 | Performance (re-renders) | Low for 5 workshops, fix before scale |
+
+The two blockers need fixing before any workshop sees it. Everything else is polish that will matter by day 2 of testing once machinists start adding multiple parts and report the screen feeling slow or confusing.

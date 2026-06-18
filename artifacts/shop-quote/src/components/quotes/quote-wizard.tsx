@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import {
   useScanContext,
@@ -43,7 +43,6 @@ import {
   Plus,
   Trash2,
   ArrowRight,
-  ArrowLeft,
   Check,
   Save,
   AlertTriangle,
@@ -165,12 +164,6 @@ const LEAD_TIME_PRESETS = [
   "To be confirmed",
 ];
 const DELIVERY_TERM_PRESETS = ["Ex Works", "Delivered", "Collection"];
-
-const STEPS = [
-  "Customer & Part",
-  "Cost Build-Up",
-  "Review & Output",
-];
 
 /* ── Health indicator ────────────────────────────────────────── */
 function healthLabel(
@@ -307,8 +300,10 @@ function CostCheckPanel({ item }: { item: any }) {
 /* ── Template picker ─────────────────────────────────────────── */
 function TemplatePicker({
   onSelect,
+  onSkip,
 }: {
   onSelect: (t: QuoteTemplate) => void;
+  onSkip: () => void;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -322,8 +317,8 @@ function TemplatePicker({
           </CardTitle>
         </div>
         <CardDescription>
-          Pick a job type to preload sensible defaults for step 3. You can
-          adjust everything afterwards.
+          Pick a job type to preload sensible cost defaults. You can adjust
+          everything afterwards.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -348,20 +343,29 @@ function TemplatePicker({
             </button>
           ))}
         </div>
-        {selected && (
-          <Button
+        <div className="flex items-center gap-3">
+          {selected && (
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                const t = QUOTE_TEMPLATES.find((x) => x.id === selected)!;
+                onSelect(t);
+              }}
+            >
+              <Zap className="w-3.5 h-3.5 mr-1.5" />
+              Apply {QUOTE_TEMPLATES.find((x) => x.id === selected)?.label}{" "}
+              defaults
+            </Button>
+          )}
+          <button
             type="button"
-            size="sm"
-            onClick={() => {
-              const t = QUOTE_TEMPLATES.find((x) => x.id === selected)!;
-              onSelect(t);
-            }}
+            className="text-xs text-muted-foreground underline hover:text-foreground transition-colors"
+            onClick={onSkip}
           >
-            <Zap className="w-3.5 h-3.5 mr-1.5" />
-            Apply {QUOTE_TEMPLATES.find((x) => x.id === selected)?.label}{" "}
-            defaults
-          </Button>
-        )}
+            Skip →
+          </button>
+        </div>
       </CardContent>
     </Card>
   );
@@ -926,7 +930,9 @@ export function QuoteWizard({
 }: QuoteWizardProps) {
   const { scanResult } = useScanContext();
   const [scanDismissed, setScanDismissed] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
+  const [quoteSaved, setQuoteSaved] = useState(false);
+  const prevSavedIdRef = useRef(savedQuoteId);
+  const hasSubmittedRef = useRef(false);
   const [templateApplied, setTemplateApplied] = useState(false);
   const [quoteMode, setQuoteMode] = useState<"basic" | "advanced">(() => {
     try {
@@ -1164,27 +1170,21 @@ export function QuoteWizard({
     setTemplateApplied(true);
   };
 
-  const handleNext = async () => {
-    let isValid = false;
-    if (currentStep === 0) {
-      isValid = await form.trigger([
-        "customerId",
-        `lineItems.${activeLineItemIndex}.partName`,
-        `lineItems.${activeLineItemIndex}.quantity`,
-      ]);
-    } else if (currentStep === 1) {
-      isValid = await form.trigger();
-    }
-    if (isValid || currentStep > 1) {
-      setCurrentStep((p) => Math.min(p + 1, STEPS.length - 1));
-    }
+  const handleFinalSubmit = (data: QuoteFormValues) => {
+    hasSubmittedRef.current = true;
+    onSubmit(data);
   };
 
-  const handlePrev = () => setCurrentStep((p) => Math.max(p - 1, 0));
-  const handleFinalSubmit = (data: QuoteFormValues) => {
-    onSubmit(data);
-    setCurrentStep(3);
-  };
+  useEffect(() => {
+    if (
+      hasSubmittedRef.current &&
+      savedQuoteId !== undefined &&
+      savedQuoteId !== prevSavedIdRef.current
+    ) {
+      setQuoteSaved(true);
+    }
+    prevSavedIdRef.current = savedQuoteId;
+  }, [savedQuoteId]);
 
   if (isLoadingCustomers || isLoadingMachines || isLoadingSettings) {
     return <Skeleton className="w-full h-[600px]" />;
@@ -1272,7 +1272,7 @@ export function QuoteWizard({
     outsideProcessing: 0,
     packaging: 0,
     delivery: 0,
-    riskPercentage: settings?.defaultMarginPercentage ? 10 : 10,
+    riskPercentage: 10,
     profitMarginPercentage: settings?.defaultMarginPercentage || 30,
     discountPercentage: 0,
     vatEnabled: settings?.vatEnabled ?? false,
@@ -1296,7 +1296,7 @@ export function QuoteWizard({
     ) : null;
 
   // ── Complete / success screen ────────────────────────────────────────
-  if (currentStep === 3) {
+  if (quoteSaved) {
     const customerId = form.getValues("customerId");
     const completedCustomer = customers?.find((c) => c.id === customerId);
     const partNames = form
@@ -1436,7 +1436,7 @@ export function QuoteWizard({
 
           {/* Banners */}
           {isNewQuote && !templateApplied && (
-            <TemplatePicker onSelect={applyTemplate} />
+            <TemplatePicker onSelect={applyTemplate} onSkip={() => setTemplateApplied(true)} />
           )}
           {templateApplied && (
             <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-2.5">
@@ -1463,9 +1463,9 @@ export function QuoteWizard({
             className="rounded border bg-card p-3 space-y-2"
             style={{ borderColor: "hsl(var(--border))" }}
           >
-            {/* Row 1: Customer | Status | Quote Date | Valid Until | RFQ | Follow-up */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-              <div className="col-span-2 sm:col-span-2 lg:col-span-1">
+            {/* Row 1: Customer | Status | Quote Date | Valid Until */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+              <div className="col-span-2 lg:col-span-1">
                 <FormField
                   control={form.control}
                   name="customerId"
@@ -1533,30 +1533,6 @@ export function QuoteWizard({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs">Valid Until</FormLabel>
-                    <FormControl>
-                      <Input type="date" className="h-8 text-sm" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="rfqReceivedDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs">RFQ Received</FormLabel>
-                    <FormControl>
-                      <Input type="date" className="h-8 text-sm" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="followUpDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs">Follow-up Date</FormLabel>
                     <FormControl>
                       <Input type="date" className="h-8 text-sm" {...field} />
                     </FormControl>
@@ -1743,6 +1719,7 @@ export function QuoteWizard({
               </div>
             </div>
 
+            <PartTabs />
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               {fields.map((field, idx) => {
                 const item = form.watch(`lineItems.${idx}`);
@@ -2575,6 +2552,30 @@ export function QuoteWizard({
                     Follow-up
                   </h4>
                   <div className="grid grid-cols-2 gap-3">
+                    <FormField
+                      control={form.control}
+                      name="rfqReceivedDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>RFQ Received</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="followUpDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Follow-up Date</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={form.control}
                       name="lastContactedDate"
