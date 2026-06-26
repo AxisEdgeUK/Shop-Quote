@@ -1,18 +1,20 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   useListCustomers,
   useListMachines,
   useGetSettings,
   useCreateQuote,
+  useUpdateQuote,
   getListQuotesQueryKey,
+  getGetQuoteQueryKey,
+  type Quote,
+  type QuoteLineItem,
 } from "@workspace/api-client-react";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import {
-  ArrowLeft,
-  Zap,
   Save,
   FileDown,
-  ArrowRight,
+  Eye,
   Plus,
   Trash2,
   PlusCircle,
@@ -21,8 +23,10 @@ import {
   Copy,
   ChevronDown,
   ChevronUp,
-  Layers,
   StickyNote,
+  Check,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,6 +79,10 @@ interface PartEntry {
   toolingAllowance: number;
   notes: string;
   collapsed: boolean;
+  // Snapshot of the original persisted line item so advanced fields (programming,
+  // inspection, risk, tolerances, etc.) — which are no longer editable in the UI —
+  // round-trip without loss when an existing quote is edited and re-saved.
+  _original?: QuoteLineItem;
 }
 
 interface CalcResult {
@@ -94,6 +102,8 @@ type MachineRow = {
   active: boolean;
 };
 
+type SaveState = "idle" | "saving" | "saved" | "error";
+
 // ── Counters ──────────────────────────────────────────────────────────────────
 
 let addonKeyCounter = 0;
@@ -108,6 +118,7 @@ const LEAD_TIMES = ["1 week", "2 weeks", "3 weeks", "4 weeks", "6 weeks", "8 wee
 const DELIVERY_METHODS = ["Collection", "Local Delivery", "Courier", "Pallet", "Customer Arranged", "To be confirmed"];
 const CUR = "£";
 const MAX_PARTS = 10;
+const ADDON_TYPES = new Set(["extra", "product"]);
 
 // ── Calc ───────────────────────────────────────────────────────────────────────
 
@@ -151,6 +162,50 @@ function makePart(defaults: Partial<PartEntry> = {}): PartEntry {
     notes: "",
     collapsed: false,
     ...defaults,
+  };
+}
+
+// Maps a persisted line item back into the editable PartEntry shape, keeping the
+// raw item as `_original` for advanced-field preservation on save.
+function partFromLineItem(item: QuoteLineItem): PartEntry {
+  const isManual = item.rateSource === "manual";
+  const manualHourly = isManual ? item.machineHourlyRate : 0;
+  const manualSetup =
+    isManual && item.machineSetupRate > 0 && item.machineSetupRate !== item.machineHourlyRate
+      ? item.machineSetupRate
+      : null;
+  return makePart({
+    partName: item.partName,
+    drawingNumber: item.drawingNumber || "",
+    revision: item.revision || "",
+    qty: item.quantity,
+    material: item.material || "",
+    processType: item.processType || "Milling",
+    machineId: isManual ? null : (item.machineId ?? null),
+    rateSource: isManual ? "manual" : "machine",
+    manualHourlyRate: manualHourly,
+    manualSetupRate: manualSetup,
+    setupHours: item.setupHours,
+    machiningMins: item.machiningMinutesPerPart,
+    materialCost: item.materialCostPerUnit,
+    toolingAllowance: item.toolingAllowance,
+    notes: "",
+    _original: item,
+  });
+}
+
+function addonFromLineItem(item: QuoteLineItem): QuoteAddon {
+  const qty = item.quantity > 0 ? item.quantity : 1;
+  return {
+    key: nextAddonKey(),
+    type: (item.lineItemType === "product" ? "product" : "extra") as "extra" | "product",
+    id: 0,
+    name: item.partName,
+    category: "",
+    unit: "ea",
+    unitSellPrice: qty > 0 ? item.outsideProcessing / qty : item.outsideProcessing,
+    qty,
+    notes: "",
   };
 }
 
@@ -540,11 +595,10 @@ interface SummaryPanelProps {
   machines: MachineRow[];
   defaultHourlyRate: number;
   defaultSetupRate: number;
-  canSubmit: boolean;
-  isPending: boolean;
-  onSaveDraft: () => void;
+  hasDraft: boolean;
+  canView: boolean;
+  onView: () => void;
   onGeneratePdf: () => void;
-  onFullQuote: () => void;
 }
 
 function SummaryPanel({
@@ -562,11 +616,10 @@ function SummaryPanel({
   machines,
   defaultHourlyRate,
   defaultSetupRate,
-  canSubmit,
-  isPending,
-  onSaveDraft,
+  hasDraft,
+  canView,
+  onView,
   onGeneratePdf,
-  onFullQuote,
 }: SummaryPanelProps) {
   const singleResult = partResults[0];
   const singlePart = !isPack ? parts[0] : undefined;
@@ -592,7 +645,7 @@ function SummaryPanel({
     (includeDeliveryInTotal && deliveryCost > 0 ? deliveryCost : 0);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Header label */}
       <div
         className="text-[10px] font-bold uppercase tracking-widest mb-3"
@@ -631,7 +684,7 @@ function SummaryPanel({
       </div>
 
       {/* Line items */}
-      <div className="space-y-1.5 text-xs flex-1 overflow-y-auto">
+      <div className="space-y-1.5 text-xs">
         {isPack ? (
           /* Pack: per-part rows */
           parts.map((part, idx) => (
@@ -727,38 +780,23 @@ function SummaryPanel({
       <div className="mt-4 space-y-2 shrink-0">
         <Button
           className="w-full h-10 font-semibold gap-2"
-          onClick={onSaveDraft}
-          disabled={!canSubmit || isPending}
+          onClick={onView}
+          disabled={!canView}
         >
-          <Save className="w-4 h-4" />
-          {isPending ? "Saving…" : isPack ? "Save Pack Draft" : "Save Draft"}
+          <Eye className="w-4 h-4" />
+          View Quote
         </Button>
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            variant="outline"
-            className="h-9 gap-1 text-sm"
-            onClick={onGeneratePdf}
-            disabled={!canSubmit || isPending}
-          >
-            <FileDown className="w-3.5 h-3.5" /> PDF
-          </Button>
-          <Button
-            variant="outline"
-            className="h-9 gap-1 text-sm"
-            onClick={onFullQuote}
-            disabled={!canSubmit || isPending}
-          >
-            <ArrowRight className="w-3.5 h-3.5" />{" "}
-            {isPack ? "Full Quote" : "Full Quote"}
-          </Button>
-        </div>
-        {!canSubmit && (
+        <Button
+          variant="outline"
+          className="w-full h-9 gap-1 text-sm"
+          onClick={onGeneratePdf}
+          disabled={!canView}
+        >
+          <FileDown className="w-3.5 h-3.5" /> Generate PDF
+        </Button>
+        {!hasDraft && (
           <p className="text-xs text-center text-muted-foreground">
-            {parts.some((p) => p.rateSource === "manual" && (!p.manualHourlyRate || p.manualHourlyRate <= 0))
-              ? "Hourly rate required for manual rate quote."
-              : parts[0] && parts[0].partName === "" && !isPack
-                ? "Enter a part name to save."
-                : "Select a customer to save."}
+            Select a customer to start the quote — it then saves automatically.
           </p>
         )}
       </div>
@@ -891,14 +929,42 @@ function AddonsSection({
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Save status pill ───────────────────────────────────────────────────────────
 
-export function QuickQuote() {
+function SaveStatus({ state }: { state: SaveState }) {
+  if (state === "idle") return null;
+  const map = {
+    saving: { icon: <Loader2 className="w-3 h-3 animate-spin" />, label: "Saving…", color: "hsl(var(--muted-foreground))" },
+    saved: { icon: <Check className="w-3 h-3" />, label: "Saved", color: "hsl(142 71% 45%)" },
+    error: { icon: <AlertCircle className="w-3 h-3" />, label: "Save failed", color: "hsl(var(--destructive))" },
+  } as const;
+  const c = map[state];
+  return (
+    <span className="flex items-center gap-1 text-xs font-medium" style={{ color: c.color }}>
+      {c.icon}
+      {c.label}
+    </span>
+  );
+}
+
+// ── Main builder ──────────────────────────────────────────────────────────────
+
+interface QuoteBuilderProps {
+  /** Persisted quote id once it exists (route id for edit, draft id for new). */
+  quoteId?: number;
+  /** Existing quote to hydrate from (edit, or "quote similar job" template). */
+  initialQuote?: Quote;
+  /** Called with the new draft id the moment it is auto-created. */
+  onQuoteCreated?: (id: number) => void;
+}
+
+export function QuoteBuilder({ quoteId, initialQuote, onQuoteCreated }: QuoteBuilderProps) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { save: saveDefaults, load: loadDefaults } = useWorkflowDefaults();
   const createQuote = useCreateQuote();
+  const updateQuote = useUpdateQuote();
 
   const { data: customers, isLoading: customersLoading } = useListCustomers();
   const { data: machines, isLoading: machinesLoading } = useListMachines();
@@ -915,9 +981,16 @@ export function QuickQuote() {
   const [addonSearch, setAddonSearch] = useState("");
   const [showAddonPicker, setShowAddonPicker] = useState(false);
   const [defaultsLoaded, setDefaultsLoaded] = useState(false);
-
-  // ── Parts ─────────────────────────────────────────────────────────────────
   const [parts, setParts] = useState<PartEntry[]>([makePart()]);
+
+  // ── Draft / persistence state ───────────────────────────────────────────────
+  const [createdId, setCreatedId] = useState<number | undefined>();
+  const effectiveId = quoteId ?? createdId;
+  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [hydrated, setHydrated] = useState(false);
+  const creatingRef = useRef(false);
+  const lastSavedRef = useRef<string | null>(null);
+
   const isPack = parts.length > 1;
 
   // ── Extras/Products ────────────────────────────────────────────────────────
@@ -942,8 +1015,30 @@ export function QuickQuote() {
     p.category.toLowerCase().includes(addonSearchLower),
   );
 
-  // ── Load defaults ──────────────────────────────────────────────────────────
+  // ── Hydrate from an existing quote (edit / quote-similar) ────────────────────
   useEffect(() => {
+    if (!initialQuote || hydrated) return;
+    setCustomerId(initialQuote.customerId);
+    setLeadTime(initialQuote.leadTime || "");
+    setDeliveryMethod(initialQuote.deliveryMethod || "");
+    setDeliveryCost(Number(initialQuote.deliveryCost ?? 0));
+    setIncludeDeliveryInTotal(initialQuote.includeDeliveryInTotal ?? true);
+
+    const items = initialQuote.lineItems || [];
+    const partItems = items.filter((it) => !ADDON_TYPES.has(it.lineItemType));
+    const addonItems = items.filter((it) => ADDON_TYPES.has(it.lineItemType));
+    if (partItems.length > 0) {
+      setParts(partItems.map(partFromLineItem));
+      setMargin(partItems[0].profitMarginPercentage);
+    }
+    setAddons(addonItems.map(addonFromLineItem));
+    setDefaultsLoaded(true);
+    setHydrated(true);
+  }, [initialQuote, hydrated]);
+
+  // ── Load workflow defaults (blank new quote only) ────────────────────────────
+  useEffect(() => {
+    if (initialQuote) return;
     if (settingsLoading || machinesLoading || defaultsLoaded) return;
     const d = loadDefaults();
     const machineExists = d.lastMachineId && machines?.find((m) => m.id === d.lastMachineId);
@@ -963,33 +1058,37 @@ export function QuickQuote() {
       setLeadTime(settings.defaultLeadTime);
     }
     setDefaultsLoaded(true);
-  }, [settingsLoading, machinesLoading, machines, settings, defaultsLoaded, loadDefaults]);
+  }, [initialQuote, settingsLoading, machinesLoading, machines, settings, defaultsLoaded, loadDefaults]);
 
   // ── Rates ──────────────────────────────────────────────────────────────────
   const defaultHourlyRate = parseFloat(String(settings?.defaultHourlyRate || 65));
   const defaultSetupRate = parseFloat(String(settings?.defaultSetupRate || 65));
 
-  function getMachineRates(machineId: number | null) {
-    const m = (machines || []).find((m) => m.id === machineId);
-    return {
-      hourlyRate: m ? parseFloat(String(m.hourlyRate)) : defaultHourlyRate,
-      setupRate: m ? parseFloat(String(m.setupRate)) : defaultSetupRate,
-    };
-  }
+  const getMachineRates = useCallback(
+    (machineId: number | null) => {
+      const m = (machines || []).find((m) => m.id === machineId);
+      return {
+        hourlyRate: m ? parseFloat(String(m.hourlyRate)) : defaultHourlyRate,
+        setupRate: m ? parseFloat(String(m.setupRate)) : defaultSetupRate,
+      };
+    },
+    [machines, defaultHourlyRate, defaultSetupRate],
+  );
 
-  // Resolves the effective rates for a part, honouring its per-part rate source.
-  // Manual: hourly = entered rate; setup falls back to hourly when blank/zero.
-  function getPartRates(part: PartEntry) {
-    if (part.rateSource === "manual") {
-      const hourlyRate = part.manualHourlyRate || 0;
-      const setupRate =
-        part.manualSetupRate != null && part.manualSetupRate > 0
-          ? part.manualSetupRate
-          : hourlyRate;
-      return { hourlyRate, setupRate };
-    }
-    return getMachineRates(part.machineId);
-  }
+  const getPartRates = useCallback(
+    (part: PartEntry) => {
+      if (part.rateSource === "manual") {
+        const hourlyRate = part.manualHourlyRate || 0;
+        const setupRate =
+          part.manualSetupRate != null && part.manualSetupRate > 0
+            ? part.manualSetupRate
+            : hourlyRate;
+        return { hourlyRate, setupRate };
+      }
+      return getMachineRates(part.machineId);
+    },
+    [getMachineRates],
+  );
 
   // ── Calculations ───────────────────────────────────────────────────────────
   const partResults = useMemo<CalcResult[]>(() => {
@@ -997,8 +1096,7 @@ export function QuickQuote() {
       const { hourlyRate, setupRate } = getPartRates(part);
       return calcResult(part.setupHours, part.machiningMins, part.qty, part.materialCost, part.toolingAllowance, margin, hourlyRate, setupRate);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [parts, machines, settings, margin]);
+  }, [parts, getPartRates, margin]);
 
   const addonsTotal = useMemo(() => addons.reduce((s, a) => s + a.unitSellPrice * a.qty, 0), [addons]);
   const grandTotal = useMemo(
@@ -1010,10 +1108,8 @@ export function QuickQuote() {
   const manualRateMissing = parts.some(
     (p) => p.rateSource === "manual" && (!p.manualHourlyRate || p.manualHourlyRate <= 0),
   );
-  const canSubmit =
-    customerId > 0 &&
-    parts.every((p) => p.partName.trim().length > 0 && p.qty > 0) &&
-    !manualRateMissing;
+  const partsValid =
+    parts.every((p) => p.partName.trim().length > 0 && p.qty > 0) && !manualRateMissing;
 
   // ── Part helpers ───────────────────────────────────────────────────────────
   const updatePart = useCallback(
@@ -1043,7 +1139,7 @@ export function QuickQuote() {
     const src = parts.find((p) => p.key === key);
     if (!src) return;
     const idx = parts.findIndex((p) => p.key === key);
-    const copy = makePart({ ...src, partName: src.partName ? `${src.partName} (copy)` : "", collapsed: false });
+    const copy = makePart({ ...src, key: nextPartKey(), partName: src.partName ? `${src.partName} (copy)` : "", collapsed: false, _original: undefined });
     setParts((prev) => { const next = [...prev]; next.splice(idx + 1, 0, copy); return next; });
   };
 
@@ -1059,33 +1155,12 @@ export function QuickQuote() {
     setParts((prev) => { const next = [...prev]; [next[idx], next[newIdx]] = [next[newIdx], next[idx]]; return next; });
   };
 
-  // ── Payload ────────────────────────────────────────────────────────────────
-  const buildPayload = () => {
-    const validUntilDate = new Date();
-    validUntilDate.setDate(validUntilDate.getDate() + (settings?.quoteValidityDays || 30));
-    return {
-      customerId,
-      status: "Draft" as const,
-      quoteDate: new Date().toISOString().split("T")[0],
-      validUntil: validUntilDate.toISOString().split("T")[0],
-      leadTime,
-      paymentTerms: settings?.paymentTerms || "",
-      termsAndConditions: settings?.termsAndConditions || "",
-      deliveryTerms: settings?.defaultDeliveryTerms || "",
-      quoteRevision: "A",
-      revisionNotes: "",
-      notes: "",
-      internalNotes: "",
-      priceBreakQtys: "",
-      deliveryMethod,
-      deliveryCost,
-      includeDeliveryInTotal,
-      materialCertIncluded: false,
-      inspectionReportIncluded: false,
-      fairIncluded: false,
-      cmmReportIncluded: false,
-      lineItems: [
-        ...parts.map((part) => ({
+  // ── Payload builders ─────────────────────────────────────────────────────────
+  const buildLineItems = useCallback(() => {
+    return [
+      ...parts.map((part) => {
+        const adv = part._original;
+        return {
           partName: part.partName,
           drawingNumber: part.drawingNumber,
           revision: part.revision,
@@ -1100,331 +1175,324 @@ export function QuickQuote() {
               ? part.manualSetupRate
               : undefined,
           setupHours: part.setupHours,
-          programmingHours: 0,
+          programmingHours: adv?.programmingHours ?? 0,
           machiningMinutesPerPart: part.machiningMins,
-          inspectionHours: 0,
-          deburringMinutesPerPart: 0,
+          inspectionHours: adv?.inspectionHours ?? 0,
+          deburringMinutesPerPart: adv?.deburringMinutesPerPart ?? 0,
           materialCostPerUnit: part.materialCost,
-          materialWastagePercentage: 0,
+          materialWastagePercentage: adv?.materialWastagePercentage ?? 0,
           toolingAllowance: part.toolingAllowance,
-          outsideProcessing: 0,
-          packaging: 0,
-          delivery: 0,
-          riskPercentage: 0,
+          outsideProcessing: adv?.outsideProcessing ?? 0,
+          packaging: adv?.packaging ?? 0,
+          delivery: adv?.delivery ?? 0,
+          riskPercentage: adv?.riskPercentage ?? 0,
           profitMarginPercentage: margin,
-          discountPercentage: 0,
-          vatEnabled: settings?.vatEnabled ?? false,
-          vatRate: settings?.vatRate ?? 20,
+          discountPercentage: adv?.discountPercentage ?? 0,
+          vatEnabled: adv?.vatEnabled ?? settings?.vatEnabled ?? false,
+          vatRate: adv?.vatRate ?? settings?.vatRate ?? 20,
+          toleranceClass: adv?.toleranceClass,
+          surfaceFinish: adv?.surfaceFinish,
+          complexity: adv?.complexity,
+          hiddenFromPdf: adv?.hiddenFromPdf,
           notes: part.notes,
-        })),
-        ...addons.map((addon) => ({
-          partName: addon.name,
-          drawingNumber: "",
-          revision: "",
-          quantity: addon.qty,
-          material: "",
-          processType: "",
-          machineId: null,
-          setupHours: 0,
-          programmingHours: 0,
-          machiningMinutesPerPart: 0,
-          inspectionHours: 0,
-          deburringMinutesPerPart: 0,
-          materialCostPerUnit: 0,
-          materialWastagePercentage: 0,
-          toolingAllowance: 0,
-          outsideProcessing: addon.unitSellPrice * addon.qty,
-          packaging: 0,
-          delivery: 0,
-          riskPercentage: 0,
-          profitMarginPercentage: 0,
-          discountPercentage: 0,
-          vatEnabled: false,
-          vatRate: 20,
-          lineItemType: addon.type as "extra" | "product",
-          notes: addon.notes,
-        })),
-      ],
-    };
-  };
+        };
+      }),
+      ...addons.map((addon) => ({
+        partName: addon.name,
+        drawingNumber: "",
+        revision: "",
+        quantity: addon.qty,
+        material: "",
+        processType: "",
+        machineId: null,
+        setupHours: 0,
+        programmingHours: 0,
+        machiningMinutesPerPart: 0,
+        inspectionHours: 0,
+        deburringMinutesPerPart: 0,
+        materialCostPerUnit: 0,
+        materialWastagePercentage: 0,
+        toolingAllowance: 0,
+        outsideProcessing: addon.unitSellPrice * addon.qty,
+        packaging: 0,
+        delivery: 0,
+        riskPercentage: 0,
+        profitMarginPercentage: 0,
+        discountPercentage: 0,
+        vatEnabled: false,
+        vatRate: 20,
+        lineItemType: addon.type as "extra" | "product",
+        notes: addon.notes,
+      })),
+    ];
+  }, [parts, addons, margin, settings]);
 
-  // ── Actions ────────────────────────────────────────────────────────────────
-  const doSave = (onSuccess: (id: number) => void) => {
-    if (!canSubmit) return;
-    saveDefaults({ machineId: parts[0].machineId ?? undefined, material: parts[0].material, margin, leadTime });
+  // Full header — only used on CREATE, where a fresh quote needs its dates/terms.
+  const buildCreateData = useCallback(() => {
+    const validUntilDate = new Date();
+    validUntilDate.setDate(validUntilDate.getDate() + (settings?.quoteValidityDays || 30));
+    return {
+      customerId,
+      status: "Draft" as const,
+      quoteDate: new Date().toISOString().split("T")[0],
+      validUntil: validUntilDate.toISOString().split("T")[0],
+      leadTime,
+      paymentTerms: settings?.paymentTerms || "",
+      termsAndConditions: settings?.termsAndConditions || "",
+      deliveryTerms: settings?.defaultDeliveryTerms || "",
+      quoteRevision: "A",
+      revisionNotes: "",
+      notes: "",
+      priceBreakQtys: "",
+      deliveryMethod,
+      deliveryCost,
+      includeDeliveryInTotal,
+      materialCertIncluded: false,
+      inspectionReportIncluded: false,
+      fairIncluded: false,
+      cmmReportIncluded: false,
+      lineItems: partsValid ? buildLineItems() : [],
+    };
+  }, [customerId, leadTime, deliveryMethod, deliveryCost, includeDeliveryInTotal, settings, partsValid, buildLineItems]);
+
+  // Minimal patch — ONLY the fields the builder owns. Never status, dates,
+  // notes, or internalNotes (those belong to other surfaces / would be clobbered).
+  const buildUpdateData = useCallback(() => {
+    return {
+      customerId,
+      leadTime,
+      deliveryMethod,
+      deliveryCost,
+      includeDeliveryInTotal,
+      ...(partsValid ? { lineItems: buildLineItems() } : {}),
+    };
+  }, [customerId, leadTime, deliveryMethod, deliveryCost, includeDeliveryInTotal, partsValid, buildLineItems]);
+
+  const updateSerialized = useMemo(() => JSON.stringify(buildUpdateData()), [buildUpdateData]);
+
+  // ── Auto-create draft the moment a customer is chosen ────────────────────────
+  useEffect(() => {
+    if (effectiveId || creatingRef.current) return;
+    if (customerId <= 0) return;
+    if (!defaultsLoaded) return;
+    creatingRef.current = true;
+    setSaveState("saving");
+    saveDefaults({ machineId: parts[0]?.machineId ?? undefined, material: parts[0]?.material, margin, leadTime });
     createQuote.mutate(
-      { data: buildPayload() as any },
+      { data: buildCreateData() as never },
       {
-        onSuccess: (res) => { queryClient.invalidateQueries({ queryKey: getListQuotesQueryKey() }); onSuccess(res.id); },
-        onError: () => toast({ title: "Failed to save quote", variant: "destructive" }),
+        onSuccess: (res) => {
+          lastSavedRef.current = JSON.stringify(buildUpdateData());
+          setCreatedId(res.id);
+          onQuoteCreated?.(res.id);
+          queryClient.invalidateQueries({ queryKey: getListQuotesQueryKey() });
+          setSaveState("saved");
+        },
+        onError: () => {
+          creatingRef.current = false;
+          setSaveState("error");
+          toast({ title: "Failed to create draft quote", variant: "destructive" });
+        },
       },
     );
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customerId, effectiveId, defaultsLoaded]);
 
-  const handleSaveDraft = () => doSave((id) => { toast({ title: "Quote saved" }); setLocation(`/quotes/${id}`); });
-  const handleGeneratePdf = () => doSave((id) => { setLocation(`/quotes/${id}`); setTimeout(() => window.print(), 900); });
-  const handleFullQuote = () => doSave((id) => { toast({ title: "Quote created — opening full editor" }); setLocation(`/quotes/${id}/edit`); });
+  // ── Debounced auto-save ──────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!effectiveId) return;
+    // In the edit flow, wait for hydration so the baseline reflects the loaded
+    // quote (not the empty default state) — otherwise we'd write on open.
+    if (initialQuote && !hydrated) return;
+    if (lastSavedRef.current === null) {
+      // First settle after hydrate/create — establish baseline without saving.
+      lastSavedRef.current = updateSerialized;
+      return;
+    }
+    if (updateSerialized === lastSavedRef.current) return;
+    setSaveState("saving");
+    const t = setTimeout(() => {
+      updateQuote.mutate(
+        { id: effectiveId, data: buildUpdateData() as never },
+        {
+          onSuccess: () => {
+            lastSavedRef.current = updateSerialized;
+            queryClient.invalidateQueries({ queryKey: getGetQuoteQueryKey(effectiveId) });
+            queryClient.invalidateQueries({ queryKey: getListQuotesQueryKey() });
+            setSaveState("saved");
+          },
+          onError: () => setSaveState("error"),
+        },
+      );
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateSerialized, effectiveId]);
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if (customersLoading || machinesLoading || settingsLoading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-4 pt-4">
-        <Skeleton className="h-10 w-48" />
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-          <Skeleton className="lg:col-span-3 h-[600px]" />
-          <Skeleton className="lg:col-span-2 h-[500px]" />
-        </div>
+      <div className="p-5 space-y-4 w-full">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-40 w-full" />
       </div>
     );
   }
 
   const machinesList = (machines || []) as MachineRow[];
   const cardStyle = { background: "hsl(var(--card))", borderColor: "hsl(var(--card-border))" };
+  const canView = !!effectiveId;
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  const handleView = () => { if (effectiveId) setLocation(`/quotes/${effectiveId}`); };
+  const handleGeneratePdf = () => {
+    if (!effectiveId) return;
+    setLocation(`/quotes/${effectiveId}`);
+    setTimeout(() => window.print(), 900);
+  };
+
+  // ── Render — single column ───────────────────────────────────────────────────
   return (
-    // Break out of AppLayout's horizontal + bottom padding
-    <div className="-mx-4 -mb-4 md:-mx-8 md:-mb-8">
-      <div className="lg:flex">
+    <div className="w-full min-w-0 px-4 md:px-5 pt-4 pb-10 space-y-4">
+      {/* Status row */}
+      <div className="flex items-center justify-between min-h-5">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          Quote {isPack ? `· Pack (${parts.length})` : ""}
+        </span>
+        <SaveStatus state={saveState} />
+      </div>
 
-        {/* ── Left: scrollable main content ─────────────────────────────── */}
-        <div className="flex-1 min-w-0 px-4 md:px-6 lg:px-8 pt-5 pb-10 space-y-4">
-
-          {/* Page header */}
-          <div className="flex items-center gap-3">
-            <Link href="/quotes">
-              <Button variant="outline" size="icon" className="h-8 w-8">
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
-            </Link>
-            <Zap className="w-4 h-4 text-primary shrink-0" />
-            <h1 className="text-xl font-bold tracking-tight">Quick Quote</h1>
-            {isPack && (
-              <span
-                className="text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shrink-0"
-                style={{
-                  background: "hsl(213 97% 58% / 0.12)",
-                  color: "hsl(213 97% 58%)",
-                  border: "1px solid hsl(213 97% 58% / 0.3)",
-                }}
-              >
-                <Layers className="w-3 h-3" />
-                PACK · {parts.length} parts
-              </span>
-            )}
-            <span className="text-sm hidden md:block text-muted-foreground">
-              {isPack ? `Multi-part RFQ` : "Professional quote in under 90 seconds"}
-            </span>
+      {/* ── Quote Details bar ── */}
+      <div className="rounded border p-4" style={cardStyle}>
+        <div className="grid grid-cols-2 gap-3">
+          {/* Customer */}
+          <div className="col-span-2 space-y-1">
+            <Label className="text-xs font-semibold text-foreground">Customer</Label>
+            <Select value={customerId ? String(customerId) : ""} onValueChange={(v) => setCustomerId(Number(v))}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Select customer…" />
+              </SelectTrigger>
+              <SelectContent>
+                {(customers || []).map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>{c.companyName}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* ── Quote Details bar ── */}
-          <div className="rounded border p-4" style={cardStyle}>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {/* Customer */}
-              <div className="col-span-2 md:col-span-1 space-y-1">
-                <Label className="text-xs font-semibold text-foreground">Customer</Label>
-                <Select value={customerId ? String(customerId) : ""} onValueChange={(v) => setCustomerId(Number(v))}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Select customer…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(customers || []).map((c) => (
-                      <SelectItem key={c.id} value={String(c.id)}>{c.companyName}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Margin */}
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-foreground">Margin (%)</Label>
-                <Input type="number" min="0" max="99" step="1" value={margin} onChange={(e) => setMargin(Number(e.target.value))} className="h-9" />
-              </div>
-
-              {/* Lead Time */}
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-foreground">Lead Time</Label>
-                <Select value={leadTime} onValueChange={setLeadTime}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Select…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {LEAD_TIMES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+          {/* Margin */}
+          <div className="space-y-1">
+            <Label className="text-xs font-semibold text-foreground">Margin (%)</Label>
+            <Input type="number" min="0" max="99" step="1" value={margin} onChange={(e) => setMargin(Number(e.target.value))} className="h-9" />
           </div>
 
-          {/* ── Parts ── */}
-          {isPack ? (
-            /* Pack mode: 2-column grid */
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              {parts.map((part, idx) => (
-                <PartCard
-                  key={part.key}
-                  part={part}
-                  index={idx}
-                  total={parts.length}
-                  result={partResults[idx]}
-                  machines={machinesList}
-                  defaultHourlyRate={defaultHourlyRate}
-                  isPack
-                  onUpdate={(patch) => updatePart(part.key, patch)}
-                  onDuplicate={() => duplicatePart(part.key)}
-                  onRemove={() => removePart(part.key)}
-                  onMoveUp={() => movePart(part.key, -1)}
-                  onMoveDown={() => movePart(part.key, 1)}
-                />
-              ))}
-            </div>
-          ) : (
-            /* Single part */
-            <PartCard
-              part={parts[0]}
-              index={0}
-              total={1}
-              result={partResults[0]}
-              machines={machinesList}
-              defaultHourlyRate={defaultHourlyRate}
-              isPack={false}
-              onUpdate={(patch) => updatePart(parts[0].key, patch)}
-              onDuplicate={() => duplicatePart(parts[0].key)}
-              onRemove={() => {}}
-              onMoveUp={() => {}}
-              onMoveDown={() => {}}
-            />
-          )}
-
-          {/* ── Add Another Part ── */}
-          {parts.length < MAX_PARTS && (
-            <button
-              type="button"
-              onClick={addPart}
-              className="w-full rounded-lg py-3 flex items-center justify-center gap-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Add Another Part
-            </button>
-          )}
-
-          {/* ── Delivery ── */}
-          <div className="rounded border p-4" style={cardStyle}>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-foreground uppercase tracking-widest">Delivery</Label>
-                <Select value={deliveryMethod} onValueChange={setDeliveryMethod}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Method…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DELIVERY_METHODS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-foreground">Cost ({CUR})</Label>
-                <Input type="number" min="0" step="0.01" value={deliveryCost} onChange={(e) => setDeliveryCost(Number(e.target.value))} className="h-9" />
-              </div>
-              <div className="flex items-center gap-3 h-9">
-                <Switch checked={includeDeliveryInTotal} onCheckedChange={setIncludeDeliveryInTotal} />
-                <span className="text-sm text-muted-foreground">Include in total</span>
-              </div>
-            </div>
+          {/* Lead Time */}
+          <div className="space-y-1">
+            <Label className="text-xs font-semibold text-foreground">Lead Time</Label>
+            <Select value={leadTime} onValueChange={setLeadTime}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Select…" />
+              </SelectTrigger>
+              <SelectContent>
+                {LEAD_TIMES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
-
-          {/* ── Extras & Products ── */}
-          <AddonsSection
-            addons={addons}
-            setAddons={setAddons}
-            addonSearch={addonSearch}
-            setAddonSearch={setAddonSearch}
-            showAddonPicker={showAddonPicker}
-            setShowAddonPicker={setShowAddonPicker}
-            filteredExtras={filteredExtras}
-            filteredProducts={filteredProducts}
-          />
-        </div>
-
-        {/* ── Right: sticky summary panel (desktop) ─────────────────────── */}
-        <div
-          className="hidden lg:flex flex-col w-[260px] xl:w-[280px] shrink-0 sticky top-0 h-screen overflow-y-auto px-4 py-5"
-          style={{
-            borderLeft: "1px solid hsl(var(--border))",
-            background: "hsl(var(--card))",
-          }}
-        >
-          <SummaryPanel
-            isPack={isPack}
-            parts={parts}
-            partResults={partResults}
-            addons={addons}
-            addonsTotal={addonsTotal}
-            grandTotal={grandTotal}
-            deliveryCost={deliveryCost}
-            includeDeliveryInTotal={includeDeliveryInTotal}
-            margin={margin}
-            leadTime={leadTime}
-            deliveryMethod={deliveryMethod}
-            machines={machinesList}
-            defaultHourlyRate={defaultHourlyRate}
-            defaultSetupRate={defaultSetupRate}
-            canSubmit={canSubmit}
-            isPending={createQuote.isPending}
-            onSaveDraft={handleSaveDraft}
-            onGeneratePdf={handleGeneratePdf}
-            onFullQuote={handleFullQuote}
-          />
         </div>
       </div>
 
-      {/* ── Mobile: summary + actions ──────────────────────────────────── */}
-      <div
-        className="lg:hidden border-t px-4 py-4 space-y-3"
-        style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--card))" }}
-      >
-        {/* Totals */}
-        <div className="flex justify-between items-center">
-          <span className="font-semibold">{isPack ? "Grand Total" : "Total"}</span>
-          <span
-            className="text-2xl font-bold font-mono"
-            style={{ color: "hsl(213 97% 58%)" }}
-          >
-            {CUR}{(isPack ? grandTotal : (partResults[0].sellPrice + addonsTotal + (includeDeliveryInTotal && deliveryCost > 0 ? deliveryCost : 0))).toFixed(2)}
-          </span>
-        </div>
-        {isPack && (
-          <div className="space-y-1 text-sm">
-            {parts.map((part, idx) => (
-              <div key={part.key} className="flex justify-between text-sm">
-                <span className="text-muted-foreground truncate">{part.partName || `Part ${idx + 1}`}{part.qty > 1 && ` ×${part.qty}`}</span>
-                <span className="font-mono ml-2">{CUR}{partResults[idx].sellPrice.toFixed(2)}</span>
-              </div>
-            ))}
+      {/* ── Parts ── */}
+      <div className="space-y-3">
+        {parts.map((part, idx) => (
+          <PartCard
+            key={part.key}
+            part={part}
+            index={idx}
+            total={parts.length}
+            result={partResults[idx]}
+            machines={machinesList}
+            defaultHourlyRate={defaultHourlyRate}
+            isPack={isPack}
+            onUpdate={(patch) => updatePart(part.key, patch)}
+            onDuplicate={() => duplicatePart(part.key)}
+            onRemove={() => removePart(part.key)}
+            onMoveUp={() => movePart(part.key, -1)}
+            onMoveDown={() => movePart(part.key, 1)}
+          />
+        ))}
+      </div>
+
+      {/* ── Add Another Part ── */}
+      {parts.length < MAX_PARTS && (
+        <button
+          type="button"
+          onClick={addPart}
+          className="w-full rounded-lg py-3 flex items-center justify-center gap-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Add Another Part
+        </button>
+      )}
+
+      {/* ── Delivery ── */}
+      <div className="rounded border p-4" style={cardStyle}>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+          <div className="space-y-1">
+            <Label className="text-xs font-semibold text-foreground uppercase tracking-widest">Delivery</Label>
+            <Select value={deliveryMethod} onValueChange={setDeliveryMethod}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Method…" />
+              </SelectTrigger>
+              <SelectContent>
+                {DELIVERY_METHODS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
-        )}
-        {/* Mobile actions */}
-        <Button className="w-full h-11 font-semibold gap-2" onClick={handleSaveDraft} disabled={!canSubmit || createQuote.isPending}>
-          <Save className="w-4 h-4" />
-          {createQuote.isPending ? "Saving…" : isPack ? "Save Pack Draft" : "Save Draft"}
-        </Button>
-        <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" className="h-10 gap-1.5 text-sm" onClick={handleGeneratePdf} disabled={!canSubmit || createQuote.isPending}>
-            <FileDown className="w-4 h-4" /> Generate PDF
-          </Button>
-          <Button variant="outline" className="h-10 gap-1.5 text-sm" onClick={handleFullQuote} disabled={!canSubmit || createQuote.isPending}>
-            <ArrowRight className="w-4 h-4" /> Full Quote
-          </Button>
+          <div className="space-y-1">
+            <Label className="text-xs font-semibold text-foreground">Cost ({CUR})</Label>
+            <Input type="number" min="0" step="0.01" value={deliveryCost} onChange={(e) => setDeliveryCost(Number(e.target.value))} className="h-9" />
+          </div>
+          <div className="flex items-center gap-3 h-9">
+            <Switch checked={includeDeliveryInTotal} onCheckedChange={setIncludeDeliveryInTotal} />
+            <span className="text-sm text-muted-foreground">Include in total</span>
+          </div>
         </div>
-        {!canSubmit && (
-          <p className="text-xs text-center text-muted-foreground">
-            {customerId === 0
-              ? "Select a customer to save."
-              : manualRateMissing
-                ? "Hourly rate required for manual rate quote."
-                : "All parts need a name to save."}
-          </p>
-        )}
+      </div>
+
+      {/* ── Extras & Products ── */}
+      <AddonsSection
+        addons={addons}
+        setAddons={setAddons}
+        addonSearch={addonSearch}
+        setAddonSearch={setAddonSearch}
+        showAddonPicker={showAddonPicker}
+        setShowAddonPicker={setShowAddonPicker}
+        filteredExtras={filteredExtras}
+        filteredProducts={filteredProducts}
+      />
+
+      {/* ── Summary ── */}
+      <div className="rounded border p-4" style={cardStyle}>
+        <SummaryPanel
+          isPack={isPack}
+          parts={parts}
+          partResults={partResults}
+          addons={addons}
+          addonsTotal={addonsTotal}
+          grandTotal={grandTotal}
+          deliveryCost={deliveryCost}
+          includeDeliveryInTotal={includeDeliveryInTotal}
+          margin={margin}
+          leadTime={leadTime}
+          deliveryMethod={deliveryMethod}
+          machines={machinesList}
+          defaultHourlyRate={defaultHourlyRate}
+          defaultSetupRate={defaultSetupRate}
+          hasDraft={canView}
+          canView={canView}
+          onView={handleView}
+          onGeneratePdf={handleGeneratePdf}
+        />
       </div>
     </div>
   );

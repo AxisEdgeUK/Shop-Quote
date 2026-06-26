@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, FileText, PenLine } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { DrawingViewer } from "./drawing-viewer";
+import { EstimatorNotes } from "./estimator-notes";
 import { ScanContextProvider } from "@/contexts/scan-context";
 
 interface QuoteWorkspaceProps {
@@ -9,6 +10,7 @@ interface QuoteWorkspaceProps {
   backHref?: string;
   children: React.ReactNode;
   quoteId?: number;
+  initialNotes?: string;
 }
 
 const BLUE = "#1D8FFF";
@@ -18,9 +20,9 @@ export function QuoteWorkspace({
   backHref = "/quotes",
   children,
   quoteId,
+  initialNotes,
 }: QuoteWorkspaceProps) {
-  const [splitPct, setSplitPct] = useState(46);
-  const [mobileTab, setMobileTab] = useState<"drawing" | "quote">("quote");
+  const [splitPct, setSplitPct] = useState(67);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
 
@@ -34,7 +36,7 @@ export function QuoteWorkspace({
       if (!isDragging.current || !containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const raw = ((ev.clientX - rect.left) / rect.width) * 100;
-      setSplitPct(Math.max(22, Math.min(72, raw)));
+      setSplitPct(Math.max(45, Math.min(75, raw)));
     };
 
     const onUp = () => {
@@ -51,10 +53,10 @@ export function QuoteWorkspace({
 
   return (
     <ScanContextProvider>
-      {/* ── DESKTOP ─── sticky-drawing, single-page-scroll workspace ──
+      {/* ── DESKTOP ─── sticky Job File (drawing + notes), single-page scroll ──
            The page (body) is the ONE scroll context.
-           The drawing panel is sticky — it stays glued to the viewport
-           as the user scrolls the form. No nested scroll containers. */}
+           The Job File panel is sticky — it stays glued to the viewport as the
+           user scrolls the quote builder. No nested scroll containers. */}
       <div className="hidden md:block -mx-8 -mb-8">
         {/* Header — sticky at top of viewport */}
         <div className="sticky top-0 z-20">
@@ -63,19 +65,23 @@ export function QuoteWorkspace({
 
         {/* Two-column layout — items-start so sticky children work */}
         <div ref={containerRef} className="flex items-start">
-          {/* Left — drawing: sticky, always in view */}
+          {/* Left — Job File: drawing (fills) + estimator notes (below), sticky */}
           <div
-            className="shrink-0 sticky overflow-hidden"
+            className="shrink-0 sticky overflow-hidden flex flex-col"
             style={{
               top: 44,
               height: "calc(100vh - 44px)",
               width: `${splitPct}%`,
+              background: "#0D1117",
             }}
           >
-            <DrawingViewer quoteId={quoteId} />
+            <div className="flex-1 min-h-0">
+              <DrawingViewer quoteId={quoteId} />
+            </div>
+            <EstimatorNotes quoteId={quoteId} initialNotes={initialNotes} />
           </div>
 
-          {/* Divider — sticky, matches drawing height */}
+          {/* Divider — sticky, matches Job File height */}
           <div
             className="shrink-0 relative flex items-center justify-center sticky"
             style={{
@@ -91,9 +97,8 @@ export function QuoteWorkspace({
             <DividerHandle />
           </div>
 
-          {/* Right — quote builder: flex container so the wizard can render
-               its own scrollable content + sticky summary side-by-side.
-               No overflow set here so sticky children work via page scroll. */}
+          {/* Right — quote builder. No overflow here so sticky children work via
+               page scroll. */}
           <div
             className="flex-1 flex"
             style={{
@@ -106,48 +111,22 @@ export function QuoteWorkspace({
         </div>
       </div>
 
-      {/* ── MOBILE ─── tab workspace (scroll container is intentional here) ── */}
-      <div
-        className="flex md:hidden flex-col -mx-4 -mt-4 -mb-4"
-        style={{ height: "calc(100svh - 3.5rem)" }}
-      >
+      {/* ── MOBILE ─── stacked: drawing, notes, then quote builder ── */}
+      <div className="flex md:hidden flex-col -mx-4 -mt-4 -mb-4">
         {/* Header */}
         <WorkspaceHeader title={title} backHref={backHref} />
 
-        {/* Tab bar */}
-        <div
-          className="flex shrink-0"
-          style={{
-            background: "hsl(var(--card))",
-            borderBottom: "1px solid hsl(var(--border))",
-          }}
-        >
-          <MobileTab
-            label="Drawing"
-            icon={<FileText className="w-4 h-4" />}
-            active={mobileTab === "drawing"}
-            onClick={() => setMobileTab("drawing")}
-          />
-          <MobileTab
-            label="Quote"
-            icon={<PenLine className="w-4 h-4" />}
-            active={mobileTab === "quote"}
-            onClick={() => setMobileTab("quote")}
-          />
+        {/* Job File — drawing */}
+        <div style={{ height: "55svh", background: "#0D1117" }}>
+          <DrawingViewer quoteId={quoteId} />
         </div>
 
-        {/* Tab content */}
-        <div className="flex-1 overflow-hidden">
-          {mobileTab === "drawing" ? (
-            <DrawingViewer quoteId={quoteId} />
-          ) : (
-            <div
-              className="h-full overflow-y-auto flex"
-              style={{ background: "#F5F7FA" }}
-            >
-              <div className="flex-1 min-w-0">{children}</div>
-            </div>
-          )}
+        {/* Job File — estimator notes */}
+        <EstimatorNotes quoteId={quoteId} initialNotes={initialNotes} />
+
+        {/* Quote builder */}
+        <div className="flex" style={{ background: "#F5F7FA" }}>
+          <div className="flex-1 min-w-0">{children}</div>
         </div>
       </div>
     </ScanContextProvider>
@@ -217,32 +196,5 @@ function DividerHandle() {
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
     />
-  );
-}
-
-function MobileTab({
-  label,
-  icon,
-  active,
-  onClick,
-}: {
-  label: string;
-  icon: React.ReactNode;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold transition-colors"
-      style={{
-        color: active ? BLUE : "hsl(var(--muted-foreground))",
-        borderBottom: active ? `2px solid ${BLUE}` : "2px solid transparent",
-      }}
-      onClick={onClick}
-    >
-      {icon}
-      {label}
-    </button>
   );
 }

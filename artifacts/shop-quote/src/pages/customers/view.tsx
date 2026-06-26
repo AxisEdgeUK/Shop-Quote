@@ -267,10 +267,7 @@ export function CustomerView() {
           </div>
           <div className="flex gap-2">
             <Link href={`/quotes/new`}>
-              <Button size="sm" variant="outline">Full Quote</Button>
-            </Link>
-            <Link href={`/quotes/quick`}>
-              <Button size="sm">Quick Quote</Button>
+              <Button size="sm">New Quote</Button>
             </Link>
           </div>
         </div>

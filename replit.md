@@ -29,15 +29,20 @@ A full-stack CNC shop quoting MVP for small machine shops — create, calculate,
 - `lib/api-client-react/src/generated/` — generated hooks and Zod schemas (don't edit manually)
 - `artifacts/api-server/src/routes/` — Express route handlers
 - `artifacts/shop-quote/src/pages/` — React pages (dashboard, quotes, customers, machines, settings, landing, pricing)
-- `artifacts/shop-quote/src/components/quotes/` — QuoteWizard (5-step), PrintLayout, QuoteWorkspace, DrawingViewer
+- `artifacts/shop-quote/src/components/quotes/` — QuoteWorkspace, QuoteBuilder, EstimatorNotes, DrawingViewer, PrintLayout
 - `artifacts/shop-quote/src/components/layout/` — AppLayout, Sidebar
 
-## Estimating Workspace (split-screen)
+## Estimating Workspace (drawing-first, single flow)
 
-- `QuoteWorkspace` wraps the New/Edit quote pages — dark header bar + draggable split pane (drawing left, quote wizard right)
+- There is ONE quote create flow ("New Quote") — no Quick/Full split. Create and Edit share the same `QuoteWorkspace` + `QuoteBuilder`.
+- `QuoteWorkspace` wraps the New/Edit quote pages — dark header bar + draggable split pane. LEFT "Job File" (~67%, default `splitPct=67`, clamp 45..75) = `DrawingViewer` (flex-1) + `EstimatorNotes` below; RIGHT (~33%) = `QuoteBuilder`.
 - Desktop layout: `-mx-8 -mb-8` breaks out of AppLayout's horizontal/bottom padding; header is `height: 44px`; split pane uses `calc(100vh - 44px)`. Do NOT use `-mt-8` — AppLayout has `md:pt-0` (no top padding on desktop).
-- Mobile layout: `-mx-4 -mt-4 -mb-4` + `height: calc(100svh - 3.5rem)` (accounts for 56px mobile top bar); shows Drawing/Quote tab switcher.
-- `DrawingViewer` — dark engineering viewer (PDF via native browser `<iframe>`, images with CSS transform zoom+pan). Files are **uploaded to object storage** and persisted to the `quote_drawings` table (linked to a quote by `quoteId`). Supports drag-to-upload, wheel zoom, touch pinch-zoom.
+- Mobile layout: `-mx-4 -mt-4 -mb-4` + `height: calc(100svh - 3.5rem)` (accounts for 56px mobile top bar); **stacked** (drawing ~55svh, then notes, then builder) — NOT a tab switcher.
+- `QuoteBuilder` — right-panel quote editor (extracted from the old Quick Quote; reuses PartCard/SummaryPanel/AddonsSection/calc verbatim). Props: `quoteId?`, `initialQuote?`, `onQuoteCreated?`. Auto-creates a Draft once a customer is selected (`customerId>0`), then debounced (800ms) auto-saves. Single-column layout; actions = View Quote + Generate PDF.
+  - **Auto-save safety**: the PATCH sends ONLY `customerId/leadTime/deliveryMethod/deliveryCost/includeDeliveryInTotal` (+`lineItems` when parts are valid). NEVER `status`/dates/`notes`/`internalNotes` — sending those would clobber or drift the quote. `lastSavedRef` starts null and the first settled render (after hydrate/create) just establishes the baseline without saving; in the edit flow the baseline waits for `hydrated` so opening a quote never triggers a write.
+  - **Advanced-field round-trip**: the edit UI drops advanced per-line fields, but each hydrated part keeps an `_original` line-item snapshot so saving back preserves data not shown in the simplified UI. Note `QuoteLineItem` responses do NOT echo `notes`, so part notes hydrate to "".
+- `EstimatorNotes` — internal-only textarea (not on PDF), debounced PATCH of `internalNotes`; holds edits until a `quoteId` exists, then flushes.
+- `DrawingViewer` — dark engineering viewer (PDF via native browser `<iframe>`, images with CSS transform zoom+pan). Files are **uploaded to object storage** and persisted to the `quote_drawings` table (linked to a quote by `quoteId`). When the quote's `quoteId` first appears, a guarded effect flushes any in-memory (not-yet-saved) file. Supports drag-to-upload, wheel zoom, touch pinch-zoom.
 
 ## Architecture decisions
 
@@ -50,7 +55,7 @@ A full-stack CNC shop quoting MVP for small machine shops — create, calculate,
 ## Product
 
 - **Dashboard**: Live stats — total quotes, win rate, total quoted value, follow-up needed
-- **Quotes**: Full 5-step wizard (Customer → Part Details → Assumptions → Review → Complete), list view with actions, detail/print view (PDF-ready), edit existing quotes
+- **Quotes**: Single drawing-first Estimator's Workspace for create/edit (auto-create Draft on customer-select, auto-save), list view with actions, detail/print view (PDF-ready)
 - **Customers**: CRUD — list, create, edit, delete
 - **Machines**: CRUD — list, create, edit, delete with hourly/setup rates and active toggle
 - **Settings**: Company details, quoting defaults (hourly rate, setup rate, margin %, VAT, quote validity), beta demo-reset

@@ -208,6 +208,31 @@ export function DrawingViewer({ quoteId }: { quoteId?: number }) {
     [drawing, persistFile],
   );
 
+  // When a drawing is dropped BEFORE the draft quote exists (drawing-first flow),
+  // the file is held in memory only. Once a quoteId appears, flush it to storage.
+  // This must ONLY run on the quoteId falsy->truthy transition: when a quoteId
+  // already exists (edit flow), handleFile persists directly, and firing here too
+  // would double-upload the same file.
+  const flushingRef = useRef(false);
+  const prevQuoteIdRef = useRef(quoteId);
+  useEffect(() => {
+    const prevQuoteId = prevQuoteIdRef.current;
+    prevQuoteIdRef.current = quoteId;
+    if (prevQuoteId || !quoteId) return; // only act on falsy -> truthy
+    if (!drawing?.file || drawing.persistedId !== undefined) return;
+    if (flushingRef.current) return;
+    flushingRef.current = true;
+    persistFile(drawing.file)
+      .then((persistedId) => {
+        if (persistedId !== undefined) {
+          setDrawing((prev) => (prev ? { ...prev, persistedId } : prev));
+        }
+      })
+      .finally(() => {
+        flushingRef.current = false;
+      });
+  }, [quoteId, drawing, persistFile]);
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);

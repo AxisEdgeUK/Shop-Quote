@@ -25,7 +25,6 @@ import { QuotesList } from "@/pages/quotes";
 import { NewQuote } from "@/pages/quotes/new";
 import { EditQuote } from "@/pages/quotes/edit";
 import { ViewQuote } from "@/pages/quotes/view";
-import { QuickQuote } from "@/pages/quotes/quick";
 import { PresentQuote } from "@/pages/quotes/present";
 import { IdeasPage } from "@/pages/ideas";
 import { ExtrasLibrary } from "@/pages/extras";
@@ -104,9 +103,6 @@ function Router() {
       </Route>
       <Route path="/quotes">
         <AppRoute component={QuotesList} />
-      </Route>
-      <Route path="/quotes/quick">
-        <AppRoute component={QuickQuote} />
       </Route>
       <Route path="/quotes/new">
         <AppRoute component={NewQuote} />

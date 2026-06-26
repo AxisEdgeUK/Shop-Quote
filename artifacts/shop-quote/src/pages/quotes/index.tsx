@@ -31,7 +31,6 @@ import {
   FileText,
   Copy,
   ChevronRight,
-  Zap,
   CheckCheck,
   Trophy,
   XCircle,
@@ -312,15 +311,9 @@ export function QuotesList() {
         </h1>
         <div className="flex gap-2">
           <Link href="/quotes/new">
-            <Button variant="outline" className="h-11 px-4" data-testid="button-new-quote">
+            <Button className="h-11 px-5" data-testid="button-new-quote">
               <Plus className="w-4 h-4 mr-1.5" />
-              Full Quote
-            </Button>
-          </Link>
-          <Link href="/quotes/quick">
-            <Button className="h-11 px-5">
-              <Zap className="w-4 h-4 mr-1.5" />
-              Quick Quote
+              New Quote
             </Button>
           </Link>
         </div>

@@ -17,7 +17,6 @@ import {
   AlertCircle,
   BarChart3,
   ChevronRight,
-  Zap,
   Bell,
 } from "lucide-react";
 
@@ -537,15 +536,10 @@ export function DashboardPage() {
               Start Work
             </div>
             <QuickAction
-              href="/quotes/quick"
-              icon={<Zap className="w-4 h-4" />}
-              label="Quick Quote"
-              primary
-            />
-            <QuickAction
               href="/quotes/new"
               icon={<Plus className="w-4 h-4" />}
-              label="Full Quote"
+              label="New Quote"
+              primary
             />
             <QuickAction
               href="/quotes"
