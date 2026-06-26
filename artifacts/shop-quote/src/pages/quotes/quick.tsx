@@ -261,7 +261,7 @@ function PartCard({
           {/* Row 1: Part Name | Qty */}
           <div className="grid gap-2" style={{ gridTemplateColumns: "1fr 72px" }}>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Part Name {isPack && <span className="text-destructive">*</span>}</Label>
+              <Label className="text-xs font-semibold text-foreground">Part Name {isPack && <span className="text-destructive">*</span>}</Label>
               <Input
                 value={part.partName}
                 onChange={(e) => onUpdate({ partName: e.target.value })}
@@ -270,7 +270,7 @@ function PartCard({
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Qty</Label>
+              <Label className="text-xs font-semibold text-foreground">Qty</Label>
               <Input
                 type="number"
                 min="1"
@@ -284,7 +284,7 @@ function PartCard({
           {/* Row 2: Drawing | Rev | Process */}
           <div className="grid grid-cols-3 gap-2">
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Drawing No.</Label>
+              <Label className="text-xs font-semibold text-foreground">Drawing No.</Label>
               <Input
                 value={part.drawingNumber}
                 onChange={(e) => onUpdate({ drawingNumber: e.target.value })}
@@ -293,7 +293,7 @@ function PartCard({
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Rev</Label>
+              <Label className="text-xs font-semibold text-foreground">Rev</Label>
               <Input
                 value={part.revision}
                 onChange={(e) => onUpdate({ revision: e.target.value })}
@@ -302,7 +302,7 @@ function PartCard({
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Process</Label>
+              <Label className="text-xs font-semibold text-foreground">Process</Label>
               <Select value={part.processType} onValueChange={(v) => onUpdate({ processType: v })}>
                 <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -314,7 +314,7 @@ function PartCard({
 
           {/* Row 3: Material */}
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Material</Label>
+            <Label className="text-xs font-semibold text-foreground">Material</Label>
             <MaterialCombobox
               value={part.material}
               onChange={(val, costPerKg) => {
@@ -329,7 +329,7 @@ function PartCard({
           {/* Row 3b: Rate source — Select Machine (default) vs Manual Rate */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label className="text-xs text-muted-foreground">Rate</Label>
+              <Label className="text-xs font-semibold text-foreground">Rate</Label>
               <div className="inline-flex rounded-md border border-border p-0.5 bg-muted/40">
                 <button
                   type="button"
@@ -378,7 +378,7 @@ function PartCard({
             ) : (
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <Label className="text-[11px] text-muted-foreground">Hourly rate ({CUR}/hr)</Label>
+                  <Label className="text-[11px] font-semibold text-foreground">Hourly rate ({CUR}/hr)</Label>
                   <Input
                     type="number"
                     min="0"
@@ -390,7 +390,7 @@ function PartCard({
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[11px] text-muted-foreground">Setup rate ({CUR}/hr, optional)</Label>
+                  <Label className="text-[11px] font-semibold text-foreground">Setup rate ({CUR}/hr, optional)</Label>
                   <Input
                     type="number"
                     min="0"
@@ -423,7 +423,7 @@ function PartCard({
           {/* Row 4: Setup | Machining | Mat Cost | Tooling */}
           <div className="grid grid-cols-4 gap-2">
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Setup (hrs)</Label>
+              <Label className="text-xs font-semibold text-foreground">Setup (hrs)</Label>
               <Input
                 type="number"
                 min="0"
@@ -434,7 +434,7 @@ function PartCard({
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Run (mins)</Label>
+              <Label className="text-xs font-semibold text-foreground">Run (mins)</Label>
               <Input
                 type="number"
                 min="0"
@@ -445,7 +445,7 @@ function PartCard({
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Mat. {CUR}/unit</Label>
+              <Label className="text-xs font-semibold text-foreground">Mat. {CUR}/unit</Label>
               <Input
                 type="number"
                 min="0"
@@ -456,7 +456,7 @@ function PartCard({
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Tooling {CUR}</Label>
+              <Label className="text-xs font-semibold text-foreground">Tooling {CUR}</Label>
               <Input
                 type="number"
                 min="0"
@@ -472,7 +472,7 @@ function PartCard({
           {showNotes ? (
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <Label className="text-xs text-muted-foreground">Notes</Label>
+                <Label className="text-xs font-semibold text-foreground">Notes</Label>
                 <button
                   type="button"
                   className="text-xs text-muted-foreground hover:text-foreground"
@@ -1222,7 +1222,7 @@ export function QuickQuote() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {/* Customer */}
               <div className="col-span-2 md:col-span-1 space-y-1">
-                <Label className="text-xs text-muted-foreground">Customer</Label>
+                <Label className="text-xs font-semibold text-foreground">Customer</Label>
                 <Select value={customerId ? String(customerId) : ""} onValueChange={(v) => setCustomerId(Number(v))}>
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="Select customer…" />
@@ -1237,13 +1237,13 @@ export function QuickQuote() {
 
               {/* Margin */}
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Margin (%)</Label>
+                <Label className="text-xs font-semibold text-foreground">Margin (%)</Label>
                 <Input type="number" min="0" max="99" step="1" value={margin} onChange={(e) => setMargin(Number(e.target.value))} className="h-9" />
               </div>
 
               {/* Lead Time */}
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Lead Time</Label>
+                <Label className="text-xs font-semibold text-foreground">Lead Time</Label>
                 <Select value={leadTime} onValueChange={setLeadTime}>
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="Select…" />
@@ -1312,7 +1312,7 @@ export function QuickQuote() {
           <div className="rounded border p-4" style={cardStyle}>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground uppercase tracking-widest">Delivery</Label>
+                <Label className="text-xs font-semibold text-foreground uppercase tracking-widest">Delivery</Label>
                 <Select value={deliveryMethod} onValueChange={setDeliveryMethod}>
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="Method…" />
@@ -1323,7 +1323,7 @@ export function QuickQuote() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Cost ({CUR})</Label>
+                <Label className="text-xs font-semibold text-foreground">Cost ({CUR})</Label>
                 <Input type="number" min="0" step="0.01" value={deliveryCost} onChange={(e) => setDeliveryCost(Number(e.target.value))} className="h-9" />
               </div>
               <div className="flex items-center gap-3 h-9">

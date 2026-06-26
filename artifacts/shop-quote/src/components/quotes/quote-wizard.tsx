@@ -1471,7 +1471,7 @@ export function QuoteWizard({
                   name="customerId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs">Customer *</FormLabel>
+                      <FormLabel className="text-xs font-semibold text-foreground">Customer *</FormLabel>
                       <Select
                         onValueChange={(v) => field.onChange(Number(v))}
                         value={field.value ? field.value.toString() : ""}
@@ -1499,7 +1499,7 @@ export function QuoteWizard({
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs">Status</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground">Status</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="h-8 text-sm">
@@ -1520,7 +1520,7 @@ export function QuoteWizard({
                 name="quoteDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs">Quote Date</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground">Quote Date</FormLabel>
                     <FormControl>
                       <Input type="date" className="h-8 text-sm" {...field} />
                     </FormControl>
@@ -1532,7 +1532,7 @@ export function QuoteWizard({
                 name="validUntil"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs">Valid Until</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground">Valid Until</FormLabel>
                     <FormControl>
                       <Input type="date" className="h-8 text-sm" {...field} />
                     </FormControl>
@@ -1551,7 +1551,7 @@ export function QuoteWizard({
                 name="leadTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs">Lead Time</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground">Lead Time</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={LEAD_TIME_PRESETS.includes(field.value ?? "") ? (field.value ?? "") : ""}
@@ -1582,7 +1582,7 @@ export function QuoteWizard({
                 name="deliveryTerms"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs">Delivery Terms</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground">Delivery Terms</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={DELIVERY_TERM_PRESETS.includes(field.value ?? "") ? (field.value ?? "") : ""}
@@ -1630,7 +1630,7 @@ export function QuoteWizard({
                 name="deliveryCost"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs">Delivery ({cur})</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground">Delivery ({cur})</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -1649,7 +1649,7 @@ export function QuoteWizard({
                 name="includeDeliveryInTotal"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel className="text-xs">Incl. in total</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground">Incl. in total</FormLabel>
                     <div className="flex items-center gap-2 mt-2">
                       <FormControl>
                         <Switch
@@ -1670,7 +1670,7 @@ export function QuoteWizard({
                 name="paymentTerms"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs">Payment Terms</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground">Payment Terms</FormLabel>
                     <FormControl>
                       <Input
                         className="h-8 text-sm"
@@ -1803,7 +1803,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.partName`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">
+                            <FormLabel className="text-xs font-semibold text-foreground">
                               Part Name *
                             </FormLabel>
                             <FormControl>
@@ -1823,7 +1823,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.quantity`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">Qty *</FormLabel>
+                            <FormLabel className="text-xs font-semibold text-foreground">Qty *</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -2032,7 +2032,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.drawingNumber`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">Drawing</FormLabel>
+                            <FormLabel className="text-xs font-semibold text-foreground">Drawing</FormLabel>
                             <FormControl>
                               <Input
                                 className="h-7 text-xs"
@@ -2049,7 +2049,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.revision`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">Rev</FormLabel>
+                            <FormLabel className="text-xs font-semibold text-foreground">Rev</FormLabel>
                             <FormControl>
                               <Input
                                 className="h-7 text-xs"
@@ -2066,7 +2066,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.processType`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">Process</FormLabel>
+                            <FormLabel className="text-xs font-semibold text-foreground">Process</FormLabel>
                             <Select
                               onValueChange={f.onChange}
                               value={f.value}
@@ -2102,7 +2102,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.material`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">Material</FormLabel>
+                            <FormLabel className="text-xs font-semibold text-foreground">Material</FormLabel>
                             <FormControl>
                               <MaterialCombobox
                                 value={f.value ?? ""}
@@ -2124,7 +2124,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.machineId`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">Machine</FormLabel>
+                            <FormLabel className="text-xs font-semibold text-foreground">Machine</FormLabel>
                             <Select
                               onValueChange={(v) =>
                                 f.onChange(
@@ -2168,7 +2168,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.setupHours`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">
+                            <FormLabel className="text-xs font-semibold text-foreground">
                               Setup (h)
                             </FormLabel>
                             <FormControl>
@@ -2189,7 +2189,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.machiningMinutesPerPart`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">
+                            <FormLabel className="text-xs font-semibold text-foreground">
                               Mchn (min)
                             </FormLabel>
                             <FormControl>
@@ -2210,7 +2210,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.materialCostPerUnit`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">
+                            <FormLabel className="text-xs font-semibold text-foreground">
                               Mat ({cur})
                             </FormLabel>
                             <FormControl>
@@ -2231,7 +2231,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.toolingAllowance`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">
+                            <FormLabel className="text-xs font-semibold text-foreground">
                               Tool ({cur})
                             </FormLabel>
                             <FormControl>
@@ -2261,7 +2261,7 @@ export function QuoteWizard({
                             name={`lineItems.${idx}.programmingHours`}
                             render={({ field: f }) => (
                               <FormItem>
-                                <FormLabel className="text-xs">
+                                <FormLabel className="text-xs font-semibold text-foreground">
                                   Prog (h)
                                 </FormLabel>
                                 <FormControl>
@@ -2282,7 +2282,7 @@ export function QuoteWizard({
                             name={`lineItems.${idx}.inspectionHours`}
                             render={({ field: f }) => (
                               <FormItem>
-                                <FormLabel className="text-xs">
+                                <FormLabel className="text-xs font-semibold text-foreground">
                                   Inspect (h)
                                 </FormLabel>
                                 <FormControl>
@@ -2303,7 +2303,7 @@ export function QuoteWizard({
                             name={`lineItems.${idx}.deburringMinutesPerPart`}
                             render={({ field: f }) => (
                               <FormItem>
-                                <FormLabel className="text-xs">
+                                <FormLabel className="text-xs font-semibold text-foreground">
                                   Deburr (min)
                                 </FormLabel>
                                 <FormControl>
@@ -2326,7 +2326,7 @@ export function QuoteWizard({
                             name={`lineItems.${idx}.materialWastagePercentage`}
                             render={({ field: f }) => (
                               <FormItem>
-                                <FormLabel className="text-xs">
+                                <FormLabel className="text-xs font-semibold text-foreground">
                                   Wastage %
                                 </FormLabel>
                                 <FormControl>
@@ -2347,7 +2347,7 @@ export function QuoteWizard({
                             name={`lineItems.${idx}.outsideProcessing`}
                             render={({ field: f }) => (
                               <FormItem>
-                                <FormLabel className="text-xs">
+                                <FormLabel className="text-xs font-semibold text-foreground">
                                   Outside ({cur})
                                 </FormLabel>
                                 <FormControl>
@@ -2368,7 +2368,7 @@ export function QuoteWizard({
                             name={`lineItems.${idx}.packaging`}
                             render={({ field: f }) => (
                               <FormItem>
-                                <FormLabel className="text-xs">
+                                <FormLabel className="text-xs font-semibold text-foreground">
                                   Pkgng ({cur})
                                 </FormLabel>
                                 <FormControl>
@@ -2389,7 +2389,7 @@ export function QuoteWizard({
                             name={`lineItems.${idx}.delivery`}
                             render={({ field: f }) => (
                               <FormItem>
-                                <FormLabel className="text-xs">
+                                <FormLabel className="text-xs font-semibold text-foreground">
                                   Deliv ({cur})
                                 </FormLabel>
                                 <FormControl>
@@ -2419,7 +2419,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.profitMarginPercentage`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">Margin %</FormLabel>
+                            <FormLabel className="text-xs font-semibold text-foreground">Margin %</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -2439,7 +2439,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.discountPercentage`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">
+                            <FormLabel className="text-xs font-semibold text-foreground">
                               Discount %
                             </FormLabel>
                             <FormControl>
@@ -2461,7 +2461,7 @@ export function QuoteWizard({
                           name={`lineItems.${idx}.riskPercentage`}
                           render={({ field: f }) => (
                             <FormItem>
-                              <FormLabel className="text-xs">Risk %</FormLabel>
+                              <FormLabel className="text-xs font-semibold text-foreground">Risk %</FormLabel>
                               <FormControl>
                                 <Input
                                   type="number"
@@ -2481,7 +2481,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.vatEnabled`}
                         render={({ field: f }) => (
                           <FormItem className="flex flex-col">
-                            <FormLabel className="text-xs">VAT</FormLabel>
+                            <FormLabel className="text-xs font-semibold text-foreground">VAT</FormLabel>
                             <div className="flex items-center gap-1.5 mt-1.5">
                               <Switch
                                 checked={f.value}
@@ -2508,7 +2508,7 @@ export function QuoteWizard({
                           name={`lineItems.${idx}.toleranceClass`}
                           render={({ field: f }) => (
                             <FormItem>
-                              <FormLabel className="text-xs">
+                              <FormLabel className="text-xs font-semibold text-foreground">
                                 Tolerance
                               </FormLabel>
                               <Select
@@ -2541,7 +2541,7 @@ export function QuoteWizard({
                           name={`lineItems.${idx}.surfaceFinish`}
                           render={({ field: f }) => (
                             <FormItem>
-                              <FormLabel className="text-xs">Surface</FormLabel>
+                              <FormLabel className="text-xs font-semibold text-foreground">Surface</FormLabel>
                               <Select
                                 onValueChange={f.onChange}
                                 value={f.value || "Standard"}
@@ -2569,7 +2569,7 @@ export function QuoteWizard({
                           name={`lineItems.${idx}.complexity`}
                           render={({ field: f }) => (
                             <FormItem>
-                              <FormLabel className="text-xs">
+                              <FormLabel className="text-xs font-semibold text-foreground">
                                 Complexity
                               </FormLabel>
                               <Select
