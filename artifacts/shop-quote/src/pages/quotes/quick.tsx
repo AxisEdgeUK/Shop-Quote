@@ -1301,8 +1301,7 @@ export function QuickQuote() {
             <button
               type="button"
               onClick={addPart}
-              className="w-full rounded border-2 border-dashed py-3 flex items-center justify-center gap-2 text-sm font-medium transition-colors hover:border-primary/60 hover:text-primary"
-              style={{ borderColor: "hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}
+              className="w-full rounded-lg py-3 flex items-center justify-center gap-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors"
             >
               <Plus className="w-4 h-4" />
               Add Another Part

@@ -2637,8 +2637,8 @@ export function QuoteWizard({
             <div className="flex gap-2 mt-3">
               <Button
                 type="button"
-                variant="outline"
                 size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm"
                 onClick={() => {
                   append(newItemDefaults() as any);
                   setActiveLineItemIndex(fields.length);
