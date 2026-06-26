@@ -1,0 +1,313 @@
+I actually think this is the biggest strategic pivot we've made on the project.
+
+We're no longer asking "How do we improve Full Quote?"
+
+We're asking:
+
+> **"What does a CNC estimator actually stare at for 8 hours a day?"**
+
+That's a much better question.
+
+This is the prompt I'd give Replit.
+
+We are changing the direction of AxisEdge Quote based on real-world testing.
+
+This is a strategic UX redesign.
+
+Do NOT simply move fields around.
+
+Rethink the quoting workspace.
+
+## Background
+
+After using the software on live RFQs, we have realised something important.
+
+The estimator does NOT spend most of their time filling in forms.
+
+They spend most of their time studying the engineering drawing.
+
+The drawing drives every quoting decision:
+
+* material
+* machining strategy
+* setup
+* tooling
+* tolerances
+* finishes
+* risk
+
+The software should support this workflow.
+
+Not interrupt it.
+
+## New Product Philosophy
+
+AxisEdge Quote is no longer "quoting software."
+
+It is an Estimator's Workspace.
+
+Think of it as a digital estimating desk.
+
+Everything revolves around the drawing.
+
+The quote supports the drawing.
+
+Not the other way around.
+
+## Remove Full Quote
+
+Remove the concept of:
+
+Quick Quote
+
+and
+
+Full Quote
+
+There should only be:
+
+# New Quote
+
+One workspace.
+
+One workflow.
+
+No user should ever ask:
+
+"Which quote screen should I use?"
+
+## New Quote Workspace
+
+Create one integrated estimating workspace.
+
+Desktop layout:
+
+---
+
+LEFT (approximately 65-70%)
+
+Engineering Drawing Workspace
+
+RIGHT (approximately 30-35%)
+
+Quote Workspace
+
+---
+
+### Drawing Workspace
+
+The drawing should dominate the screen.
+
+Support:
+
+* PDF viewing
+* Image viewing
+* Zoom
+* Pan
+* Multi-page PDF navigation
+* AI Scan
+* AI Highlight
+
+Keep the drawing permanently visible while quoting.
+
+The user should never need to swap between tabs.
+
+### Estimator Notes
+
+Below the drawing viewer add:
+
+Estimator Notes
+
+These notes are INTERNAL ONLY.
+
+They never appear on the customer PDF.
+
+Typical examples:
+
+Machine from 35mm bar
+
+Use 3mm part-off blade
+
+Soft jaws required
+
+0.8 Ra finish
+
+3mm radius
+
+Inspect first-off
+
+Buy 155 x 80 x 30 stock
+
+These notes are intended to replace the paper notebook beside the keyboard.
+
+Auto-save continuously.
+
+### Quote Workspace
+
+The quote workspace should remain based on the current Quick Quote.
+
+Do NOT redesign it completely.
+
+Quick Quote is now the foundation of the product.
+
+It should support:
+
+Customer
+
+Part cards
+
+Machine OR Manual Rate
+
+Setup
+
+Machining Time
+
+Material Cost
+
+Tooling
+
+Chargeable Extras
+
+Standard Products
+
+Pack Summary
+
+Generate PDF
+
+This workflow is now considered correct.
+
+### Drawing First
+
+The estimator should constantly glance between:
+
+Drawing
+
+↓
+
+Quote
+
+↓
+
+Drawing
+
+↓
+
+Quote
+
+without changing pages.
+
+### AI Scan
+
+AI remains an assistant.
+
+It should highlight:
+
+Material
+
+Finish
+
+Tight tolerances
+
+Threads
+
+Heat treatment
+
+Coatings
+
+Inspection notes
+
+The user remains responsible for accepting all suggestions.
+
+### Personal Drawing Notes
+
+Allow the estimator to write notes while reviewing the drawing.
+
+These are separate from quote notes.
+
+Examples:
+
+Machine in two operations
+
+Need fixture
+
+Repeat job from 2025
+
+Use customer supplied material
+
+Large batch next year
+
+Never print these.
+
+### Mobile
+
+On desktop:
+
+Drawing left
+
+Quote right
+
+On iPhone:
+
+Drawing above
+
+Quote below
+
+Maintain responsive behaviour.
+
+### Remove Duplicate Workflows
+
+There should no longer be two different quoting systems.
+
+One workspace.
+
+One quoting experience.
+
+Progressive disclosure should replace separate screens.
+
+### Product Goal
+
+When a machine shop owner opens AxisEdge Quote, it should feel like sitting down at an organised estimating desk.
+
+The drawing is always visible.
+
+The quote is always visible.
+
+Personal estimating notes are always available.
+
+Everything required to quote a job exists on one screen.
+
+The software should feel like professional engineering software.
+
+Not like a CRM.
+
+Not like an ERP.
+
+Not like a web form.
+
+The software should disappear into the background and allow the estimator to think about machining.
+
+That is the primary design objective.
+
+Do not remove any existing calculations or business logic.
+
+This is primarily a UX and workflow redesign using the existing Quick Quote architecture as the foundation.
+
+One final thought that I think is worth considering before Replit starts coding:
+
+I would even stop calling the left-hand side **"Drawing Workspace."**
+
+I'd call it simply:
+
+**Job File**
+
+Because in the future it could contain:
+
+* PDF drawings
+* STEP previews
+* Customer emails
+* RFQs
+* Photos
+* Inspection sheets
+* Previous revisions
+
+The right-hand side is the quote. The left-hand side becomes everything the estimator needs to make decisions. That gives you room to evolve without changing the core workflow.
