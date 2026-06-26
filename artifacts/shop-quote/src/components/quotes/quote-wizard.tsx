@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import {
   useScanContext,
@@ -39,6 +39,11 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Plus,
   Trash2,
@@ -264,36 +269,74 @@ const COST_CHECKS = [
   },
 ];
 
+/* ── Collapsible part-card section ───────────────────────────── */
+function PartSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <Collapsible
+      className="rounded border"
+      style={{ borderColor: "hsl(var(--border))" }}
+    >
+      <CollapsibleTrigger
+        type="button"
+        onClick={(e) => e.stopPropagation()}
+        className="group flex w-full items-center gap-2 rounded px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted/40"
+      >
+        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+        {title}
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="space-y-2 px-2.5 pb-2.5 pt-1">{children}</div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 function CostCheckPanel({ item }: { item: any }) {
+  const [open, setOpen] = useState(false);
   const missed = COST_CHECKS.filter((c) => {
     const v = Number(item[c.field]);
     return v === 0 || isNaN(v);
   });
   if (missed.length === 0)
     return (
-      <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg p-3">
-        <Check className="w-4 h-4 shrink-0" />
-        All cost areas have been filled in.
+      <div className="flex items-center gap-1.5 text-xs text-green-700">
+        <Check className="w-3.5 h-3.5 shrink-0" />
+        All cost areas covered.
       </div>
     );
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
-      <div className="flex items-center gap-2 text-amber-800 font-semibold text-sm">
-        <AlertTriangle className="w-4 h-4 shrink-0" />
-        Did you include these costs?
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-        {missed.map((c) => (
-          <div
-            key={c.field}
-            className="text-xs text-amber-700 bg-amber-100/60 rounded px-2 py-1.5"
-          >
-            <span className="font-semibold">{c.label}</span>
-            <span className="text-amber-600">: {c.note}</span>
-          </div>
-        ))}
-      </div>
-    </div>
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger
+        type="button"
+        onClick={(e) => e.stopPropagation()}
+        className="flex items-center gap-1.5 text-xs font-medium text-amber-700 transition-colors hover:text-amber-800"
+      >
+        <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+        Review missed costs ({missed.length})
+        <ChevronDown
+          className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="mt-1.5 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+          {missed.map((c) => (
+            <div
+              key={c.field}
+              className="rounded border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-700"
+            >
+              <span className="font-semibold">{c.label}</span>
+              <span className="text-amber-600">: {c.note}</span>
+            </div>
+          ))}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
@@ -305,69 +348,60 @@ function TemplatePicker({
   onSelect: (t: QuoteTemplate) => void;
   onSkip: () => void;
 }) {
-  const [selected, setSelected] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
 
   return (
-    <Card className="border-primary/30 bg-primary/5">
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-primary" />
-          <CardTitle className="text-base">
-            Quick Start: Apply a Template
-          </CardTitle>
+    <div className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-primary">
+          <Zap className="w-3.5 h-3.5" />
+          Templates
+        </span>
+        {QUOTE_TEMPLATES.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => onSelect(t)}
+            className="rounded border border-border bg-card px-2.5 py-1 text-xs font-medium transition-colors hover:border-primary/50 hover:bg-primary/5"
+          >
+            {t.label}
+          </button>
+        ))}
+        <div className="ml-auto flex shrink-0 items-center gap-3">
+          <button
+            type="button"
+            className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? "Hide details" : "Details"}
+          </button>
+          <button
+            type="button"
+            className="text-xs text-muted-foreground underline transition-colors hover:text-foreground"
+            onClick={onSkip}
+          >
+            Skip
+          </button>
         </div>
-        <CardDescription>
-          Pick a job type to preload sensible cost defaults. You can adjust
-          everything afterwards.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
+      </div>
+      {expanded && (
+        <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {QUOTE_TEMPLATES.map((t) => (
             <button
               key={t.id}
               type="button"
-              onClick={() => setSelected(t.id)}
-              className={`text-left p-3 rounded-lg border transition-all ${
-                selected === t.id
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-card hover:border-primary/50"
-              }`}
+              onClick={() => onSelect(t)}
+              className="rounded-lg border border-border bg-card p-2.5 text-left transition-colors hover:border-primary/50"
             >
-              <div className="font-semibold text-sm">{t.label}</div>
-              <div
-                className={`text-xs mt-0.5 ${selected === t.id ? "text-primary-foreground/80" : "text-muted-foreground"}`}
-              >
+              <div className="text-xs font-semibold">{t.label}</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">
                 {t.description}
               </div>
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-3">
-          {selected && (
-            <Button
-              type="button"
-              size="sm"
-              onClick={() => {
-                const t = QUOTE_TEMPLATES.find((x) => x.id === selected)!;
-                onSelect(t);
-              }}
-            >
-              <Zap className="w-3.5 h-3.5 mr-1.5" />
-              Apply {QUOTE_TEMPLATES.find((x) => x.id === selected)?.label}{" "}
-              defaults
-            </Button>
-          )}
-          <button
-            type="button"
-            className="text-xs text-muted-foreground underline hover:text-foreground transition-colors"
-            onClick={onSkip}
-          >
-            Skip →
-          </button>
-        </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }
 
@@ -2032,7 +2066,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.drawingNumber`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-semibold text-foreground">Drawing</FormLabel>
+                            <FormLabel className="text-xs font-medium text-muted-foreground">Drawing</FormLabel>
                             <FormControl>
                               <Input
                                 className="h-7 text-xs"
@@ -2049,7 +2083,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.revision`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-semibold text-foreground">Rev</FormLabel>
+                            <FormLabel className="text-xs font-medium text-muted-foreground">Rev</FormLabel>
                             <FormControl>
                               <Input
                                 className="h-7 text-xs"
@@ -2066,7 +2100,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.processType`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-semibold text-foreground">Process</FormLabel>
+                            <FormLabel className="text-xs font-medium text-muted-foreground">Process</FormLabel>
                             <Select
                               onValueChange={f.onChange}
                               value={f.value}
@@ -2102,7 +2136,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.material`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-semibold text-foreground">Material</FormLabel>
+                            <FormLabel className="text-xs font-medium text-muted-foreground">Material</FormLabel>
                             <FormControl>
                               <MaterialCombobox
                                 value={f.value ?? ""}
@@ -2124,7 +2158,7 @@ export function QuoteWizard({
                         name={`lineItems.${idx}.machineId`}
                         render={({ field: f }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-semibold text-foreground">Machine</FormLabel>
+                            <FormLabel className="text-xs font-medium text-muted-foreground">Machine</FormLabel>
                             <Select
                               onValueChange={(v) =>
                                 f.onChange(
@@ -2249,13 +2283,10 @@ export function QuoteWizard({
                       />
                     </div>
 
-                    {/* Advanced time + material fields */}
+                    {/* Advanced Costs (collapsible) */}
                     {quoteMode === "advanced" && (
-                      <>
-                        <div
-                          className="grid grid-cols-3 gap-2 pt-2 border-t"
-                          style={{ borderColor: "hsl(var(--border))" }}
-                        >
+                      <PartSection title="Advanced Costs">
+                        <div className="grid grid-cols-3 gap-2">
                           <FormField
                             control={form.control}
                             name={`lineItems.${idx}.programmingHours`}
@@ -2406,14 +2437,13 @@ export function QuoteWizard({
                             )}
                           />
                         </div>
-                      </>
+                      </PartSection>
                     )}
 
-                    {/* Commercials: Margin | Discount | [Risk] | VAT */}
-                    <div
-                      className={`grid gap-2 pt-2 border-t ${quoteMode === "advanced" ? "grid-cols-4" : "grid-cols-3"}`}
-                      style={{ borderColor: "hsl(var(--border))" }}
-                    >
+                    {/* Risk & Commercials (collapsible) */}
+                    {quoteMode === "advanced" && (
+                    <PartSection title="Risk & Commercials">
+                    <div className="grid grid-cols-4 gap-2">
                       <FormField
                         control={form.control}
                         name={`lineItems.${idx}.profitMarginPercentage`}
@@ -2496,13 +2526,13 @@ export function QuoteWizard({
                         )}
                       />
                     </div>
+                    </PartSection>
+                    )}
 
-                    {/* Quality (advanced) */}
+                    {/* Quality & Requirements (collapsible) */}
                     {quoteMode === "advanced" && (
-                      <div
-                        className="grid grid-cols-3 gap-2 pt-2 border-t"
-                        style={{ borderColor: "hsl(var(--border))" }}
-                      >
+                      <PartSection title="Quality & Requirements">
+                      <div className="grid grid-cols-3 gap-2">
                         <FormField
                           control={form.control}
                           name={`lineItems.${idx}.toleranceClass`}
@@ -2598,6 +2628,7 @@ export function QuoteWizard({
                           )}
                         />
                       </div>
+                      </PartSection>
                     )}
 
                     {/* Cost check (advanced, active part only) */}

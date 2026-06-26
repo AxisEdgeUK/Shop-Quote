@@ -1,0 +1,238 @@
+Brutal view: **the Full Quote screen is over-engineered for a first-time user.**
+
+The Quick Quote is now the product’s strongest workflow. The Full Quote currently looks like someone took every useful idea and put it on one screen. That is dangerous.
+
+## What is good
+
+The **split drawing workspace** is excellent. Keep it.
+
+The **summary bar on the far right** is useful. Keep it.
+
+The **templates at the top** are useful, but they take too much premium space.
+
+The **hidden cost reminders** are commercially smart, but visually too loud and too large.
+
+The **Basic / Advanced toggle** is good, but Basic still looks advanced.
+
+## What is bad
+
+The part card is overloaded. It has too many fields visible at once:
+
+* programming
+* inspection
+* deburring
+* wastage
+* outside process
+* packaging
+* delivery
+* risk
+* VAT
+* tolerance
+* surface
+* complexity
+
+That is not “Full Quote”; that is “everything quote.”
+
+The screen feels like a control panel designed by a developer, not an estimator.
+
+A new user will think:
+
+> “I need to understand all this before I can send a quote.”
+
+That is a conversion killer.
+
+## What I would do
+
+Make Full Quote **progressively advanced**.
+
+Show the essential estimating fields first. Hide the rest behind expandable sections.
+
+Default visible fields per part should be:
+
+* Part Name
+* Qty
+* Drawing
+* Rev
+* Material
+* Machine / Manual Rate
+* Setup
+* Machining time
+* Material cost
+* Tooling
+* Total
+
+Everything else should sit inside:
+
+* Advanced Costs
+* Quality & Inspection
+* Notes & Risk
+
+## Prompt for Replit
+
+```text
+Re-engineer the Full Quote screen to reduce complexity.
+
+The current Full Quote screen is too visually busy and over-engineered.
+
+Do not remove existing functionality.
+Do not change Quick Quote.
+Quick Quote is currently correct.
+
+Only simplify the Full Quote user experience.
+
+Goal:
+Full Quote should feel like a professional estimating workspace, not an overloaded engineering form.
+
+Keep:
+- left drawing workspace
+- right quote summary
+- part cards
+- chargeable extras
+- standard products
+- PDF generation
+- all existing calculation logic
+
+Main change:
+Use progressive disclosure.
+
+1. Simplify the default part card
+
+By default, each part card should show only:
+
+- Part Name
+- Qty
+- Drawing Number
+- Revision
+- Material
+- Machine / Manual Rate
+- Setup Hours
+- Machining Minutes
+- Material Cost
+- Tooling Cost
+- Part Total
+
+Hide these by default:
+
+- Programming
+- Inspection
+- Deburring
+- Wastage
+- Outside Process
+- Packaging
+- Delivery
+- Risk
+- VAT
+- Tolerance
+- Surface Finish
+- Complexity
+- Certifications
+- Internal Notes
+
+2. Add expandable sections inside each part card
+
+Use three collapsible sections:
+
+Advanced Costs
+- Programming
+- Inspection
+- Deburring
+- Outside Process
+- Packaging
+- Delivery
+- Wastage
+
+Quality & Requirements
+- Tolerance
+- Surface Finish
+- Complexity
+- Certifications
+- Drawing revision checks
+
+Risk & Notes
+- Risk %
+- Internal notes
+- Customer notes
+
+All sections collapsed by default.
+
+3. Make Basic mode genuinely basic
+
+When Basic mode is selected:
+Only show the default part card fields.
+
+When Advanced mode is selected:
+Show the collapsible sections, but keep them collapsed until opened.
+
+4. Reduce hidden cost reminder size
+
+Keep hidden cost reminders, but make them compact.
+
+Do not use a large yellow block.
+
+Replace with a subtle compact checklist button:
+
+Review missed costs
+
+When clicked, open a small panel/checklist.
+
+5. Reduce top template area height
+
+The template section is useful but takes too much space.
+
+Make it collapsible.
+
+Default:
+show only a compact row:
+
+Templates: Prototype Milling | Repeat Milling | CNC Turning | Mill-Turn | Fabrication
+
+Let the user expand for descriptions if needed.
+
+6. Improve visual hierarchy
+
+The current card has too many equal-weight fields.
+
+Make these more prominent:
+- Part Name
+- Qty
+- Setup
+- Machining
+- Part Total
+
+Make secondary fields quieter:
+- Drawing
+- Revision
+- Material
+- Machine
+
+7. Keep the summary sticky
+
+The right summary should remain visible.
+
+It should show:
+- Part totals
+- Delivery
+- Extras
+- Products
+- VAT
+- Grand total
+- Generate PDF
+- Save Quote
+
+8. Do not add new features
+
+This is a simplification pass only.
+
+9. Final goal
+
+A new user should be able to open Full Quote and immediately understand:
+
+- who the quote is for
+- what parts are being quoted
+- what time assumptions are being used
+- what the total price is
+
+without feeling overwhelmed.
+```
+
+My blunt recommendation: after this simplification, stop building and test. The Full Quote does not need more capability; it needs less visible complexity.
